@@ -477,7 +477,7 @@ function Leaf:CreateWindow(config)
             end)
             
             updateSlider(default)
-            self.nextPosition = self.nextPosition + 50
+            self.nextPosition = self.nextPosition + 50 
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
         end
         
