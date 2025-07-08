@@ -103,7 +103,7 @@ function Leaf:CreateWindow(config)
     Mainframe.Parent = InnerFrame
     Mainframe.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     Mainframe.BorderSizePixel = 0
-    Mainframe.Position = UDim2.new(0.017, 0, 0.191, 0)
+    Mainframe.Position = UDim2.new(0.0170000009, 0, 0.191, 0)
     Mainframe.Size = UDim2.new(0, 310, 0, 200)
     
     UIStroke3.Parent = Mainframe
