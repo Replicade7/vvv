@@ -284,7 +284,7 @@ function Leaf:CreateWindow(config)
                 if props.Callback then pcall(props.Callback) end
             end)
             
-            self.nextPosition = self.nextPosition + 50
+            self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
         end
 
@@ -396,7 +396,7 @@ function Leaf:CreateWindow(config)
             SliderName.Parent = SliderFrame
             SliderName.BackgroundTransparency = 1
             SliderName.Position = UDim2.new(0.04, 0, 0, 0)
-            SliderName.Size = UDim2.new(0.5, 0, 0.5, 0)
+            SliderName.Size = UDim2.new(0.5, 0, 1, 0)
             SliderName.Font = Enum.Font.GothamBold
             SliderName.Text = props.Title
             SliderName.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -405,8 +405,9 @@ function Leaf:CreateWindow(config)
             
             Fill.Parent = SliderFrame
             Fill.BackgroundColor3 = Color3.fromRGB(31, 31, 31)
-            Fill.Position = UDim2.new(0.035, 0, 0.6, 0)
+            Fill.Position = UDim2.new(0.035, 0, 0.5, 0)
             Fill.Size = UDim2.new(0, 261, 0, 10)
+            Fill.AnchorPoint = Vector2.new(0, 0.5)
             
             UICornerFill.CornerRadius = UDim.new(0, 4)
             UICornerFill.Parent = Fill
@@ -421,14 +422,14 @@ function Leaf:CreateWindow(config)
             
             Snumber.Parent = SliderFrame
             Snumber.BackgroundTransparency = 1
-            Snumber.Position = UDim2.new(1, -60, 0, 0) 
-            Snumber.Size = UDim2.new(0, 50, 0.5, 0)      
+            Snumber.Position = UDim2.new(1, -60, 0, 0)
+            Snumber.Size = UDim2.new(0, 50, 1, 0)
             Snumber.Font = Enum.Font.GothamBold
             Snumber.Text = tostring(default)
             Snumber.TextColor3 = Color3.fromRGB(255, 255, 255)
             Snumber.TextSize = 16
             Snumber.TextXAlignment = Enum.TextXAlignment.Right
-            Snumber.TextYAlignment = Enum.TextYAlignment.Center 
+            Snumber.TextYAlignment = Enum.TextYAlignment.Center
             
             local currentValue = default
             local dragging = false
@@ -477,7 +478,7 @@ function Leaf:CreateWindow(config)
             end)
             
             updateSlider(default)
-            self.nextPosition = self.nextPosition + 45 
+            self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
         end
         
