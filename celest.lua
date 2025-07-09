@@ -1,24 +1,33 @@
--- Модуль ConfigManager для управления конфигурациями
 local HttpService = game:GetService("HttpService")
-local TweenService = game:GetService("TweenService")
 
+-- Модульная система конфигурации
 local ConfigManager = {
-    Window = nil,
-    Folder = nil,
-    Path = nil,
+    Path = "LeafConfigs/",
     Configs = {},
-    -- Парсеры для различных типов элементов UI
     Parser = {
-        Colorpicker = {
+        Toggle = {
             Save = function(obj)
                 return {
                     __type = obj.__type,
-                    value = obj.Default:ToHex()
+                    value = obj.Value
                 }
             end,
             Load = function(element, data)
-                if element then
-                    element:Set(Color3.fromHex(data.value))
+                if element and element.Set then
+                    element:Set(data.value)
+                end
+            end
+        },
+        Slider = {
+            Save = function(obj)
+                return {
+                    __type = obj.__type,
+                    value = obj.Value
+                }
+            end,
+            Load = function(element, data)
+                if element and element.Set then
+                    element:Set(data.value)
                 end
             end
         },
@@ -30,7 +39,7 @@ local ConfigManager = {
                 }
             end,
             Load = function(element, data)
-                if element then
+                if element and element.Set then
                     element:Set(data.value)
                 end
             end
@@ -43,192 +52,187 @@ local ConfigManager = {
                 }
             end,
             Load = function(element, data)
-                if element then
+                if element and element.Set then
                     element:Set(data.value)
                 end
             end
         },
-        Slider = {
+        Colorpicker = {
             Save = function(obj)
                 return {
                     __type = obj.__type,
-                    value = obj.Value.Default
+                    value = {obj.Value.R, obj.Value.G, obj.Value.B}
                 }
             end,
             Load = function(element, data)
-                if element then
-                    element:Set(data.value)
-                end
-            end
-        },
-        Toggle = {
-            Save = function(obj)
-                return {
-                    __type = obj.__type,
-                    value = obj.Value
-                }
-            end,
-            Load = function(element, data)
-                if element then
-                    element:Set(data.value)
+                if element and element.Set then
+                    local color = Color3.new(data.value[1], data.value[2], data.value[3])
+                    element:Set(color)
                 end
             end
         }
     }
 }
 
---- Инициализация ConfigManager
--- @param Window Объект окна UI
--- @return ConfigManager или false при ошибке
-function ConfigManager:Init(Window)
-    if not Window.Folder then
-        warn("[ConfigManager] Window.Folder не указан.")
-        return false
+-- Инициализация менеджера конфигурации
+function ConfigManager:Init(folderName)
+    self.Path = "LeafConfigs/" .. folderName .. "/"
+    if not isfolder("LeafConfigs") then
+        makefolder("LeafConfigs")
     end
-    self.Window = Window
-    self.Folder = Window.Folder
-    self.Path = "Leaf/" .. tostring(self.Folder) .. "/configs/"
+    if not isfolder(self.Path) then
+        makefolder(self.Path)
+    end
     return self
 end
 
---- Создание модуля конфигурации
--- @param configFilename Имя файла конфигурации
--- @return ConfigModule или false и сообщение об ошибке
-function ConfigManager:CreateConfig(configFilename)
-    if not configFilename then
-        return false, "Не указано имя файла конфигурации"
+-- Создание новой конфигурации
+function ConfigManager:CreateConfig(configName)
+    if not configName or configName == "" then
+        return nil, "Invalid config name"
     end
 
-    local ConfigModule = {
-        Path = self.Path .. configFilename .. ".json",
+    if self.Configs[configName] then
+        return self.Configs[configName]
+    end
+
+    local config = {
+        Path = self.Path .. configName .. ".json",
         Elements = {}
     }
 
-    --- Регистрация элемента в конфигурации
-    -- @param Name Уникальное имя элемента
-    -- @param Element Объект элемента UI
-    function ConfigModule:Register(Name, Element)
-        self.Elements[Name] = Element
+    -- Регистрация элемента в конфигурации
+    function config:Register(name, element)
+        if name and element then
+            self.Elements[name] = element
+        end
     end
 
-    --- Сохранение конфигурации в файл
-    function ConfigModule:Save()
-        local saveData = { Elements = {} }
+    -- Сохранение конфигурации в файл
+    function config:Save()
+        local saveData = {Elements = {}}
+        
         for name, element in pairs(self.Elements) do
-            if self.Parser[element.__type] then
-                saveData.Elements[tostring(name)] = self.Parser[element.__type].Save(element)
+            local elementType = element.__type
+            if elementType and ConfigManager.Parser[elementType] then
+                saveData.Elements[name] = ConfigManager.Parser[elementType].Save(element)
             end
         end
-        if not isfolder(self.Path) then
-            makefolder(self.Path)
-        end
-        writefile(self.Path .. configFilename .. ".json", HttpService:JSONEncode(saveData))
-    end
 
-    --- Загрузка конфигурации из файла
-    -- @return boolean Успех операции
-    -- @return string Сообщение об ошибке, если есть
-    function ConfigModule:Load()
-        if not isfile(self.Path) then
-            return false, "Файл конфигурации не найден"
-        end
-        local success, loadData = pcall(function()
-            return HttpService:JSONDecode(readfile(self.Path))
-        end)
-        if not success then
-            return false, "Ошибка при чтении файла конфигурации"
-        end
-        for name, data in pairs(loadData.Elements) do
-            if self.Elements[name] and self.Parser[data.__type] then
-                task.spawn(function()
-                    self.Parser[data.__type].Load(self.Elements[name], data)
-                end)
-            end
-        end
+        local json = HttpService:JSONEncode(saveData)
+        writefile(self.Path, json)
         return true
     end
 
-    self.Configs[configFilename] = ConfigModule
-    return ConfigModule
-end
+    -- Загрузка конфигурации из файла
+    function config:Load()
+        if not isfile(self.Path) then
+            return false, "Config file not found"
+        end
 
---- Получение списка всех конфигураций
--- @return table Список имен файлов конфигураций или false
-function ConfigManager:AllConfigs()
-    if not listfiles then
-        return false
+        local success, data = pcall(function()
+            return HttpService:JSONDecode(readfile(self.Path))
+        end)
+        
+        if not success or not data then
+            return false, "Invalid config file"
+        end
+
+        for name, elementData in pairs(data.Elements or {}) do
+            local element = self.Elements[name]
+            local parser = elementData and ConfigManager.Parser[elementData.__type]
+            
+            if element and parser then
+                parser.Load(element, elementData)
+            end
+        end
+
+        return true
     end
-    local files = {}
-    if not isfolder(self.Path) then
-        return files
-    end
-    for _, file in pairs(listfiles(self.Path))) do
-        local name = file:match("([^\\/]+)%.json$")
+
+    -- Удаление элемента из конфигурации
+    function config:Unregister(name)
         if name then
-            table.insert(files, name)
+            self.Elements[name] = nil
         end
     end
-    return files
+
+    self.Configs[configName] = config
+    return config
 end
 
--- Основной модуль Leaf UI
-local Leaf = {
-    configElements = {}, -- Хранилище всех конфигурируемых элементов
-}
+-- Получение списка доступных конфигураций
+function ConfigManager:GetConfigs()
+    if not listfiles then return {} end
+    
+    local configs = {}
+    for _, file in ipairs(listfiles(self.Path)) do
+        local name = file:match(".*/(.*)%.json$")
+        if name then
+            table.insert(configs, name)
+        end
+    end
+    return configs
+end
 
---- Создание окна UI
--- @param config Таблица конфигурации окна {Name, Color, LogoID, Folder}
--- @return table Объект окна
+-- Основной модуль интерфейса
+local Leaf = {}
+
 function Leaf:CreateWindow(config)
+    -- Инициализация системы конфигурации
+    ConfigManager:Init(config.Folder or "DefaultConfigs")
+    
     local window = {}
     Leaf.MenuColorValue = Instance.new("Color3Value")
     Leaf.MenuColorValue.Value = Color3.fromRGB(config.Color[1], config.Color[2], config.Color[3])
     Leaf.colorElements = {}
     Leaf.toggles = {}
-    window.Folder = config.Folder or "LeafConfigs"
-
-    -- Инициализация ConfigManager
-    ConfigManager:Init(window)
-
-    -- Создание вспомогательной функции для модуля конфигурации
-    local function createConfigModule(filename)
-        local configModule = ConfigManager:CreateConfig(filename)
-        for name, element in pairs(Leaf.configElements) do
-            configModule:Register(name, element)
+    
+    -- Обработчик изменения цвета
+    Leaf.MenuColorValue.Changed:Connect(function()
+        for _, item in ipairs(Leaf.colorElements) do
+            item.element[item.property] = Leaf.MenuColorValue.Value
         end
-        return configModule
-    end
-
-    -- Создание UI элементов окна (MiniMenu и MainMenu)
+        for _, toggleData in ipairs(Leaf.toggles) do
+            if toggleData.state then
+                toggleData.indicator.BackgroundColor3 = Leaf.MenuColorValue.Value
+            end
+        end
+        if activeTab then
+            activeTab.TabButton.ImageColor3 = Leaf.MenuColorValue.Value
+        end
+    end)
+    
+    -- Создание мини-меню
     local MiniMenu = Instance.new("ScreenGui")
     local MiniMenuFrame = Instance.new("Frame")
     local UICornerMini = Instance.new("UICorner")
     local ImageMiniMenu = Instance.new("ImageLabel")
     local Bmenu = Instance.new("TextButton")
-
+    
     MiniMenu.Name = "MiniMenu"
     MiniMenu.Parent = game:GetService("CoreGui")
     MiniMenu.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
+    
     MiniMenuFrame.Name = "MiniMenu"
     MiniMenuFrame.Parent = MiniMenu
     MiniMenuFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     MiniMenuFrame.BorderSizePixel = 0
     MiniMenuFrame.Position = UDim2.new(0.442, 0, 0.065, 0)
     MiniMenuFrame.Size = UDim2.new(0, 50, 0, 50)
-
+    
     UICornerMini.CornerRadius = UDim.new(0, 4)
     UICornerMini.Parent = MiniMenuFrame
-
+    
     ImageMiniMenu.Name = "ImageMiniMenu"
     ImageMiniMenu.Parent = MiniMenuFrame
     ImageMiniMenu.BackgroundTransparency = 1
     ImageMiniMenu.Position = UDim2.new(0.14, 0, 0.14, 0)
     ImageMiniMenu.Size = UDim2.new(0, 35, 0, 35)
-    ImageMiniMenu.Image = "rbxassetid://" .. config.LogoID
+    ImageMiniMenu.Image = "rbxassetid://"..config.LogoID
     ImageMiniMenu.ImageColor3 = Leaf.MenuColorValue.Value
     table.insert(Leaf.colorElements, {element = ImageMiniMenu, property = "ImageColor3"})
-
+    
     Bmenu.Name = "Bmenu"
     Bmenu.Parent = MiniMenuFrame
     Bmenu.BackgroundTransparency = 1
@@ -237,6 +241,7 @@ function Leaf:CreateWindow(config)
     Bmenu.Text = ""
     Bmenu.TextTransparency = 1
 
+    -- Создание основного интерфейса
     local ScreenGui = Instance.new("ScreenGui")
     local OuterFrame = Instance.new("Frame")
     local UIStroke1 = Instance.new("UIStroke")
@@ -249,12 +254,12 @@ function Leaf:CreateWindow(config)
     local UIStroke4 = Instance.new("UIStroke")
     local TextLabel = Instance.new("TextLabel")
     local Line = Instance.new("Frame")
-
+    
     ScreenGui.Name = "MainMenu"
     ScreenGui.Parent = game:GetService("CoreGui")
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     ScreenGui.Enabled = false
-
+    
     OuterFrame.Name = "OuterFrame"
     OuterFrame.Parent = ScreenGui
     OuterFrame.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -262,43 +267,46 @@ function Leaf:CreateWindow(config)
     OuterFrame.BorderSizePixel = 0
     OuterFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
     OuterFrame.Size = UDim2.new(0, 336, 0, 273)
-
+    
     UIStroke1.Parent = OuterFrame
     UIStroke1.Color = Color3.fromRGB(80, 80, 80)
     UIStroke1.Thickness = 2
-
+    
     InnerFrame.Name = "InnerFrame"
     InnerFrame.Parent = OuterFrame
     InnerFrame.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
     InnerFrame.BorderSizePixel = 0
     InnerFrame.Position = UDim2.new(0.024, 0, 0.0315, 0)
     InnerFrame.Size = UDim2.new(0, 320, 0, 255)
-
+    
     UIStroke2.Parent = InnerFrame
     UIStroke2.Color = Color3.fromRGB(80, 80, 80)
     UIStroke2.Thickness = 2
-
+    
     Mainframe.Name = "MainFrame"
     Mainframe.Parent = InnerFrame
     Mainframe.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     Mainframe.BorderSizePixel = 0
     Mainframe.Position = UDim2.new(0.015, 0, 0.191, 0)
     Mainframe.Size = UDim2.new(0, 310, 0, 200)
-
+    
+    UICornerMain.CornerRadius = UDim.new(0, 4)
+    UICornerMain.Parent = Mainframe
+    
     UIStroke3.Parent = Mainframe
     UIStroke3.Color = Color3.fromRGB(80, 80, 80)
     UIStroke3.Thickness = 2
-
+    
     TopBar.Name = "TopBar"
     TopBar.Parent = Mainframe
     TopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     TopBar.Position = UDim2.new(0, 0, -0.19, 0)
     TopBar.Size = UDim2.new(0, 310, 0, 30)
-
+    
     UIStroke4.Parent = TopBar
     UIStroke4.Color = Color3.fromRGB(80, 80, 80)
     UIStroke4.Thickness = 2
-
+    
     TextLabel.Parent = TopBar
     TextLabel.BackgroundTransparency = 1
     TextLabel.Position = UDim2.new(0.05, 0, 0, 0)
@@ -308,7 +316,7 @@ function Leaf:CreateWindow(config)
     TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     TextLabel.TextSize = 15
     TextLabel.TextXAlignment = Enum.TextXAlignment.Left
-
+    
     Line.Name = "Line"
     Line.Parent = TopBar
     Line.BackgroundColor3 = Leaf.MenuColorValue.Value
@@ -320,8 +328,7 @@ function Leaf:CreateWindow(config)
     local activeTab
     local allDropdowns = {}
     local allColorPickers = {}
-
-    -- Обновление активной вкладки
+    
     local function setActiveTab(tab)
         if activeTab then
             activeTab.ScrollingFrame.Visible = false
@@ -330,7 +337,7 @@ function Leaf:CreateWindow(config)
         activeTab = tab
         activeTab.ScrollingFrame.Visible = true
         activeTab.TabButton.ImageColor3 = Leaf.MenuColorValue.Value
-
+        
         for _, dropdown in ipairs(allDropdowns) do
             dropdown.Visible = false
         end
@@ -338,26 +345,23 @@ function Leaf:CreateWindow(config)
             picker.Visible = false
         end
     end
-
-    --- Создание новой вкладки
-    -- @param props Свойства вкладки {Name, Image, Opened}
-    -- @return table Объект вкладки
+    
     function window:CreateTab(props)
         local tab = {}
         local TabButton = Instance.new("ImageButton")
         local UICornerTab = Instance.new("UICorner")
-
-        TabButton.Name = "Tab" .. #allTabs + 1
+        
+        TabButton.Name = "Tab"..#allTabs+1
         TabButton.Parent = TopBar
         TabButton.BackgroundTransparency = 1
         TabButton.Position = UDim2.new(0.743 + (#allTabs * 0.081), 0, 0.073, 0)
         TabButton.Size = UDim2.new(0, 25, 0, 25)
         TabButton.Image = props.Image
         TabButton.ImageColor3 = props.Opened and Leaf.MenuColorValue.Value or Color3.fromRGB(130, 130, 130)
-
+        
         UICornerTab.CornerRadius = UDim.new(0, 4)
         UICornerTab.Parent = TabButton
-
+        
         local ScrollingFrame = Instance.new("ScrollingFrame")
         ScrollingFrame.Parent = Mainframe
         ScrollingFrame.Active = true
@@ -366,14 +370,11 @@ function Leaf:CreateWindow(config)
         ScrollingFrame.Visible = props.Opened
         ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
         ScrollingFrame.ScrollBarThickness = 3
-
+        
         tab.TabButton = TabButton
         tab.ScrollingFrame = ScrollingFrame
         tab.nextPosition = 10
-        tab.Elements = {} -- Хранилище элементов вкладки
-
-        --- Добавление кнопки
-        -- @param props Свойства кнопки {Title, Callback, Active}
+        
         function tab:Button(props)
             local ButtonFrame = Instance.new("Frame")
             local UICornerBtn = Instance.new("UICorner")
@@ -381,23 +382,23 @@ function Leaf:CreateWindow(config)
             local UICornerInd = Instance.new("UICorner")
             local NameButton = Instance.new("TextLabel")
             local TextButton = Instance.new("TextButton")
-
+            
             ButtonFrame.Parent = self.ScrollingFrame
             ButtonFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
             ButtonFrame.Size = UDim2.new(0, 280, 0, 40)
             ButtonFrame.Position = UDim2.new(0.5, -140, 0, self.nextPosition)
-
+            
             UICornerBtn.CornerRadius = UDim.new(0, 4)
             UICornerBtn.Parent = ButtonFrame
-
+            
             Indicator.Parent = ButtonFrame
             Indicator.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
             Indicator.Position = UDim2.new(0.952, 0, 0.2, 0)
             Indicator.Size = UDim2.new(0, 5, 0, 23)
-
+            
             UICornerInd.CornerRadius = UDim.new(0, 4)
             UICornerInd.Parent = Indicator
-
+            
             NameButton.Parent = ButtonFrame
             NameButton.BackgroundTransparency = 1
             NameButton.Position = UDim2.new(0.04, 0, 0, 0)
@@ -407,51 +408,52 @@ function Leaf:CreateWindow(config)
             NameButton.TextColor3 = Color3.fromRGB(255, 255, 255)
             NameButton.TextSize = 16
             NameButton.TextXAlignment = Enum.TextXAlignment.Left
-
+            
             TextButton.Parent = ButtonFrame
             TextButton.BackgroundTransparency = 1
             TextButton.Size = UDim2.new(1, 0, 1, 0)
             TextButton.Text = ""
-
+            
             local clickCount = 0
             local runService = game:GetService("RunService")
-
+            
             TextButton.MouseButton1Click:Connect(function()
                 clickCount = clickCount + 1
                 local currentClick = clickCount
+                
                 Indicator.BackgroundColor3 = Leaf.MenuColorValue.Value
+                
                 if props.Callback then pcall(props.Callback) end
+                
                 local startTime = os.clock()
                 while os.clock() - startTime < (props.Active or 0.5) do
                     runService.Heartbeat:Wait()
                 end
+                
                 if clickCount == currentClick then
                     Indicator.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
                 end
             end)
-
+            
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
-            table.insert(self.Elements, ButtonFrame)
         end
 
-        --- Добавление декоративной кнопки
-        -- @param props Свойства кнопки {Title, Callback}
         function tab:DeButton(props)
             local DeButtonFrame = Instance.new("Frame")
             local UICornerDeBtn = Instance.new("UICorner")
             local NameButton = Instance.new("TextLabel")
             local TextButton = Instance.new("TextButton")
-
+            
             DeButtonFrame.Parent = self.ScrollingFrame
             DeButtonFrame.BackgroundColor3 = Leaf.MenuColorValue.Value
             table.insert(Leaf.colorElements, {element = DeButtonFrame, property = "BackgroundColor3"})
             DeButtonFrame.Size = UDim2.new(0, 280, 0, 40)
             DeButtonFrame.Position = UDim2.new(0.5, -140, 0, self.nextPosition)
-
+            
             UICornerDeBtn.CornerRadius = UDim.new(0, 4)
             UICornerDeBtn.Parent = DeButtonFrame
-
+            
             NameButton.Parent = DeButtonFrame
             NameButton.BackgroundTransparency = 1
             NameButton.Size = UDim2.new(1, 0, 1, 0)
@@ -459,25 +461,21 @@ function Leaf:CreateWindow(config)
             NameButton.Text = props.Title
             NameButton.TextColor3 = Color3.fromRGB(255, 255, 255)
             NameButton.TextSize = 25
-
+            
             TextButton.Parent = DeButtonFrame
             TextButton.BackgroundTransparency = 1
             TextButton.Size = UDim2.new(1, 0, 1, 0)
             TextButton.Text = ""
-
+            
             TextButton.MouseButton1Click:Connect(function()
                 if props.Callback then pcall(props.Callback) end
             end)
-
+            
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
-            table.insert(self.Elements, DeButtonFrame)
         end
 
-        --- Добавление переключателя
-        -- @param props Свойства переключателя {Name, Title, Default, Callback}
         function tab:Toggle(props)
-            assert(props.Name, "Уникальное имя (Name) обязательно для Toggle")
             local ToggleFrame = Instance.new("Frame")
             local UICornerTog = Instance.new("UICorner")
             local Indicator = Instance.new("Frame")
@@ -486,31 +484,31 @@ function Leaf:CreateWindow(config)
             local UICornerCir = Instance.new("UICorner")
             local NameButton = Instance.new("TextLabel")
             local TextButton = Instance.new("TextButton")
-
+            
             ToggleFrame.Parent = self.ScrollingFrame
             ToggleFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
             ToggleFrame.Size = UDim2.new(0, 280, 0, 40)
             ToggleFrame.Position = UDim2.new(0.5, -140, 0, self.nextPosition)
-
+            
             UICornerTog.CornerRadius = UDim.new(0, 4)
             UICornerTog.Parent = ToggleFrame
-
+            
             Indicator.Parent = ToggleFrame
             Indicator.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
             Indicator.Position = UDim2.new(0.802, 0, 0.25, 0)
             Indicator.Size = UDim2.new(0, 45, 0, 20)
-
+            
             UICornerInd.CornerRadius = UDim.new(0, 4)
             UICornerInd.Parent = Indicator
-
+            
             Circle.Parent = Indicator
             Circle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
             Circle.Size = UDim2.new(0, 15, 0, 15)
             Circle.Position = UDim2.new(0.05, 0, 0.1, 0)
-
+            
             UICornerCir.CornerRadius = UDim.new(1, 0)
             UICornerCir.Parent = Circle
-
+            
             NameButton.Parent = ToggleFrame
             NameButton.BackgroundTransparency = 1
             NameButton.Position = UDim2.new(0.04, 0, 0, 0)
@@ -520,53 +518,71 @@ function Leaf:CreateWindow(config)
             NameButton.TextColor3 = Color3.fromRGB(255, 255, 255)
             NameButton.TextSize = 16
             NameButton.TextXAlignment = Enum.TextXAlignment.Left
-
+            
             TextButton.Parent = ToggleFrame
             TextButton.BackgroundTransparency = 1
             TextButton.Size = UDim2.new(1, 0, 1, 0)
             TextButton.Text = ""
-
+            
+            local state = props.Default or false
+            local tweenService = game:GetService("TweenService")
+            local toggleData = {
+                state = state,
+                indicator = Indicator
+            }
+            table.insert(Leaf.toggles, toggleData)
+            
+            local function updateToggle()
+                if state then
+                    tweenService:Create(Circle, TweenInfo.new(0.2), {Position = UDim2.new(0.6, 0, 0.1, 0)}):Play()
+                    tweenService:Create(Indicator, TweenInfo.new(0.2), {BackgroundColor3 = Leaf.MenuColorValue.Value}):Play()
+                    tweenService:Create(Circle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}):Play()
+                else
+                    tweenService:Create(Circle, TweenInfo.new(0.2), {Position = UDim2.new(0.05, 0, 0.1, 0)}):Play()
+                    tweenService:Create(Indicator, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}):Play()
+                    tweenService:Create(Circle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+                end
+            end
+            
+            updateToggle()
+            
+            TextButton.MouseButton1Click:Connect(function()
+                state = not state
+                toggleData.state = state
+                updateToggle()
+                if props.Callback then pcall(props.Callback, state) end
+            end)
+            
+            -- Создаем объект для конфигурации
             local toggleObj = {
                 __type = "Toggle",
-                Value = props.Default or false,
+                Value = state,
                 Set = function(self, value)
-                    self.Value = value
-                    if value then
-                        TweenService:Create(Circle, TweenInfo.new(0.2), {Position = UDim2.new(0.6, 0, 0.1, 0)}):Play()
-                        TweenService:Create(Indicator, TweenInfo.new(0.2), {BackgroundColor3 = Leaf.MenuColorValue.Value}):Play()
-                        TweenService:Create(Circle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}):Play()
-                    else
-                        TweenService:Create(Circle, TweenInfo.new(0.2), {Position = UDim2.new(0.05, 0, 0.1, 0)}):Play()
-                        TweenService:Create(Indicator, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}):Play()
-                        TweenService:Create(Circle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+                    state = value
+                    toggleData.state = state
+                    updateToggle()
+                    if props.Callback then
+                        pcall(props.Callback, state)
                     end
                 end
             }
-
-            toggleObj:Set(toggleObj.Value)
-            TextButton.MouseButton1Click:Connect(function()
-                toggleObj.Value = not toggleObj.Value
-                toggleObj:Set(toggleObj.Value)
-                if props.Callback then pcall(props.Callback, toggleObj.Value) end
-            end)
-
-            Leaf.configElements[props.Name] = toggleObj
-            table.insert(self.Elements, ToggleFrame)
-            table.insert(Leaf.toggles, {state = toggleObj.Value, indicator = Indicator})
-
+            
+            if props.Config and props.Name then
+                props.Config:Register(props.Name, toggleObj)
+            end
+            
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
+            
+            return toggleObj
         end
 
-        --- Добавление слайдера
-        -- @param props Свойства слайдера {Name, Title, Value={Min, Max, Increment, Default}, Callback}
         function tab:Slider(props)
-            assert(props.Name, "Уникальное имя (Name) обязательно для Slider")
             local min = props.Value.Min
             local max = props.Value.Max
             local increment = props.Value.Increment
             local default = props.Value.Default
-
+            
             local SliderFrame = Instance.new("Frame")
             local UICornerSld = Instance.new("UICorner")
             local SliderName = Instance.new("TextLabel")
@@ -575,15 +591,15 @@ function Leaf:CreateWindow(config)
             local Progress = Instance.new("Frame")
             local UICornerProg = Instance.new("UICorner")
             local Snumber = Instance.new("TextLabel")
-
+            
             SliderFrame.Parent = self.ScrollingFrame
             SliderFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
             SliderFrame.Size = UDim2.new(0, 280, 0, 45)
             SliderFrame.Position = UDim2.new(0.5, -140, 0, self.nextPosition)
-
+            
             UICornerSld.CornerRadius = UDim.new(0, 4)
             UICornerSld.Parent = SliderFrame
-
+            
             SliderName.Parent = SliderFrame
             SliderName.BackgroundTransparency = 1
             SliderName.Position = UDim2.new(0.04, 0, 0, 0)
@@ -593,52 +609,49 @@ function Leaf:CreateWindow(config)
             SliderName.TextColor3 = Color3.fromRGB(255, 255, 255)
             SliderName.TextSize = 16
             SliderName.TextXAlignment = Enum.TextXAlignment.Left
-
+            
             Fill.Parent = SliderFrame
             Fill.BackgroundColor3 = Color3.fromRGB(31, 31, 31)
             Fill.Position = UDim2.new(0.035, 0, 0.6, 0)
             Fill.Size = UDim2.new(0, 261, 0, 10)
-
+            
             UICornerFill.CornerRadius = UDim.new(0, 4)
             UICornerFill.Parent = Fill
-
+            
             Progress.Parent = Fill
             Progress.BackgroundColor3 = Leaf.MenuColorValue.Value
             table.insert(Leaf.colorElements, {element = Progress, property = "BackgroundColor3"})
             Progress.Size = UDim2.new(0, 0, 1, 0)
-
+            
             UICornerProg.CornerRadius = UDim.new(0, 4)
             UICornerProg.Parent = Progress
-
+            
             Snumber.Parent = SliderFrame
             Snumber.BackgroundTransparency = 1
-            Snumber.Position = UDim2.new(1, -60, 0, 0)
-            Snumber.Size = UDim2.new(0, 50, 0.5, 0)
+            Snumber.Position = UDim2.new(1, -60, 0, 0) 
+            Snumber.Size = UDim2.new(0, 50, 0.5, 0)      
             Snumber.Font = Enum.Font.GothamBold
             Snumber.Text = tostring(default)
             Snumber.TextColor3 = Color3.fromRGB(255, 255, 255)
             Snumber.TextSize = 16
             Snumber.TextXAlignment = Enum.TextXAlignment.Right
-            Snumber.TextYAlignment = Enum.TextYAlignment.Center
-
-            local sliderObj = {
-                __type = "Slider",
-                Value = {Default = default},
-                Set = function(self, value)
-                    self.Value.Default = math.clamp(value, min, max)
-                    self.Value.Default = math.floor(self.Value.Default / increment + 0.5) * increment
-                    local percent = (self.Value.Default - min) / (max - min)
-                    Progress.Size = UDim2.new(percent, 0, 1, 0)
-                    Snumber.Text = tostring(self.Value.Default)
-                end
-            }
-
+            Snumber.TextYAlignment = Enum.TextYAlignment.Center 
+            
+            local currentValue = default
             local dragging = false
+            
             local function updateSlider(value)
-                sliderObj:Set(value)
-                if props.Callback then pcall(props.Callback, sliderObj.Value.Default) end
+                value = math.clamp(value, min, max)
+                value = math.floor(value / increment + 0.5) * increment
+                currentValue = value
+                
+                local percent = (currentValue - min) / (max - min)
+                Progress.Size = UDim2.new(percent, 0, 1, 0)
+                Snumber.Text = tostring(currentValue)
+                
+                if props.Callback then pcall(props.Callback, currentValue) end
             end
-
+            
             local function updateValueFromPosition(position)
                 local fillAbsolute = Fill.AbsolutePosition
                 local fillSize = Fill.AbsoluteSize
@@ -647,38 +660,83 @@ function Leaf:CreateWindow(config)
                 local value = min + (max - min) * percent
                 updateSlider(value)
             end
-
-            Fill.InputBegan:Connect(function(input)
+            
+            local function handleInput(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     dragging = true
                     updateValueFromPosition(input.Position)
                 end
-            end)
-
-            Fill.InputEnded:Connect(function(input)
+            end
+            
+            local function endInput(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     dragging = false
                 end
-            end)
-
+            end
+            
+            Fill.InputBegan:Connect(handleInput)
+            Fill.InputEnded:Connect(endInput)
+            
             game:GetService("UserInputService").InputChanged:Connect(function(input)
                 if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
                     updateValueFromPosition(input.Position)
                 end
             end)
-
-            sliderObj:Set(default)
-            Leaf.configElements[props.Name] = sliderObj
-            table.insert(self.Elements, SliderFrame)
-
-            self.nextPosition = self.nextPosition + 50
+            
+            updateSlider(default)
+            
+            -- Создаем объект для конфигурации
+            local sliderObj = {
+                __type = "Slider",
+                Value = currentValue,
+                Set = function(self, value)
+                    updateSlider(value)
+                end
+            }
+            
+            if props.Config and props.Name then
+                props.Config:Register(props.Name, sliderObj)
+            end
+            
+            self.nextPosition = self.nextPosition + 50 
+            self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
+            
+            return sliderObj
+        end
+        
+        function tab:Section(props)
+            local SectionFrame = Instance.new("Frame")
+            local UICornerSec = Instance.new("UICorner")
+            local SectionTitle = Instance.new("TextLabel")
+            local Underline = Instance.new("Frame")
+            
+            SectionFrame.Parent = self.ScrollingFrame
+            SectionFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+            SectionFrame.Size = UDim2.new(0, 280, 0, 25)
+            SectionFrame.Position = UDim2.new(0.5, -140, 0, self.nextPosition)
+            
+            UICornerSec.CornerRadius = UDim.new(0, 4)
+            UICornerSec.Parent = SectionFrame
+            
+            SectionTitle.Parent = SectionFrame
+            SectionTitle.BackgroundTransparency = 1
+            SectionTitle.Size = UDim2.new(1, 0, 1, 0)
+            SectionTitle.Font = Enum.Font.GothamBold
+            SectionTitle.Text = props.Title
+            SectionTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+            SectionTitle.TextSize = 16
+            
+            Underline.Parent = SectionFrame
+            Underline.BackgroundColor3 = Leaf.MenuColorValue.Value
+            table.insert(Leaf.colorElements, {element = Underline, property = "BackgroundColor3"})
+            Underline.Position = UDim2.new(0, 0, 1, -2)
+            Underline.Size = UDim2.new(1, 0, 0, 2)
+            
+            self.nextPosition = self.nextPosition + 30
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
         end
-
-        --- Добавление выпадающего списка
-        -- @param props Свойства списка {Name, Options, CurrentOption, Callback}
+        
         function tab:CreateDropdown(props)
-            assert(props.Name, "Уникальное имя (Name) обязательно для Dropdown")
             local DropdownFrame = Instance.new("Frame")
             local UICornerDrop = Instance.new("UICorner")
             local Dropdownname = Instance.new("TextLabel")
@@ -689,15 +747,15 @@ function Leaf:CreateWindow(config)
             local UICornerList = Instance.new("UICorner")
             local ScrollingFrameList = Instance.new("ScrollingFrame")
             local UIListLayout = Instance.new("UIListLayout")
-
+            
             DropdownFrame.Parent = self.ScrollingFrame
             DropdownFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
             DropdownFrame.Size = UDim2.new(0, 280, 0, 40)
             DropdownFrame.Position = UDim2.new(0.5, -140, 0, self.nextPosition)
-
+            
             UICornerDrop.CornerRadius = UDim.new(0, 4)
             UICornerDrop.Parent = DropdownFrame
-
+            
             Dropdownname.Parent = DropdownFrame
             Dropdownname.BackgroundTransparency = 1
             Dropdownname.Position = UDim2.new(0.04, 0, 0, 0)
@@ -707,12 +765,12 @@ function Leaf:CreateWindow(config)
             Dropdownname.TextColor3 = Color3.fromRGB(255, 255, 255)
             Dropdownname.TextSize = 16
             Dropdownname.TextXAlignment = Enum.TextXAlignment.Left
-
+            
             TextButton.Parent = DropdownFrame
             TextButton.BackgroundTransparency = 1
             TextButton.Size = UDim2.new(1, 0, 1, 0)
             TextButton.Text = ""
-
+            
             Info.Parent = DropdownFrame
             Info.BackgroundColor3 = Leaf.MenuColorValue.Value
             table.insert(Leaf.colorElements, {element = Info, property = "BackgroundColor3"})
@@ -722,19 +780,19 @@ function Leaf:CreateWindow(config)
             Info.Text = props.CurrentOption
             Info.TextColor3 = Color3.fromRGB(255, 255, 255)
             Info.TextSize = 14
-
+            
             UICornerInfo.CornerRadius = UDim.new(0, 4)
             UICornerInfo.Parent = Info
-
+            
             DropdownList.Parent = OuterFrame
             DropdownList.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
             DropdownList.Size = UDim2.new(0.85, 0, 0, 150)
             DropdownList.Visible = false
             DropdownList.ZIndex = 2
-
+            
             UICornerList.CornerRadius = UDim.new(0, 4)
             UICornerList.Parent = DropdownList
-
+            
             ScrollingFrameList.Parent = DropdownList
             ScrollingFrameList.Active = true
             ScrollingFrameList.BackgroundTransparency = 1
@@ -742,34 +800,25 @@ function Leaf:CreateWindow(config)
             ScrollingFrameList.CanvasSize = UDim2.new(0, 0, 0, 0)
             ScrollingFrameList.ScrollBarThickness = 3
             ScrollingFrameList.ZIndex = 2
-
+            
             UIListLayout.Parent = ScrollingFrameList
             UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
             UIListLayout.Padding = UDim.new(0, 5)
-
-            local dropdownObj = {
-                __type = "Dropdown",
-                Value = props.CurrentOption,
-                Set = function(self, value)
-                    self.Value = value
-                    Info.Text = value
-                end
-            }
-
+            
             local function createOption(option)
                 local OptionFrame = Instance.new("Frame")
                 local UICornerOpt = Instance.new("UICorner")
                 local OptionText = Instance.new("TextLabel")
                 local OptionButton = Instance.new("TextButton")
-
+                
                 OptionFrame.Parent = ScrollingFrameList
                 OptionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
                 OptionFrame.Size = UDim2.new(1, 0, 0, 25)
                 OptionFrame.ZIndex = 2
-
+                
                 UICornerOpt.CornerRadius = UDim.new(0, 4)
                 UICornerOpt.Parent = OptionFrame
-
+                
                 OptionText.Parent = OptionFrame
                 OptionText.BackgroundTransparency = 1
                 OptionText.Size = UDim2.new(1, 0, 1, 0)
@@ -779,27 +828,28 @@ function Leaf:CreateWindow(config)
                 table.insert(Leaf.colorElements, {element = OptionText, property = "TextColor3"})
                 OptionText.TextSize = 14
                 OptionText.ZIndex = 2
-
+                
                 OptionButton.Parent = OptionFrame
                 OptionButton.BackgroundTransparency = 1
                 OptionButton.Size = UDim2.new(1, 0, 1, 0)
                 OptionButton.Text = ""
                 OptionButton.ZIndex = 2
-
+                
                 OptionButton.MouseButton1Click:Connect(function()
-                    dropdownObj:Set(option)
+                    Info.Text = option
                     props.Callback(option)
                     DropdownList.Visible = false
                 end)
             end
-
+            
             for _, option in ipairs(props.Options) do
                 createOption(option)
             end
-
+            
             ScrollingFrameList.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y)
+            
             local isOpen = false
-
+            
             TextButton.MouseButton1Click:Connect(function()
                 isOpen = not isOpen
                 if isOpen then
@@ -814,78 +864,161 @@ function Leaf:CreateWindow(config)
                 end
                 DropdownList.Visible = isOpen
             end)
-
-            Leaf.configElements[props.Name] = dropdownObj
-            table.insert(self.Elements, DropdownFrame)
+            
             table.insert(allDropdowns, DropdownList)
-
+            
+            -- Создаем объект для конфигурации
+            local dropdownObj = {
+                __type = "Dropdown",
+                Value = props.CurrentOption,
+                Set = function(self, value)
+                    for _, option in ipairs(props.Options) do
+                        if option == value then
+                            Info.Text = value
+                            props.Callback(value)
+                            return
+                        end
+                    end
+                end
+            }
+            
+            if props.Config and props.Name then
+                props.Config:Register(props.Name, dropdownObj)
+            end
+            
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
+            
+            return dropdownObj
         end
-
-        --- Добавление цветового селектора
-        -- @param props Свойства селектора {Name, Color, Callback}
+        
         function tab:CreateColorPicker(props)
-            assert(props.Name, "Уникальное имя (Name) обязательно для ColorPicker")
+            local Name = props.Name
+            local Color = props.Color
+            local Callback = props.Callback
+            
             local ColorPickerFrame = Instance.new("Frame")
             local UICornerCP = Instance.new("UICorner")
             local NameLabel = Instance.new("TextLabel")
             local ColorIndicator = Instance.new("Frame")
             local UICornerCI = Instance.new("UICorner")
             local PickButton = Instance.new("TextButton")
-
+            
             ColorPickerFrame.Parent = self.ScrollingFrame
             ColorPickerFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
             ColorPickerFrame.Size = UDim2.new(0, 280, 0, 40)
             ColorPickerFrame.Position = UDim2.new(0.5, -140, 0, self.nextPosition)
-
+            
             UICornerCP.CornerRadius = UDim.new(0, 4)
             UICornerCP.Parent = ColorPickerFrame
-
+            
             NameLabel.Parent = ColorPickerFrame
             NameLabel.BackgroundTransparency = 1
             NameLabel.Position = UDim2.new(0.04, 0, 0, 0)
             NameLabel.Size = UDim2.new(0.6, 0, 1, 0)
             NameLabel.Font = Enum.Font.GothamBold
-            NameLabel.Text = props.Name
+            NameLabel.Text = Name
             NameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
             NameLabel.TextSize = 16
             NameLabel.TextXAlignment = Enum.TextXAlignment.Left
-
+            
             ColorIndicator.Parent = ColorPickerFrame
-            ColorIndicator.BackgroundColor3 = props.Color
+            ColorIndicator.BackgroundColor3 = Color
             ColorIndicator.Position = UDim2.new(0.879427671, 0, 0.174999997, 0)
             ColorIndicator.Size = UDim2.new(0, 25, 0, 25)
-
+            
             UICornerCI.CornerRadius = UDim.new(0, 4)
             UICornerCI.Parent = ColorIndicator
-
+            
             PickButton.Parent = ColorPickerFrame
             PickButton.BackgroundTransparency = 1
             PickButton.Size = UDim2.new(1, 0, 1, 0)
             PickButton.Text = ""
-
-            local colorPickerObj = {
-                __type = "Colorpicker",
-                Default = props.Color,
-                Set = function(self, color)
-                    self.Default = color
-                    ColorIndicator.BackgroundColor3 = color
-                end
-            }
-
+            
             local ChangeColor = Instance.new("Frame")
             ChangeColor.Parent = ScreenGui
             ChangeColor.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
             ChangeColor.Size = UDim2.new(0, 159, 0, 180)
             ChangeColor.Visible = false
             ChangeColor.ZIndex = 5
-
-            -- Реализация цветового селектора (оставлена как в оригинале, сокращена для примера)
-            -- Полная реализация включает HueSlider, ColorCanvas и т.д., как в исходном коде
+            
+            local TopBarCP = Instance.new("Frame")
+            TopBarCP.Name = "TopBarColorPicker"
+            TopBarCP.Parent = ChangeColor
+            TopBarCP.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+            TopBarCP.Size = UDim2.new(1, 0, 0, 30)
+            TopBarCP.Position = UDim2.new(0,0,0,0)
+            
+            local UICornerTopBarCP = Instance.new("UICorner")
+            UICornerTopBarCP.CornerRadius = UDim.new(0,4)
+            UICornerTopBarCP.Parent = TopBarCP
+            
+            local TopBarTitle = Instance.new("TextLabel")
+            TopBarTitle.Parent = TopBarCP
+            TopBarTitle.BackgroundTransparency = 1
+            TopBarTitle.Size = UDim2.new(1,0,1,0)
+            TopBarTitle.Font = Enum.Font.GothamBold
+            TopBarTitle.Text = "Color Picker"
+            TopBarTitle.TextColor3 = Color3.new(1,1,1)
+            TopBarTitle.TextSize = 14
+            
+            local UIStroke = Instance.new("UIStroke")
+            UIStroke.Parent = ChangeColor
+            UIStroke.Thickness = 2
+            UIStroke.Color = Leaf.MenuColorValue.Value
+            table.insert(Leaf.colorElements, {element = UIStroke, property = "Color"})
+            
+            local ColorCanvas = Instance.new("Frame")
+            ColorCanvas.Parent = ChangeColor
+            ColorCanvas.BackgroundTransparency = 1
+            ColorCanvas.BorderSizePixel = 0
+            ColorCanvas.Position = UDim2.new(0.041, 0, 0.222, 0)
+            ColorCanvas.Size = UDim2.new(0, 125, 0, 100)
+            
+            local HueSlider = Instance.new("Frame")
+            HueSlider.Parent = ChangeColor
+            HueSlider.BorderSizePixel = 0
+            HueSlider.Position = UDim2.new(0.9, 0, 0.222, 0)
+            HueSlider.Size = UDim2.new(0, 6, 0, 135)
+            
+            local HueSelector = Instance.new("Frame")
+            HueSelector.Parent = HueSlider
+            HueSelector.AnchorPoint = Vector2.new(0.5, 0.5)
+            HueSelector.BorderSizePixel = 0
+            HueSelector.Size = UDim2.new(0, 15, 0, 15)
+            HueSelector.BackgroundColor3 = Color3.new(1, 1, 1)
+            HueSelector.ZIndex = 10
+            
+            local UICornerHue = Instance.new("UICorner")
+            UICornerHue.CornerRadius = UDim.new(1, 0)
+            UICornerHue.Parent = HueSelector
+            
+            local UIStrokeHue = Instance.new("UIStroke")
+            UIStrokeHue.Parent = HueSelector
+            UIStrokeHue.Thickness = 1
+            UIStrokeHue.Color = Color3.new(1, 1, 1)
+            
+            local ColorSelector = Instance.new("Frame")
+            ColorSelector.Parent = ColorCanvas
+            ColorSelector.AnchorPoint = Vector2.new(0.5, 0.5)
+            ColorSelector.BorderSizePixel = 0
+            ColorSelector.Size = UDim2.new(0, 15, 0, 15)
+            ColorSelector.BackgroundTransparency = 1
+            ColorSelector.ZIndex = 10
+            
+            local UICornerSel = Instance.new("UICorner")
+            UICornerSel.CornerRadius = UDim.new(1, 0)
+            UICornerSel.Parent = ColorSelector
+            
+            local UIStrokeSel = Instance.new("UIStroke")
+            UIStrokeSel.Parent = ColorSelector
+            UIStrokeSel.Thickness = 2
+            UIStrokeSel.Color = Color3.new(1, 1, 1)
+            
             local ApplyButton = Instance.new("TextButton")
             ApplyButton.Parent = ChangeColor
             ApplyButton.BackgroundColor3 = Leaf.MenuColorValue.Value
+            table.insert(Leaf.colorElements, {element = ApplyButton, property = "BackgroundColor3"})
             ApplyButton.Position = UDim2.new(0.449, 0, 0.805, 0)
             ApplyButton.Size = UDim2.new(0, 60, 0, 27)
             ApplyButton.Font = Enum.Font.GothamBold
@@ -893,48 +1026,224 @@ function Leaf:CreateWindow(config)
             ApplyButton.TextColor3 = Color3.new(1, 1, 1)
             ApplyButton.TextSize = 14
             ApplyButton.ZIndex = 5
-
+            
+            local UICornerApply = Instance.new("UICorner")
+            UICornerApply.CornerRadius = UDim.new(0, 4)
+            UICornerApply.Parent = ApplyButton
+            
+            local CancelButton = Instance.new("TextButton")
+            CancelButton.Parent = ChangeColor
+            CancelButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            CancelButton.Position = UDim2.new(0.041, 0, 0.805, 0)
+            CancelButton.Size = UDim2.new(0, 60, 0, 27)
+            CancelButton.Font = Enum.Font.GothamBold
+            CancelButton.Text = "Cancel"
+            CancelButton.TextColor3 = Color3.new(1, 1, 1)
+            CancelButton.TextSize = 14
+            CancelButton.ZIndex = 5
+            
+            local UICornerCancel = Instance.new("UICorner")
+            UICornerCancel.CornerRadius = UDim.new(0, 4)
+            UICornerCancel.Parent = CancelButton
+            
+            local MainGradient = Instance.new("UIGradient")
+            MainGradient.Rotation = 0
+            MainGradient.Color = ColorSequence.new{
+                ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
+                ColorSequenceKeypoint.new(1, Color3.fromHSV(0, 1, 1))
+            }
+            
+            local ValueGradient = Instance.new("UIGradient")
+            ValueGradient.Transparency = NumberSequence.new{
+                NumberSequenceKeypoint.new(0, 1),
+                NumberSequenceKeypoint.new(1, 0)
+            }
+            ValueGradient.Rotation = 90
+            
+            local HueGradient = Instance.new("UIGradient")
+            HueGradient.Color = ColorSequence.new{
+                ColorSequenceKeypoint.new(0, Color3.fromHSV(1, 1, 1)),
+                ColorSequenceKeypoint.new(0.17, Color3.fromHSV(0.83, 1, 1)),
+                ColorSequenceKeypoint.new(0.33, Color3.fromHSV(0.67, 1, 1)),
+                ColorSequenceKeypoint.new(0.5, Color3.fromHSV(0.5, 1, 1)),
+                ColorSequenceKeypoint.new(0.67, Color3.fromHSV(0.33, 1, 1)),
+                ColorSequenceKeypoint.new(0.83, Color3.fromHSV(0.17, 1, 1)),
+                ColorSequenceKeypoint.new(1, Color3.fromHSV(0, 1, 1))
+            }
+            HueGradient.Rotation = 90
+            
+            local MainGradientFrame = Instance.new("Frame")
+            MainGradientFrame.Size = UDim2.new(1, 0, 1, 0)
+            MainGradientFrame.BackgroundTransparency = 0
+            MainGradientFrame.Parent = ColorCanvas
+            MainGradient.Parent = MainGradientFrame
+            
+            local ValueGradientFrame = Instance.new("Frame")
+            ValueGradientFrame.Size = UDim2.new(1, 0, 1, 0)
+            ValueGradientFrame.BackgroundTransparency = 0
+            ValueGradientFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+            ValueGradientFrame.Parent = ColorCanvas
+            ValueGradient.Parent = ValueGradientFrame
+            
+            HueGradient.Parent = HueSlider
+            
+            local currentHue, currentSat, currentVal = 0, 1, 1
+            local originalColor = Color
+            local draggingHue = false
+            local draggingColor = false
+            local draggingCP = false
+            local dragStartCP, startPosCP
+            
+            local function updateColor()
+                local newColor = Color3.fromHSV(currentHue, currentSat, currentVal)
+                ColorIndicator.BackgroundColor3 = newColor
+            end
+            
+            local function updateHueSelector(input)
+                local y = (input.Position.Y - HueSlider.AbsolutePosition.Y) / HueSlider.AbsoluteSize.Y
+                y = math.clamp(y, 0, 1)
+                currentHue = 1 - y
+                HueSelector.Position = UDim2.new(0.5, 0, y, 0)
+                HueSelector.BackgroundColor3 = Color3.fromHSV(currentHue, 1, 1)
+                MainGradient.Color = ColorSequence.new{
+                    ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
+                    ColorSequenceKeypoint.new(1, Color3.fromHSV(currentHue, 1, 1))
+                }
+                updateColor()
+            end
+            
+            local function updateColorSelector(input)
+                local x = (input.Position.X - ColorCanvas.AbsolutePosition.X) / ColorCanvas.AbsoluteSize.X
+                local y = (input.Position.Y - ColorCanvas.AbsolutePosition.Y) / ColorCanvas.AbsoluteSize.Y
+                x = math.clamp(x, 0, 1)
+                y = math.clamp(y, 0, 1)
+                currentSat = x
+                currentVal = 1 - y
+                ColorSelector.Position = UDim2.new(x, 0, y, 0)
+                updateColor()
+            end
+            
+            HueSlider.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    draggingHue = true
+                    updateHueSelector(input)
+                end
+            end)
+            
+            ColorCanvas.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    draggingColor = true
+                    updateColorSelector(input)
+                end
+            end)
+            
+            TopBarCP.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    draggingCP = true
+                    dragStartCP = input.Position
+                    startPosCP = ChangeColor.Position
+                end
+            end)
+            
+            game:GetService("UserInputService").InputChanged:Connect(function(input)
+                if draggingHue and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                    updateHueSelector(input)
+                elseif draggingColor and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                    updateColorSelector(input)
+                elseif draggingCP and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                    local delta = input.Position - dragStartCP
+                    ChangeColor.Position = UDim2.new(
+                        startPosCP.X.Scale,
+                        startPosCP.X.Offset + delta.X,
+                        startPosCP.Y.Scale,
+                        startPosCP.Y.Offset + delta.Y
+                    )
+                end
+            end)
+            
+            game:GetService("UserInputService").InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    draggingHue = false
+                    draggingColor = false
+                    draggingCP = false
+                end
+            end)
+            
             ApplyButton.MouseButton1Click:Connect(function()
                 ChangeColor.Visible = false
-                colorPickerObj:Set(ColorIndicator.BackgroundColor3)
-                if props.Callback then pcall(props.Callback, colorPickerObj.Default) end
+                Color = ColorIndicator.BackgroundColor3
+                if Callback then
+                    Callback(Color)
+                end
             end)
-
+            
+            CancelButton.MouseButton1Click:Connect(function()
+                ChangeColor.Visible = false
+                ColorIndicator.BackgroundColor3 = originalColor
+            end)
+            
             PickButton.MouseButton1Click:Connect(function()
                 for _, picker in ipairs(allColorPickers) do
                     picker.Visible = false
                 end
-                ChangeColor.Visible = true
-                local absPos = ColorPickerFrame.AbsolutePosition
-                ChangeColor.Position = UDim2.new(0, absPos.X, 0, absPos.Y + 45)
+                ChangeColor.Visible = not ChangeColor.Visible
+                if ChangeColor.Visible then
+                    originalColor = ColorIndicator.BackgroundColor3
+                    local absPos = ColorPickerFrame.AbsolutePosition
+                    ChangeColor.Position = UDim2.new(0, absPos.X, 0, absPos.Y + 45)
+                    
+                    currentHue, currentSat, currentVal = Color3.toHSV(originalColor)
+                    
+                    HueSelector.Position = UDim2.new(0.5, 0, 1 - currentHue, 0)
+                    HueSelector.BackgroundColor3 = Color3.fromHSV(currentHue, 1, 1)
+                    ColorSelector.Position = UDim2.new(currentSat, 0, 1 - currentVal, 0)
+                    
+                    MainGradient.Color = ColorSequence.new{
+                        ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
+                        ColorSequenceKeypoint.new(1, Color3.fromHSV(currentHue, 1, 1))
+                    }
+                end
             end)
-
-            Leaf.configElements[props.Name] = colorPickerObj
-            table.insert(self.Elements, ColorPickerFrame)
+            
             table.insert(allColorPickers, ChangeColor)
-
+            
+            -- Создаем объект для конфигурации
+            local colorPickerObj = {
+                __type = "Colorpicker",
+                Value = Color,
+                Set = function(self, color)
+                    ColorIndicator.BackgroundColor3 = color
+                    if Callback then
+                        Callback(color)
+                    end
+                end
+            }
+            
+            if props.Config and props.Name then
+                props.Config:Register(props.Name, colorPickerObj)
+            end
+            
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
+            
+            return colorPickerObj
         end
-
-        --- Добавление поля ввода
-        -- @param props Свойства поля {Name, Title, Default, Placeholder, Callback}
+        
         function tab:Input(props)
-            assert(props.Name, "Уникальное имя (Name) обязательно для Input")
             local InputFrame = Instance.new("Frame")
             local UICornerInp = Instance.new("UICorner")
             local NameLabel = Instance.new("TextLabel")
             local InputBox = Instance.new("TextBox")
             local UICornerInputBox = Instance.new("UICorner")
-
+            
             InputFrame.Parent = self.ScrollingFrame
             InputFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
             InputFrame.Size = UDim2.new(0, 280, 0, 40)
             InputFrame.Position = UDim2.new(0.5, -140, 0, self.nextPosition)
-
+            
             UICornerInp.CornerRadius = UDim.new(0, 4)
             UICornerInp.Parent = InputFrame
-
+            
             NameLabel.Parent = InputFrame
             NameLabel.BackgroundTransparency = 1
             NameLabel.Position = UDim2.new(0.04, 0, 0, 0)
@@ -944,7 +1253,7 @@ function Leaf:CreateWindow(config)
             NameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
             NameLabel.TextSize = 16
             NameLabel.TextXAlignment = Enum.TextXAlignment.Left
-
+            
             InputBox.Parent = InputFrame
             InputBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
             InputBox.BorderSizePixel = 0
@@ -955,65 +1264,51 @@ function Leaf:CreateWindow(config)
             InputBox.TextColor3 = Color3.fromRGB(255, 255, 255)
             InputBox.TextSize = 14
             InputBox.PlaceholderText = props.Placeholder or ""
-
+            
             UICornerInputBox.CornerRadius = UDim.new(0, 4)
             UICornerInputBox.Parent = InputBox
-
+            
+            InputBox.FocusLost:Connect(function(enterPressed)
+                if props.Callback then
+                    pcall(props.Callback, InputBox.Text)
+                end
+            end)
+            
+            -- Создаем объект для конфигурации
             local inputObj = {
                 __type = "Input",
-                Value = props.Default or "",
+                Value = InputBox.Text,
                 Set = function(self, value)
-                    self.Value = value
                     InputBox.Text = value
-                end
-            }
-
-            InputBox.FocusLost:Connect(function(enterPressed)
-                inputObj:Set(InputBox.Text)
-                if props.Callback then pcall(props.Callback, inputObj.Value) end
-            end)
-
-            Leaf.configElements[props.Name] = inputObj
-            table.insert(self.Elements, InputFrame)
-
-            self.nextPosition = self.nextPosition + 45
-            self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
-        end
-
-        --- Удаление элемента по имени
-        -- @param name Имя элемента для удаления
-        function tab:RemoveElement(name)
-            if Leaf.configElements[name] then
-                for i, element in ipairs(self.Elements) do
-                    if element.Name == name then
-                        element:Destroy()
-                        table.remove(self.Elements, i)
-                        Leaf.configElements[name] = nil
-                        self.nextPosition = 10
-                        for _, elem in ipairs(self.Elements) do
-                            elem.Position = UDim2.new(0.5, -140, 0, self.nextPosition)
-                            self.nextPosition = self.nextPosition + 45
-                        end
-                        self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
-                        break
+                    if props.Callback then
+                        pcall(props.Callback, value)
                     end
                 end
+            }
+            
+            if props.Config and props.Name then
+                props.Config:Register(props.Name, inputObj)
             end
+            
+            self.nextPosition = self.nextPosition + 45
+            self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
+            
+            return inputObj
         end
-
+        
         if props.Opened then
-            setActiveTab(tab)
+            activeTab = tab
         else
             ScrollingFrame.Visible = false
         end
-
+        
         TabButton.MouseButton1Click:Connect(function() setActiveTab(tab) end)
         table.insert(allTabs, tab)
         return tab
     end
 
-    -- Обработка перетаскивания окна и MiniMenu (оставлена как в оригинале)
     local UserInputService = game:GetService("UserInputService")
+    
     local draggingMain, dragStartMain, startPosMain
     TopBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -1022,25 +1317,25 @@ function Leaf:CreateWindow(config)
             startPosMain = OuterFrame.Position
         end
     end)
-
+    
     TopBar.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             draggingMain = false
         end
     end)
-
+    
     UserInputService.InputChanged:Connect(function(input)
         if draggingMain and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local delta = input.Position - dragStartMain
             OuterFrame.Position = UDim2.new(
-                startPosMain.X.Scale,
+                startPosMain.X.Scale, 
                 startPosMain.X.Offset + delta.X,
                 startPosMain.Y.Scale,
                 startPosMain.Y.Offset + delta.Y
             )
         end
     end)
-
+    
     local miniMenuDragging, miniMenuDragStart, miniMenuStartPos
     Bmenu.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -1049,13 +1344,13 @@ function Leaf:CreateWindow(config)
             miniMenuStartPos = MiniMenuFrame.Position
         end
     end)
-
+    
     Bmenu.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             miniMenuDragging = false
         end
     end)
-
+    
     UserInputService.InputChanged:Connect(function(input)
         if miniMenuDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local delta = input.Position - miniMenuDragStart
@@ -1067,11 +1362,11 @@ function Leaf:CreateWindow(config)
             )
         end
     end)
-
+    
     Bmenu.MouseButton1Click:Connect(function()
         ScreenGui.Enabled = not ScreenGui.Enabled
     end)
-
+    
     return window
 end
 
