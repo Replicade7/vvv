@@ -1,4 +1,141 @@
 local Leaf = {}
+local ConfigManager
+
+ConfigManager = {
+    Path = "LeafConfigs/",
+    Configs = {},
+    Parser = {
+        Colorpicker = {
+            Save = function(obj)
+                return {
+                    __type = obj.__type,
+                    value = obj.Default:ToHex(),
+                    transparency = obj.Transparency or nil,
+                }
+            end,
+            Load = function(element, data)
+                if element then
+                    element:Update(Color3.fromHex(data.value), data.transparency or nil)
+                end
+            end
+        },
+        Dropdown = {
+            Save = function(obj)
+                return {
+                    __type = obj.__type,
+                    value = obj.Value,
+                }
+            end,
+            Load = function(element, data)
+                if element then
+                    element:Select(data.value)
+                end
+            end
+        },
+        Input = {
+            Save = function(obj)
+                return {
+                    __type = obj.__type,
+                    value = obj.Value,
+                }
+            end,
+            Load = function(element, data)
+                if element then
+                    element:Set(data.value)
+                end
+            end
+        },
+        Keybind = {
+            Save = function(obj)
+                return {
+                    __type = obj.__type,
+                    value = obj.Value,
+                }
+            end,
+            Load = function(element, data)
+                if element then
+                    element:Set(data.value)
+                end
+            end
+        },
+        Slider = {
+            Save = function(obj)
+                return {
+                    __type = obj.__type,
+                    value = obj.Value.Default,
+                }
+            end,
+            Load = function(element, data)
+                if element then
+                    element:Set(data.value)
+                end
+            end
+        },
+        Toggle = {
+            Save = function(obj)
+                return {
+                    __type = obj.__type,
+                    value = obj.Value,
+                }
+            end,
+            Load = function(element, data)
+                if element then
+                    element:Set(data.value)
+                end
+            end
+        },
+    }
+}
+
+function ConfigManager:CreateConfig(configFilename)
+    local ConfigModule = {
+        Path = ConfigManager.Path .. configFilename .. ".json",
+        Elements = {}
+    }
+    
+    function ConfigModule:Register(Name, Element)
+        ConfigModule.Elements[Name] = Element
+    end
+    
+    function ConfigModule:Save()
+        local saveData = { Elements = {} }
+        for name, i in next, ConfigModule.Elements do
+            if ConfigManager.Parser[i.__type] then
+                saveData.Elements[tostring(name)] = ConfigManager.Parser[i.__type].Save(i)
+            end
+        end
+        writefile(ConfigModule.Path, game:GetService("HttpService"):JSONEncode(saveData))
+    end
+    
+    function ConfigModule:Load()
+        if not isfile(ConfigModule.Path) then return false, "Invalid file" end
+        local loadData = game:GetService("HttpService"):JSONDecode(readfile(ConfigModule.Path))
+        for name, data in next, loadData.Elements do
+            if ConfigModule.Elements[name] and ConfigManager.Parser[data.__type] then
+                task.spawn(function()
+                    ConfigManager.Parser[data.__type].Load(ConfigModule.Elements[name], data)
+                end)
+            end
+        end
+    end
+    
+    ConfigManager.Configs[configFilename] = ConfigModule
+    return ConfigModule
+end
+
+function ConfigManager:AllConfigs()
+    if listfiles then
+        local files = {}
+        for _, file in next, listfiles(ConfigManager.Path) do
+            local name = file:match("([^\\/]+)%.json$")
+            if name then
+                table.insert(files, name)
+            end
+        end
+        return files
+    end
+    return false
+end
 
 function Leaf:CreateWindow(config)
     local window = {}
@@ -141,7 +278,18 @@ function Leaf:CreateWindow(config)
     local activeTab
     local allDropdowns = {}
     local allColorPickers = {}
+    local configSystemEnabled = config.ConfigSystem and config.ConfigSystem.Enabled
+    local configManager
+    local currentConfig
     
+    if configSystemEnabled then
+        ConfigManager.Path = "LeafConfigs/" .. config.Name .. "/"
+        configManager = ConfigManager
+        currentConfig = config.ConfigSystem.DefaultConfig
+        local defaultConfig = configManager:CreateConfig(currentConfig)
+        configManager.Configs[currentConfig] = defaultConfig
+    end
+
     local function setActiveTab(tab)
         if activeTab then
             activeTab.ScrollingFrame.Visible = false
@@ -158,173 +306,6 @@ function Leaf:CreateWindow(config)
             picker.Visible = false
         end
     end
-    
-    window.Folder = config.Name
-    local HttpService = game:GetService("HttpService")
-    local ConfigManager = {
-        Window = nil,
-        Folder = nil,
-        Path = nil,
-        Configs = {},
-        Parser = {
-            Colorpicker = {
-                Save = function(obj)
-                    return {
-                        __type = obj.__type,
-                        value = obj.Value:ToHex(),
-                        transparency = obj.Transparency or nil,
-                    }
-                end,
-                Load = function(element, data)
-                    if element then
-                        element:Update(Color3.fromHex(data.value), data.transparency or nil)
-                    end
-                end
-            },
-            Dropdown = {
-                Save = function(obj)
-                    return {
-                        __type = obj.__type,
-                        value = obj.Value,
-                    }
-                end,
-                Load = function(element, data)
-                    if element then
-                        element:Set(data.value)
-                    end
-                end
-            },
-            Input = {
-                Save = function(obj)
-                    return {
-                        __type = obj.__type,
-                        value = obj.Value,
-                    }
-                end,
-                Load = function(element, data)
-                    if element then
-                        element:Set(data.value)
-                    end
-                end
-            },
-            Keybind = {
-                Save = function(obj)
-                    return {
-                        __type = obj.__type,
-                        value = obj.Value,
-                    }
-                end,
-                Load = function(element, data)
-                    if element then
-                        element:Set(data.value)
-                    end
-                end
-            },
-            Slider = {
-                Save = function(obj)
-                    return {
-                        __type = obj.__type,
-                        value = obj.Value,
-                    }
-                end,
-                Load = function(element, data)
-                    if element then
-                        element:Set(data.value)
-                    end
-                end
-            },
-            Toggle = {
-                Save = function(obj)
-                    return {
-                        __type = obj.__type,
-                        value = obj.Value,
-                    }
-                end,
-                Load = function(element, data)
-                    if element then
-                        element:Set(data.value)
-                    end
-                end
-            },
-        }
-    }
-    
-    function ConfigManager:Init(Window)
-        if not Window.Folder then
-            warn("[ WindUI.ConfigManager ] Window.Folder is not specified.")
-            return false
-        end
-        
-        ConfigManager.Window = Window
-        ConfigManager.Folder = Window.Folder
-        ConfigManager.Path = "WindUI/" .. tostring(ConfigManager.Folder) .. "/config/"
-        return ConfigManager
-    end
-    
-    function ConfigManager:CreateConfig(configFilename)
-        local ConfigModule = {
-            Path = ConfigManager.Path .. configFilename .. ".json",
-            Elements = {}
-        }
-        
-        if not configFilename then
-            return false, "No config file is selected"
-        end
-    
-        function ConfigModule:Register(Name, Element)
-            ConfigModule.Elements[Name] = Element
-        end
-        
-        function ConfigModule:Save()
-            local saveData = {
-                Elements = {}
-            }
-            
-            for name,i in next, ConfigModule.Elements do
-                if ConfigManager.Parser[i.__type] then
-                    saveData.Elements[tostring(name)] = ConfigManager.Parser[i.__type].Save(i)
-                end
-            end
-            
-            writefile(ConfigModule.Path, HttpService:JSONEncode(saveData))
-        end
-        
-        function ConfigModule:Load()
-            if not isfile(ConfigModule.Path) then return false, "Invalid file" end
-            
-            local loadData = HttpService:JSONDecode(readfile(ConfigModule.Path))
-            
-            for name, data in next, loadData.Elements do
-                if ConfigModule.Elements[name] and ConfigManager.Parser[data.__type] then
-                    task.spawn(function()
-                        ConfigManager.Parser[data.__type].Load(ConfigModule.Elements[name], data)
-                    end)
-                end
-            end
-        end
-        
-        ConfigManager.Configs[configFilename] = ConfigModule
-        return ConfigModule
-    end
-    
-    function ConfigManager:AllConfigs()
-        if listfiles then
-            local files = {}
-            for _, file in next, listfiles(ConfigManager.Path) do
-                local name = file:match("([^\\/]+)%.json$")
-                if name then
-                    table.insert(files, name)
-                end
-            end
-            return files
-        end
-        return {}
-    end
-    
-    ConfigManager:Init(window)
-    window.configModule = ConfigManager:CreateConfig("current")
-    window.selectedConfig = nil
-    window.newConfigName = nil
     
     function window:CreateTab(props)
         local tab = {}
@@ -524,29 +505,36 @@ function Leaf:CreateWindow(config)
                 end
             end
             
-            local toggleInterface = {
+            updateToggle()
+            
+            local toggleObj = {
                 __type = "Toggle",
                 Value = state,
-                Set = function(value)
+                Set = function(self, value)
                     state = value
-                    toggleData.state = value
+                    toggleData.state = state
                     updateToggle()
-                    if props.Callback then pcall(props.Callback, value) end
+                    if props.Callback then pcall(props.Callback, state) end
                 end
             }
             
-            if window and window.configModule then
-                window.configModule:Register(props.Title, toggleInterface)
+            if configSystemEnabled and props.ConfigID then
+                configManager.Configs[currentConfig]:Register(props.ConfigID, toggleObj)
             end
             
-            updateToggle()
-            
             TextButton.MouseButton1Click:Connect(function()
-                toggleInterface.Set(not state)
+                state = not state
+                toggleData.state = state
+                updateToggle()
+                if props.Callback then pcall(props.Callback, state) end
+                if configSystemEnabled and config.ConfigSystem.AutoSave then
+                    configManager.Configs[currentConfig]:Save()
+                end
             end)
             
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
+            return toggleObj
         end
 
         function tab:Slider(props)
@@ -610,32 +598,17 @@ function Leaf:CreateWindow(config)
             Snumber.TextYAlignment = Enum.TextYAlignment.Center 
             
             local currentValue = default
-            
-            local sliderInterface = {
-                __type = "Slider",
-                Value = currentValue,
-                Set = function(value)
-                    currentValue = math.clamp(value, min, max)
-                    currentValue = math.floor(currentValue / increment + 0.5) * increment
-                    local percent = (currentValue - min) / (max - min)
-                    Progress.Size = UDim2.new(percent, 0, 1, 0)
-                    Snumber.Text = tostring(currentValue)
-                    if props.Callback then pcall(props.Callback, currentValue) end
-                end
-            }
-            
-            if window and window.configModule then
-                window.configModule:Register(props.Title, sliderInterface)
-            end
+            local dragging = false
             
             local function updateSlider(value)
                 value = math.clamp(value, min, max)
                 value = math.floor(value / increment + 0.5) * increment
                 currentValue = value
-                sliderInterface.Value = currentValue
+                
                 local percent = (currentValue - min) / (max - min)
                 Progress.Size = UDim2.new(percent, 0, 1, 0)
                 Snumber.Text = tostring(currentValue)
+                
                 if props.Callback then pcall(props.Callback, currentValue) end
             end
             
@@ -647,8 +620,6 @@ function Leaf:CreateWindow(config)
                 local value = min + (max - min) * percent
                 updateSlider(value)
             end
-            
-            local dragging = false
             
             local function handleInput(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -673,8 +644,22 @@ function Leaf:CreateWindow(config)
             end)
             
             updateSlider(default)
+            
+            local sliderObj = {
+                __type = "Slider",
+                Value = currentValue,
+                Set = function(self, value)
+                    updateSlider(value)
+                end
+            }
+            
+            if configSystemEnabled and props.ConfigID then
+                configManager.Configs[currentConfig]:Register(props.ConfigID, sliderObj)
+            end
+            
             self.nextPosition = self.nextPosition + 50 
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
+            return sliderObj
         end
         
         function tab:Section(props)
@@ -811,22 +796,11 @@ function Leaf:CreateWindow(config)
                 OptionButton.MouseButton1Click:Connect(function()
                     Info.Text = option
                     props.Callback(option)
-                    dropdownInterface.Value = option
                     DropdownList.Visible = false
+                    if configSystemEnabled and config.ConfigSystem.AutoSave then
+                        configManager.Configs[currentConfig]:Save()
+                    end
                 end)
-            end
-            
-            local dropdownInterface = {
-                __type = "Dropdown",
-                Value = props.CurrentOption,
-                Set = function(option)
-                    Info.Text = option
-                    if props.Callback then props.Callback(option) end
-                end
-            }
-            
-            if window and window.configModule then
-                window.configModule:Register(props.Name, dropdownInterface)
             end
             
             for _, option in ipairs(props.Options) do
@@ -836,6 +810,18 @@ function Leaf:CreateWindow(config)
             ScrollingFrameList.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y)
             
             local isOpen = false
+            
+            local function updateOptions(newOptions)
+                for _, child in ipairs(ScrollingFrameList:GetChildren()) do
+                    if child:IsA("Frame") then
+                        child:Destroy()
+                    end
+                end
+                for _, option in ipairs(newOptions) do
+                    createOption(option)
+                end
+                ScrollingFrameList.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y)
+            end
             
             TextButton.MouseButton1Click:Connect(function()
                 isOpen = not isOpen
@@ -852,24 +838,24 @@ function Leaf:CreateWindow(config)
                 DropdownList.Visible = isOpen
             end)
             
+            local dropdownObj = {
+                __type = "Dropdown",
+                Value = props.CurrentOption,
+                Select = function(self, option)
+                    Info.Text = option
+                    props.Callback(option)
+                end,
+                UpdateOptions = updateOptions
+            }
+            
+            if configSystemEnabled and props.ConfigID then
+                configManager.Configs[currentConfig]:Register(props.ConfigID, dropdownObj)
+            end
+            
             table.insert(allDropdowns, DropdownList)
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
-            return {
-                SetOptions = function(self, options)
-                    for _, child in ipairs(ScrollingFrameList:GetChildren()) do
-                        if child:IsA("Frame") then
-                            child:Destroy()
-                        end
-                    end
-                    props.Options = options
-                    for _, option in ipairs(options) do
-                        createOption(option)
-                    end
-                    ScrollingFrameList.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y)
-                end,
-                Options = props.Options
-            }
+            return dropdownObj
         end
         
         function tab:CreateColorPicker(props)
@@ -1074,21 +1060,6 @@ function Leaf:CreateWindow(config)
             local draggingCP = false
             local dragStartCP, startPosCP
             
-            local colorInterface = {
-                __type = "Colorpicker",
-                Value = Color,
-                Transparency = nil,
-                Update = function(color, transparency)
-                    ColorIndicator.BackgroundColor3 = color
-                    colorInterface.Value = color
-                    if Callback then Callback(color) end
-                end
-            }
-            
-            if window and window.configModule then
-                window.configModule:Register(props.Name, colorInterface)
-            end
-            
             local function updateColor()
                 local newColor = Color3.fromHSV(currentHue, currentSat, currentVal)
                 ColorIndicator.BackgroundColor3 = newColor
@@ -1166,10 +1137,12 @@ function Leaf:CreateWindow(config)
             
             ApplyButton.MouseButton1Click:Connect(function()
                 ChangeColor.Visible = false
-                local newColor = ColorIndicator.BackgroundColor3
-                colorInterface.Value = newColor
+                Color = ColorIndicator.BackgroundColor3
                 if Callback then
-                    Callback(newColor)
+                    Callback(Color)
+                end
+                if configSystemEnabled and config.ConfigSystem.AutoSave then
+                    configManager.Configs[currentConfig]:Save()
                 end
             end)
             
@@ -1201,9 +1174,26 @@ function Leaf:CreateWindow(config)
                 end
             end)
             
+            local colorPickerObj = {
+                __type = "Colorpicker",
+                Default = Color,
+                Transparency = 0,
+                Update = function(self, color, transparency)
+                    ColorIndicator.BackgroundColor3 = color
+                    if Callback then
+                        Callback(color, transparency)
+                    end
+                end
+            }
+            
+            if configSystemEnabled and props.ConfigID then
+                configManager.Configs[currentConfig]:Register(props.ConfigID, colorPickerObj)
+            end
+            
             table.insert(allColorPickers, ChangeColor)
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
+            return colorPickerObj
         end
         
         function tab:Input(props)
@@ -1245,29 +1235,34 @@ function Leaf:CreateWindow(config)
             UICornerInputBox.CornerRadius = UDim.new(0, 4)
             UICornerInputBox.Parent = InputBox
             
-            local inputInterface = {
+            local inputObj = {
                 __type = "Input",
                 Value = InputBox.Text,
-                Set = function(text)
-                    InputBox.Text = text
-                    if props.Callback then pcall(props.Callback, text) end
+                Set = function(self, value)
+                    InputBox.Text = value
+                    if props.Callback then
+                        props.Callback(value)
+                    end
                 end
             }
             
-            if window and window.configModule then
-                window.configModule:Register(props.Title, inputInterface)
-            end
-            
             InputBox.FocusLost:Connect(function(enterPressed)
-                local text = InputBox.Text
-                inputInterface.Value = text
+                inputObj.Value = InputBox.Text
                 if props.Callback then
-                    pcall(props.Callback, text)
+                    pcall(props.Callback, InputBox.Text)
+                end
+                if configSystemEnabled and config.ConfigSystem.AutoSave then
+                    configManager.Configs[currentConfig]:Save()
                 end
             end)
             
+            if configSystemEnabled and props.ConfigID then
+                configManager.Configs[currentConfig]:Register(props.ConfigID, inputObj)
+            end
+            
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
+            return inputObj
         end
         
         if props.Opened then
@@ -1280,7 +1275,62 @@ function Leaf:CreateWindow(config)
         table.insert(allTabs, tab)
         return tab
     end
-  
+
+    if configSystemEnabled then
+        local ConfigTab = window:CreateTab({Name = "Config", Title = "Config", Image = "rbxassetid://0", Opened = false})
+        
+        local configNames = configManager:AllConfigs() or {}
+        local configDropdown = ConfigTab:CreateDropdown({
+            Name = "Configs",
+            ConfigID = "ConfigDropdown",
+            Options = configNames,
+            CurrentOption = currentConfig,
+            Callback = function(option)
+                currentConfig = option
+            end
+        })
+        
+        ConfigTab:DeButton({
+            Title = "Load Config",
+            ConfigID = "LoadButton",
+            Callback = function()
+                if currentConfig and configManager.Configs[currentConfig] then
+                    configManager.Configs[currentConfig]:Load()
+                end
+            end
+        })
+        
+        local configNameInput = ConfigTab:Input({
+            Title = "Name",
+            ConfigID = "ConfigNameInput",
+            Placeholder = "Config name",
+            Callback = function(text) end
+        })
+        
+        ConfigTab:DeButton({
+            Title = "Save Config",
+            ConfigID = "SaveButton",
+            Callback = function()
+                if configNameInput.Value and configNameInput.Value ~= "" then
+                    currentConfig = configNameInput.Value
+                    if not configManager.Configs[currentConfig] then
+                        configManager.Configs[currentConfig] = configManager:CreateConfig(currentConfig)
+                    end
+                    configManager.Configs[currentConfig]:Save()
+                    configDropdown:UpdateOptions(configManager:AllConfigs())
+                else
+                    if currentConfig then
+                        configManager.Configs[currentConfig]:Save()
+                    end
+                end
+            end
+        })
+        
+        if configManager.Configs[config.ConfigSystem.DefaultConfig] then
+            configManager.Configs[config.ConfigSystem.DefaultConfig]:Load()
+        end
+    end
+
     local UserInputService = game:GetService("UserInputService")
     
     local draggingMain, dragStartMain, startPosMain
