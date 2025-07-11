@@ -1,7 +1,6 @@
 local HttpService = game:GetService("HttpService")
 
-local ConfigManager
-ConfigManager = {
+local ConfigManager = {
     Window = nil,
     Folder = nil,
     Path = nil,
@@ -11,12 +10,13 @@ ConfigManager = {
             Save = function(obj)
                 return {
                     __type = obj.__type,
-                    value = obj.Value:ToHex(),
+                    value = obj.Default:ToHex(),
+                    transparency = obj.Transparency
                 }
             end,
             Load = function(element, data)
                 if element then
-                    element:Update(Color3.fromHex(data.value))
+                    element:Update(Color3.fromHex(data.value), data.transparency)
                 end
             end
         },
@@ -24,7 +24,7 @@ ConfigManager = {
             Save = function(obj)
                 return {
                     __type = obj.__type,
-                    value = obj.Value,
+                    value = obj.Value
                 }
             end,
             Load = function(element, data)
@@ -37,7 +37,20 @@ ConfigManager = {
             Save = function(obj)
                 return {
                     __type = obj.__type,
-                    value = obj.Value,
+                    value = obj.Value
+                }
+            end,
+            Load = function(element, data)
+                if element then
+                    element:Set(data.value)
+                end
+            end
+        },
+        Keybind = {
+            Save = function(obj)
+                return {
+                    __type = obj.__type,
+                    value = obj.Value
                 }
             end,
             Load = function(element, data)
@@ -50,7 +63,7 @@ ConfigManager = {
             Save = function(obj)
                 return {
                     __type = obj.__type,
-                    value = obj.Value.Default,
+                    value = obj.Value.Default
                 }
             end,
             Load = function(element, data)
@@ -63,7 +76,7 @@ ConfigManager = {
             Save = function(obj)
                 return {
                     __type = obj.__type,
-                    value = obj.Value,
+                    value = obj.Value
                 }
             end,
             Load = function(element, data)
@@ -71,35 +84,37 @@ ConfigManager = {
                     element:Set(data.value)
                 end
             end
-        },
+        }
     }
 }
 
 function ConfigManager:Init(Window)
     if not Window.Folder then
-        warn("[ ConfigManager ] Window.Folder is not specified.")
+        warn("[ConfigManager] Window.Folder is not specified.")
         return false
     end
-    ConfigManager.Window = Window
-    ConfigManager.Folder = Window.Folder
-    ConfigManager.Path = "WindUI/" .. tostring(ConfigManager.Folder) .. "/config/"
-    if not isfolder(ConfigManager.Path) then
-        makefolder(ConfigManager.Path)
+    
+    self.Window = Window
+    self.Folder = Window.Folder
+    self.Path = "LeafConfigs/" .. tostring(self.Folder) .. "/"
+    
+    if not isfolder("LeafConfigs") then
+        makefolder("LeafConfigs")
     end
-    local configs = ConfigManager:AllConfigs()
-    for _, configName in ipairs(configs) do
-        ConfigManager:CreateConfig(configName)
+    if not isfolder("LeafConfigs/"..tostring(self.Folder)) then
+        makefolder("LeafConfigs/"..tostring(self.Folder))
     end
-    local defaultConfigName = Window.ConfigSystem.DefaultConfig
-    if not ConfigManager.Configs[defaultConfigName] then
-        ConfigManager:CreateConfig(defaultConfigName)
-    end
-    return ConfigManager
+    
+    return self
 end
 
 function ConfigManager:CreateConfig(configFilename)
+    if not configFilename then
+        return false, "No config file is selected"
+    end
+    
     local ConfigModule = {
-        Path = ConfigManager.Path .. configFilename .. ".json",
+        Path = self.Path .. configFilename .. ".json",
         Elements = {}
     }
     
@@ -108,56 +123,53 @@ function ConfigManager:CreateConfig(configFilename)
     end
     
     function ConfigModule:Save()
-        local saveData = {
-            Elements = {}
-        }
-        for name, element in pairs(ConfigModule.Elements) do
+        local saveData = { Elements = {} }
+        
+        for name, element in next, self.Elements do
             if ConfigManager.Parser[element.__type] then
-                saveData.Elements[name] = ConfigManager.Parser[element.__type].Save(element)
+                saveData.Elements[tostring(name)] = ConfigManager.Parser[element.__type].Save(element)
             end
         end
-        writefile(ConfigModule.Path, HttpService:JSONEncode(saveData))
+        
+        writefile(self.Path, HttpService:JSONEncode(saveData))
     end
     
     function ConfigModule:Load()
-        if not isfile(ConfigModule.Path) then return false, "Invalid file" end
-        local loadData = HttpService:JSONDecode(readfile(ConfigModule.Path))
-        for name, data in pairs(loadData.Elements) do
-            if ConfigModule.Elements[name] and ConfigManager.Parser[data.__type] then
+        if not isfile(self.Path) then return false, "Invalid file" end
+        
+        local loadData = HttpService:JSONDecode(readfile(self.Path))
+        
+        for name, data in next, loadData.Elements do
+            if self.Elements[name] and ConfigManager.Parser[data.__type] then
                 task.spawn(function()
-                    ConfigManager.Parser[data.__type].Load(ConfigModule.Elements[name], data)
+                    ConfigManager.Parser[data.__type].Load(self.Elements[name], data)
                 end)
             end
         end
     end
     
-    ConfigManager.Configs[configFilename] = ConfigModule
+    self.Configs[configFilename] = ConfigModule
     return ConfigModule
 end
 
 function ConfigManager:AllConfigs()
-    if listfiles then
-        local files = {}
-        for _, file in next, listfiles(ConfigManager.Path) do
-            local name = file:match("([^\\/]+)%.json$")
-            if name then
-                table.insert(files, name)
-            end
+    if not isfolder(self.Path) then return {} end
+    
+    local files = {}
+    for _, file in next, listfiles(self.Path) do
+        local name = file:match("([^\\/]+)%.json$")
+        if name then
+            table.insert(files, name)
         end
-        return files
     end
-    return {}
+    
+    return files
 end
 
 local Leaf = {}
 
 function Leaf:CreateWindow(config)
-    local window = {
-        Folder = config.Folder,
-        savableElements = {},
-        elementId = 0,
-        ConfigSystem = config.ConfigSystem or {Enabled = false}
-    }
+    local window = {}
     Leaf.MenuColorValue = Instance.new("Color3Value")
     Leaf.MenuColorValue.Value = Color3.fromRGB(config.Color[1], config.Color[2], config.Color[3])
     Leaf.colorElements = {}
@@ -313,6 +325,73 @@ function Leaf:CreateWindow(config)
         for _, picker in ipairs(allColorPickers) do
             picker.Visible = false
         end
+    end
+    
+    local configEnabled = config.ConfigSystem and config.ConfigSystem.Enabled
+    local configManager
+    local configTab
+    local configDropdown
+    local currentConfigName = config.ConfigSystem and config.ConfigSystem.DefaultConfig or "default"
+    local configInputText = ""
+    
+    if configEnabled then
+        configManager = ConfigManager
+        configManager:Init({Folder = config.Name})
+        
+        if not configManager.Configs[currentConfigName] then
+            configManager:CreateConfig(currentConfigName)
+        end
+        
+        configTab = window:CreateTab({
+            Name = "Config",
+            Image = "rbxassetid://6031104650",
+            Opened = false
+        })
+        
+        local configList = configManager:AllConfigs()
+        if #configList == 0 then
+            configList = {currentConfigName}
+        end
+        
+        configTab:CreateDropdown({
+            Name = "Configs",
+            Options = configList,
+            CurrentOption = currentConfigName,
+            Callback = function(option)
+                currentConfigName = option
+            end
+        })
+        
+        configTab:Input({
+            Title = "Name",
+            Callback = function(text)
+                configInputText = text
+            end
+        })
+        
+        configTab:DeButton({
+            Title = "Load Config",
+            Callback = function()
+                local cfg = configManager.Configs[currentConfigName]
+                if cfg then
+                    cfg:Load()
+                end
+            end
+        })
+        
+        configTab:DeButton({
+            Title = "Save Config",
+            Callback = function()
+                local nameToSave = #configInputText > 0 and configInputText or currentConfigName
+                if not configManager.Configs[nameToSave] then
+                    configManager:CreateConfig(nameToSave)
+                end
+                local cfg = configManager.Configs[nameToSave]
+                if cfg then
+                    cfg:Save()
+                end
+            end
+        })
     end
     
     function window:CreateTab(props)
@@ -515,38 +594,23 @@ function Leaf:CreateWindow(config)
             
             updateToggle()
             
-            local toggleElement = {
-                __type = "Toggle",
-                Value = state,
-                Set = function(self, value)
-                    state = value
-                    toggleData.state = value
-                    updateToggle()
-                    if props.Callback then pcall(props.Callback, value) end
-                end
-            }
-            if window.ConfigSystem and window.ConfigSystem.Enabled then
-                window.elementId = window.elementId + 1
-                local name = "element_" .. window.elementId
-                window.savableElements[name] = toggleElement
-                for _, config in pairs(ConfigManager.Configs) do
-                    config:Register(name, toggleElement)
-                end
+            if configEnabled then
+                local toggleObj = {
+                    __type = "Toggle",
+                    Value = state,
+                    Set = function(_, value)
+                        state = value
+                        updateToggle()
+                        if props.Callback then pcall(props.Callback, state) end
+                    end
+                }
+                configManager.Configs[currentConfigName]:Register(props.Title, toggleObj)
             end
             
             TextButton.MouseButton1Click:Connect(function()
                 state = not state
                 toggleData.state = state
                 updateToggle()
-                if window.ConfigSystem and window.ConfigSystem.Enabled then
-                    toggleElement.Value = state
-                    if window.ConfigSystem.AutoSave then
-                        local defaultConfig = ConfigManager.Configs[window.ConfigSystem.DefaultConfig]
-                        if defaultConfig then
-                            defaultConfig:Save()
-                        end
-                    end
-                end
                 if props.Callback then pcall(props.Callback, state) end
             end)
             
@@ -648,29 +712,6 @@ function Leaf:CreateWindow(config)
             local function endInput(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     dragging = false
-                    if window.ConfigSystem and window.ConfigSystem.Enabled and window.ConfigSystem.AutoSave then
-                        local defaultConfig = ConfigManager.Configs[window.ConfigSystem.DefaultConfig]
-                        if defaultConfig then
-                            defaultConfig:Save()
-                        end
-                    end
-                end
-            end
-            
-            local sliderElement = {
-                __type = "Slider",
-                Value = {Default = currentValue},
-                Set = function(self, value)
-                    updateSlider(value)
-                    self.Value.Default = value
-                end
-            }
-            if window.ConfigSystem and window.ConfigSystem.Enabled then
-                window.elementId = window.elementId + 1
-                local name = "element_" .. window.elementId
-                window.savableElements[name] = sliderElement
-                for _, config in pairs(ConfigManager.Configs) do
-                    config:Register(name, sliderElement)
                 end
             end
             
@@ -680,11 +721,19 @@ function Leaf:CreateWindow(config)
             game:GetService("UserInputService").InputChanged:Connect(function(input)
                 if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
                     updateValueFromPosition(input.Position)
-                    if window.ConfigSystem and window.ConfigSystem.Enabled then
-                        sliderElement.Value.Default = currentValue
-                    end
                 end
             end)
+            
+            if configEnabled then
+                local sliderObj = {
+                    __type = "Slider",
+                    Value = {Default = currentValue},
+                    Set = function(_, value)
+                        updateSlider(value)
+                    end
+                }
+                configManager.Configs[currentConfigName]:Register(props.Title, sliderObj)
+            end
             
             updateSlider(default)
             self.nextPosition = self.nextPosition + 50 
@@ -792,24 +841,6 @@ function Leaf:CreateWindow(config)
             UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
             UIListLayout.Padding = UDim.new(0, 5)
             
-            local dropdownElement = {
-                __type = "Dropdown",
-                Value = props.CurrentOption,
-                Select = function(self, option)
-                    Info.Text = option
-                    self.Value = option
-                    props.Callback(option)
-                end
-            }
-            if window.ConfigSystem and window.ConfigSystem.Enabled then
-                window.elementId = window.elementId + 1
-                local name = "element_" .. window.elementId
-                window.savableElements[name] = dropdownElement
-                for _, config in pairs(ConfigManager.Configs) do
-                    config:Register(name, dropdownElement)
-                end
-            end
-            
             local function createOption(option)
                 local OptionFrame = Instance.new("Frame")
                 local UICornerOpt = Instance.new("UICorner")
@@ -842,32 +873,16 @@ function Leaf:CreateWindow(config)
                 
                 OptionButton.MouseButton1Click:Connect(function()
                     Info.Text = option
-                    if window.ConfigSystem and window.ConfigSystem.Enabled then
-                        dropdownElement.Value = option
-                        if window.ConfigSystem.AutoSave then
-                            local defaultConfig = ConfigManager.Configs[window.ConfigSystem.DefaultConfig]
-                            if defaultConfig then
-                                defaultConfig:Save()
-                            end
-                        end
-                    end
                     props.Callback(option)
                     DropdownList.Visible = false
                 end)
             end
             
-            local function populateOptions()
-                for _, child in pairs(ScrollingFrameList:GetChildren()) do
-                    if child:IsA("Frame") then
-                        child:Destroy()
-                    end
-                end
-                local options = type(props.Options) == "function" and props.Options() or props.Options
-                for _, option in ipairs(options) do
-                    createOption(option)
-                end
-                ScrollingFrameList.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y)
+            for _, option in ipairs(props.Options) do
+                createOption(option)
             end
+            
+            ScrollingFrameList.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y)
             
             local isOpen = false
             
@@ -877,7 +892,6 @@ function Leaf:CreateWindow(config)
                     for _, dropdown in ipairs(allDropdowns) do
                         dropdown.Visible = false
                     end
-                    populateOptions()
                     local buttonAbsolutePos = DropdownFrame.AbsolutePosition
                     local menuAbsolutePos = OuterFrame.AbsolutePosition
                     local relativeX = buttonAbsolutePos.X - menuAbsolutePos.X
@@ -886,6 +900,18 @@ function Leaf:CreateWindow(config)
                 end
                 DropdownList.Visible = isOpen
             end)
+            
+            if configEnabled then
+                local dropdownObj = {
+                    __type = "Dropdown",
+                    Value = props.CurrentOption,
+                    Select = function(_, value)
+                        Info.Text = value
+                        props.Callback(value)
+                    end
+                }
+                configManager.Configs[currentConfigName]:Register(props.Name, dropdownObj)
+            end
             
             table.insert(allDropdowns, DropdownList)
             self.nextPosition = self.nextPosition + 45
@@ -1087,23 +1113,6 @@ function Leaf:CreateWindow(config)
             
             HueGradient.Parent = HueSlider
             
-            local colorPickerElement = {
-                __type = "Colorpicker",
-                Value = ColorIndicator.BackgroundColor3,
-                Update = function(self, color)
-                    ColorIndicator.BackgroundColor3 = color
-                    self.Value = color
-                end
-            }
-            if window.ConfigSystem and window.ConfigSystem.Enabled then
-                window.elementId = window.elementId + 1
-                local name = "element_" .. window.elementId
-                window.savableElements[name] = colorPickerElement
-                for _, config in pairs(ConfigManager.Configs) do
-                    config:Register(name, colorPickerElement)
-                end
-            end
-            
             local currentHue, currentSat, currentVal = 0, 1, 1
             local originalColor = Color
             local draggingHue = false
@@ -1188,15 +1197,6 @@ function Leaf:CreateWindow(config)
             
             ApplyButton.MouseButton1Click:Connect(function()
                 ChangeColor.Visible = false
-                if window.ConfigSystem and window.ConfigSystem.Enabled then
-                    colorPickerElement.Value = ColorIndicator.BackgroundColor3
-                    if window.ConfigSystem.AutoSave then
-                        local defaultConfig = ConfigManager.Configs[window.ConfigSystem.DefaultConfig]
-                        if defaultConfig then
-                            defaultConfig:Save()
-                        end
-                    end
-                end
                 Color = ColorIndicator.BackgroundColor3
                 if Callback then
                     Callback(Color)
@@ -1230,6 +1230,21 @@ function Leaf:CreateWindow(config)
                     }
                 end
             end)
+            
+            if configEnabled then
+                local colorObj = {
+                    __type = "Colorpicker",
+                    Default = Color,
+                    Transparency = 0,
+                    Update = function(_, color, transparency)
+                        ColorIndicator.BackgroundColor3 = color
+                        if Callback then
+                            Callback(color)
+                        end
+                    end
+                }
+                configManager.Configs[currentConfigName]:Register(Name, colorObj)
+            end
             
             table.insert(allColorPickers, ChangeColor)
             self.nextPosition = self.nextPosition + 45
@@ -1275,38 +1290,23 @@ function Leaf:CreateWindow(config)
             UICornerInputBox.CornerRadius = UDim.new(0, 4)
             UICornerInputBox.Parent = InputBox
             
-            local inputElement = {
-                __type = "Input",
-                Value = InputBox.Text,
-                Set = function(self, text)
-                    InputBox.Text = text
-                    self.Value = text
-                end
-            }
-            if window.ConfigSystem and window.ConfigSystem.Enabled then
-                window.elementId = window.elementId + 1
-                local name = "element_" .. window.elementId
-                window.savableElements[name] = inputElement
-                for _, config in pairs(ConfigManager.Configs) do
-                    config:Register(name, inputElement)
-                end
+            if configEnabled then
+                local inputObj = {
+                    __type = "Input",
+                    Value = InputBox.Text,
+                    Set = function(_, text)
+                        InputBox.Text = text
+                        if props.Callback then
+                            pcall(props.Callback, text)
+                        end
+                    end
+                }
+                configManager.Configs[currentConfigName]:Register(props.Title, inputObj)
             end
-            
-            InputBox:GetPropertyChangedSignal("Text"):Connect(function()
-                if window.ConfigSystem and window.ConfigSystem.Enabled then
-                    inputElement.Value = InputBox.Text
-                end
-            end)
             
             InputBox.FocusLost:Connect(function(enterPressed)
                 if props.Callback then
                     pcall(props.Callback, InputBox.Text)
-                end
-                if window.ConfigSystem and window.ConfigSystem.Enabled and window.ConfigSystem.AutoSave then
-                    local defaultConfig = ConfigManager.Configs[window.ConfigSystem.DefaultConfig]
-                    if defaultConfig then
-                        defaultConfig:Save()
-                    end
                 end
             end)
             
@@ -1384,16 +1384,6 @@ function Leaf:CreateWindow(config)
     Bmenu.MouseButton1Click:Connect(function()
         ScreenGui.Enabled = not ScreenGui.Enabled
     end)
-    
-    if window.ConfigSystem and window.ConfigSystem.Enabled then
-        ConfigManager:Init(window)
-        if window.ConfigSystem.AutoSave then
-            local defaultConfig = ConfigManager.Configs[window.ConfigSystem.DefaultConfig]
-            if defaultConfig then
-                defaultConfig:Load()
-            end
-        end
-    end
     
     return window
 end
