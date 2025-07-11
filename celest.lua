@@ -702,6 +702,10 @@ function Leaf:CreateWindow(config)
                 return Info.Text
             end
             
+            dropdownObject.SetCurrentOption = function(option)
+                Info.Text = option
+            end
+            
             local key = props.Name
             self.window.elements[key] = {
                 GetValue = function() return Info.Text end,
