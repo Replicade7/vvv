@@ -2,6 +2,8 @@ local Leaf = {}
 
 function Leaf:CreateWindow(config)
     local window = {}
+    window.elements = {}
+    Leaf.CurrentWindow = window
     Leaf.MenuColorValue = Instance.new("Color3Value")
     Leaf.MenuColorValue.Value = Color3.fromRGB(config.Color[1], config.Color[2], config.Color[3])
     Leaf.colorElements = {}
@@ -137,14 +139,6 @@ function Leaf:CreateWindow(config)
     Line.Size = UDim2.new(1, 0, 0, 3)
     table.insert(Leaf.colorElements, {element = Line, property = "BackgroundColor3"})
 
-    window.allElements = {
-        toggles = {},
-        sliders = {},
-        dropdowns = {},
-        colorpickers = {},
-        inputs = {}
-    }
-    
     local allTabs = {}
     local activeTab
     local allDropdowns = {}
@@ -368,23 +362,23 @@ function Leaf:CreateWindow(config)
             
             updateToggle()
             
-            local toggleObj = {
-                getState = function() return state end,
-                setState = function(value)
-                    state = value
-                    toggleData.state = state
-                    updateToggle()
-                    if props.Callback then pcall(props.Callback, state) end
-                end
-            }
-            self.window.allElements.toggles[props.Title] = toggleObj
-            
             TextButton.MouseButton1Click:Connect(function()
                 state = not state
                 toggleData.state = state
                 updateToggle()
                 if props.Callback then pcall(props.Callback, state) end
             end)
+            
+            local key = props.Title
+            self.window.elements[key] = {
+                GetValue = function() return state end,
+                SetValue = function(value)
+                    state = value
+                    toggleData.state = state
+                    updateToggle()
+                    if props.Callback then pcall(props.Callback, state) end
+                end
+            }
             
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
@@ -496,15 +490,16 @@ function Leaf:CreateWindow(config)
                 end
             end)
             
-            local sliderObj = {
-                getState = function() return currentValue end,
-                setState = function(value)
+            updateSlider(default)
+            
+            local key = props.Title
+            self.window.elements[key] = {
+                GetValue = function() return currentValue end,
+                SetValue = function(value)
                     updateSlider(value)
                 end
             }
-            self.window.allElements.sliders[props.Title] = sliderObj
             
-            updateSlider(default)
             self.nextPosition = self.nextPosition + 50 
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
         end
@@ -707,13 +702,23 @@ function Leaf:CreateWindow(config)
                 return Info.Text
             end
             
-            dropdownObject.getState = function() return Info.Text end
-            dropdownObject.setState = function(option)
-                Info.Text = option
-                props.Callback(option)
-            end
-            
-            self.window.allElements.dropdowns[props.Name] = dropdownObject
+            local key = props.Name
+            self.window.elements[key] = {
+                GetValue = function() return Info.Text end,
+                SetValue = function(value)
+                    local found = false
+                    for _, option in ipairs(props.Options) do
+                        if option == value then
+                            found = true
+                            break
+                        end
+                    end
+                    if found then
+                        Info.Text = value
+                        if props.Callback then pcall(props.Callback, value) end
+                    end
+                end
+            }
             
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
@@ -1036,16 +1041,14 @@ function Leaf:CreateWindow(config)
             
             table.insert(allColorPickers, ChangeColor)
             
-            local colorPickerObj = {
-                getState = function() return ColorIndicator.BackgroundColor3 end,
-                setState = function(color)
-                    ColorIndicator.BackgroundColor3 = color
-                    if Callback then
-                        Callback(color)
-                    end
+            local key = props.Name
+            self.window.elements[key] = {
+                GetValue = function() return ColorIndicator.BackgroundColor3 end,
+                SetValue = function(value)
+                    ColorIndicator.BackgroundColor3 = value
+                    if Callback then pcall(Callback, value) end
                 end
             }
-            self.window.allElements.colorpickers[props.Name] = colorPickerObj
             
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
@@ -1090,19 +1093,20 @@ function Leaf:CreateWindow(config)
             UICornerInputBox.CornerRadius = UDim.new(0, 4)
             UICornerInputBox.Parent = InputBox
             
-            local inputObj = {
-                getState = function() return InputBox.Text end,
-                setState = function(text)
-                    InputBox.Text = text
-                end
-            }
-            self.window.allElements.inputs[props.Title] = inputObj
-            
             InputBox.FocusLost:Connect(function(enterPressed)
                 if props.Callback then
                     pcall(props.Callback, InputBox.Text)
                 end
             end)
+            
+            local key = props.Title
+            self.window.elements[key] = {
+                GetValue = function() return InputBox.Text end,
+                SetValue = function(value)
+                    InputBox.Text = value
+                    if props.Callback then pcall(props.Callback, value) end
+                end
+            }
             
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
@@ -1179,7 +1183,6 @@ function Leaf:CreateWindow(config)
         ScreenGui.Enabled = not ScreenGui.Enabled
     end)
     
-    window.allTabs = allTabs
     return window
 end
 
