@@ -137,6 +137,14 @@ function Leaf:CreateWindow(config)
     Line.Size = UDim2.new(1, 0, 0, 3)
     table.insert(Leaf.colorElements, {element = Line, property = "BackgroundColor3"})
 
+    window.allElements = {
+        toggles = {},
+        sliders = {},
+        dropdowns = {},
+        colorpickers = {},
+        inputs = {}
+    }
+    
     local allTabs = {}
     local activeTab
     local allDropdowns = {}
@@ -161,6 +169,7 @@ function Leaf:CreateWindow(config)
     
     function window:CreateTab(props)
         local tab = {}
+        tab.window = self
         local TabButton = Instance.new("ImageButton")
         local UICornerTab = Instance.new("UICorner")
         
@@ -359,6 +368,17 @@ function Leaf:CreateWindow(config)
             
             updateToggle()
             
+            local toggleObj = {
+                getState = function() return state end,
+                setState = function(value)
+                    state = value
+                    toggleData.state = state
+                    updateToggle()
+                    if props.Callback then pcall(props.Callback, state) end
+                end
+            }
+            self.window.allElements.toggles[props.Title] = toggleObj
+            
             TextButton.MouseButton1Click:Connect(function()
                 state = not state
                 toggleData.state = state
@@ -475,6 +495,14 @@ function Leaf:CreateWindow(config)
                     updateValueFromPosition(input.Position)
                 end
             end)
+            
+            local sliderObj = {
+                getState = function() return currentValue end,
+                setState = function(value)
+                    updateSlider(value)
+                end
+            }
+            self.window.allElements.sliders[props.Title] = sliderObj
             
             updateSlider(default)
             self.nextPosition = self.nextPosition + 50 
@@ -678,6 +706,14 @@ function Leaf:CreateWindow(config)
             dropdownObject.GetCurrentOption = function()
                 return Info.Text
             end
+            
+            dropdownObject.getState = function() return Info.Text end
+            dropdownObject.setState = function(option)
+                Info.Text = option
+                props.Callback(option)
+            end
+            
+            self.window.allElements.dropdowns[props.Name] = dropdownObject
             
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
@@ -999,6 +1035,18 @@ function Leaf:CreateWindow(config)
             end)
             
             table.insert(allColorPickers, ChangeColor)
+            
+            local colorPickerObj = {
+                getState = function() return ColorIndicator.BackgroundColor3 end,
+                setState = function(color)
+                    ColorIndicator.BackgroundColor3 = color
+                    if Callback then
+                        Callback(color)
+                    end
+                end
+            }
+            self.window.allElements.colorpickers[props.Name] = colorPickerObj
+            
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
         end
@@ -1041,6 +1089,14 @@ function Leaf:CreateWindow(config)
             
             UICornerInputBox.CornerRadius = UDim.new(0, 4)
             UICornerInputBox.Parent = InputBox
+            
+            local inputObj = {
+                getState = function() return InputBox.Text end,
+                setState = function(text)
+                    InputBox.Text = text
+                end
+            }
+            self.window.allElements.inputs[props.Title] = inputObj
             
             InputBox.FocusLost:Connect(function(enterPressed)
                 if props.Callback then
@@ -1123,6 +1179,7 @@ function Leaf:CreateWindow(config)
         ScreenGui.Enabled = not ScreenGui.Enabled
     end)
     
+    window.allTabs = allTabs
     return window
 end
 
