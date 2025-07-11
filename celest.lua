@@ -675,6 +675,10 @@ function Leaf:CreateWindow(config)
                 end
             end
             
+            dropdownObject.GetCurrentOption = function()
+                return Info.Text
+            end
+            
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
             
