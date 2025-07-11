@@ -11,7 +11,7 @@ ConfigManager = {
             Save = function(obj)
                 return {
                     __type = obj.__type,
-                    value = obj.Value:ToHex(),
+                    value = obj.Value:ToHex()
                 }
             end,
             Load = function(element, data)
@@ -24,7 +24,7 @@ ConfigManager = {
             Save = function(obj)
                 return {
                     __type = obj.__type,
-                    value = obj.Value,
+                    value = obj.Value
                 }
             end,
             Load = function(element, data)
@@ -37,7 +37,7 @@ ConfigManager = {
             Save = function(obj)
                 return {
                     __type = obj.__type,
-                    value = obj.Value,
+                    value = obj.Value
                 }
             end,
             Load = function(element, data)
@@ -50,7 +50,7 @@ ConfigManager = {
             Save = function(obj)
                 return {
                     __type = obj.__type,
-                    value = obj.Value.Default,
+                    value = obj.Value.Default
                 }
             end,
             Load = function(element, data)
@@ -63,7 +63,7 @@ ConfigManager = {
             Save = function(obj)
                 return {
                     __type = obj.__type,
-                    value = obj.Value,
+                    value = obj.Value
                 }
             end,
             Load = function(element, data)
@@ -71,7 +71,7 @@ ConfigManager = {
                     element:Set(data.value)
                 end
             end
-        },
+        }
     }
 }
 
@@ -145,6 +145,15 @@ function ConfigManager:AllConfigs()
     return {}
 end
 
+function ConfigManager:SaveDefaultConfig()
+    if self.Window.ConfigSystem and self.Window.ConfigSystem.Enabled and self.Window.ConfigSystem.AutoSave and self.Window.ConfigSystem.DefaultConfig then
+        local defaultConfig = self.Configs[self.Window.ConfigSystem.DefaultConfig]
+        if defaultConfig then
+            defaultConfig:Save()
+        end
+    end
+end
+
 local Leaf = {}
 
 function Leaf:CreateWindow(config)
@@ -152,9 +161,7 @@ function Leaf:CreateWindow(config)
         Folder = config.Folder,
         savableElements = {},
         elementId = 0,
-        ConfigSystem = config.ConfigSystem or {Enabled = false},
-        autoSave = false, -- Инициализация AutoSave
-        selectedConfig = nil -- Инициализация выбранной конфигурации
+        ConfigSystem = config.ConfigSystem or {Enabled = false}
     }
     Leaf.MenuColorValue = Instance.new("Color3Value")
     Leaf.MenuColorValue.Value = Color3.fromRGB(config.Color[1], config.Color[2], config.Color[3])
@@ -239,7 +246,7 @@ function Leaf:CreateWindow(config)
     OuterFrame.Size = UDim2.new(0, 336, 0, 273)
     
     UIStroke1.Parent = OuterFrame
-    UIStroke1.Color = Color3.fromRGB(80, 80,  Grimes)
+    UIStroke1.Color = Color3.fromRGB(80, 80, 80)
     UIStroke1.Thickness = 2
     
     InnerFrame.Name = "InnerFrame"
@@ -540,6 +547,7 @@ function Leaf:CreateWindow(config)
                     toggleElement.Value = state
                 end
                 if props.Callback then pcall(props.Callback, state) end
+                ConfigManager:SaveDefaultConfig()
             end)
             
             self.nextPosition = self.nextPosition + 45
@@ -597,14 +605,14 @@ function Leaf:CreateWindow(config)
             
             Snumber.Parent = SliderFrame
             Snumber.BackgroundTransparency = 1
-            Snumber.Position = UDim2.new(1, -60, 0, 0)
-            Snumber.Size = UDim2.new(0, 50, 0.5, 0)
+            Snumber.Position = UDim2.new(1, -60, 0, 0) 
+            Snumber.Size = UDim2.new(0, 50, 0.5, 0)      
             Snumber.Font = Enum.Font.GothamBold
             Snumber.Text = tostring(default)
             Snumber.TextColor3 = Color3.fromRGB(255, 255, 255)
             Snumber.TextSize = 16
             Snumber.TextXAlignment = Enum.TextXAlignment.Right
-            Snumber.TextYAlignment = Enum.TextYAlignment.Center
+            Snumber.TextYAlignment = Enum.TextYAlignment.Center 
             
             local currentValue = default
             local dragging = false
@@ -640,6 +648,7 @@ function Leaf:CreateWindow(config)
             local function endInput(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     dragging = false
+                    ConfigManager:SaveDefaultConfig()
                 end
             end
             
@@ -673,7 +682,7 @@ function Leaf:CreateWindow(config)
             end)
             
             updateSlider(default)
-            self.nextPosition = self.nextPosition + 50
+            self.nextPosition = self.nextPosition + 50 
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
         end
         
@@ -833,6 +842,7 @@ function Leaf:CreateWindow(config)
                     end
                     props.Callback(option)
                     DropdownList.Visible = false
+                    ConfigManager:SaveDefaultConfig()
                 end)
             end
             
@@ -1175,6 +1185,7 @@ function Leaf:CreateWindow(config)
                 if Callback then
                     Callback(Color)
                 end
+                ConfigManager:SaveDefaultConfig()
             end)
             
             CancelButton.MouseButton1Click:Connect(function()
@@ -1276,6 +1287,7 @@ function Leaf:CreateWindow(config)
                 if props.Callback then
                     pcall(props.Callback, InputBox.Text)
                 end
+                ConfigManager:SaveDefaultConfig()
             end)
             
             self.nextPosition = self.nextPosition + 45
@@ -1351,10 +1363,17 @@ function Leaf:CreateWindow(config)
     
     Bmenu.MouseButton1Click:Connect(function()
         ScreenGui.Enabled = not ScreenGui.Enabled
-        if not ScreenGui.Enabled and window.autoSave and window.selectedConfig then
-            ConfigManager.Configs[window.selectedConfig]:Save()
-        end
     end)
+    
+    if window.ConfigSystem and window.ConfigSystem.Enabled then
+        ConfigManager:Init(window)
+        if window.ConfigSystem.DefaultConfig then
+            local defaultConfig = ConfigManager.Configs[window.ConfigSystem.DefaultConfig]
+            if defaultConfig then
+                defaultConfig:Load()
+            end
+        end
+    end
     
     return window
 end
