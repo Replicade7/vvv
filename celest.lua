@@ -3,6 +3,7 @@ local Leaf = {}
 function Leaf:CreateWindow(config)
     local window = {}
     window.elements = {}
+    window.tabs = {}
     Leaf.CurrentWindow = window
     Leaf.MenuColorValue = Instance.new("Color3Value")
     Leaf.MenuColorValue.Value = Color3.fromRGB(config.Color[1], config.Color[2], config.Color[3])
@@ -164,6 +165,8 @@ function Leaf:CreateWindow(config)
     function window:CreateTab(props)
         local tab = {}
         tab.window = self
+        tab.elements = {}
+        table.insert(window.tabs, tab)
         local TabButton = Instance.new("ImageButton")
         local UICornerTab = Instance.new("UICorner")
         
@@ -370,7 +373,7 @@ function Leaf:CreateWindow(config)
             end)
             
             local key = props.Title
-            self.window.elements[key] = {
+            self.elements[key] = {
                 GetValue = function() return state end,
                 SetValue = function(value)
                     state = value
@@ -493,7 +496,7 @@ function Leaf:CreateWindow(config)
             updateSlider(default)
             
             local key = props.Title
-            self.window.elements[key] = {
+            self.elements[key] = {
                 GetValue = function() return currentValue end,
                 SetValue = function(value)
                     updateSlider(value)
@@ -703,7 +706,7 @@ function Leaf:CreateWindow(config)
             end
             
             local key = props.Name
-            self.window.elements[key] = {
+            self.elements[key] = {
                 GetValue = function() return Info.Text end,
                 SetValue = function(value)
                     local found = false
@@ -1042,7 +1045,7 @@ function Leaf:CreateWindow(config)
             table.insert(allColorPickers, ChangeColor)
             
             local key = props.Name
-            self.window.elements[key] = {
+            self.elements[key] = {
                 GetValue = function() return ColorIndicator.BackgroundColor3 end,
                 SetValue = function(value)
                     ColorIndicator.BackgroundColor3 = value
@@ -1100,7 +1103,7 @@ function Leaf:CreateWindow(config)
             end)
             
             local key = props.Title
-            self.window.elements[key] = {
+            self.elements[key] = {
                 GetValue = function() return InputBox.Text end,
                 SetValue = function(value)
                     InputBox.Text = value
