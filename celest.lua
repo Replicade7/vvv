@@ -2,7 +2,8 @@ local Leaf = {}
 
 function Leaf:CreateWindow(config)
     local window = {}
-    window.configElements = {}
+    window.elements = {}
+    Leaf.CurrentWindow = window
     Leaf.MenuColorValue = Instance.new("Color3Value")
     Leaf.MenuColorValue.Value = Color3.fromRGB(config.Color[1], config.Color[2], config.Color[3])
     Leaf.colorElements = {}
@@ -291,7 +292,6 @@ function Leaf:CreateWindow(config)
         end
 
         function tab:Toggle(props)
-            local tab = self
             local ToggleFrame = Instance.new("Frame")
             local UICornerTog = Instance.new("UICorner")
             local Indicator = Instance.new("Frame")
@@ -340,15 +340,16 @@ function Leaf:CreateWindow(config)
             TextButton.Size = UDim2.new(1, 0, 1, 0)
             TextButton.Text = ""
             
+            local state = props.Default or false
             local tweenService = game:GetService("TweenService")
             local toggleData = {
-                state = props.Default or false,
+                state = state,
                 indicator = Indicator
             }
             table.insert(Leaf.toggles, toggleData)
             
             local function updateToggle()
-                if toggleData.state then
+                if state then
                     tweenService:Create(Circle, TweenInfo.new(0.2), {Position = UDim2.new(0.6, 0, 0.1, 0)}):Play()
                     tweenService:Create(Indicator, TweenInfo.new(0.2), {BackgroundColor3 = Leaf.MenuColorValue.Value}):Play()
                     tweenService:Create(Circle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}):Play()
@@ -362,35 +363,28 @@ function Leaf:CreateWindow(config)
             updateToggle()
             
             TextButton.MouseButton1Click:Connect(function()
-                toggleData.state = not toggleData.state
+                state = not state
+                toggleData.state = state
                 updateToggle()
-                if props.Callback then pcall(props.Callback, toggleData.state) end
+                if props.Callback then pcall(props.Callback, state) end
             end)
             
-            local elementRecord = {
-                type = "toggle",
-                name = props.Title,
-                setState = function(state)
-                    if state ~= toggleData.state then
-                        toggleData.state = state
-                        updateToggle()
-                        if props.Callback then
-                            pcall(props.Callback, state)
-                        end
-                    end
-                end,
-                getState = function()
-                    return toggleData.state
+            local key = props.Title
+            self.window.elements[key] = {
+                GetValue = function() return state end,
+                SetValue = function(value)
+                    state = value
+                    toggleData.state = state
+                    updateToggle()
+                    if props.Callback then pcall(props.Callback, state) end
                 end
             }
-            table.insert(tab.window.configElements, elementRecord)
             
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
         end
 
         function tab:Slider(props)
-            local tab = self
             local min = props.Value.Min
             local max = props.Value.Max
             local increment = props.Value.Increment
@@ -498,17 +492,13 @@ function Leaf:CreateWindow(config)
             
             updateSlider(default)
             
-            local elementRecord = {
-                type = "slider",
-                name = props.Title,
-                setValue = function(value)
+            local key = props.Title
+            self.window.elements[key] = {
+                GetValue = function() return currentValue end,
+                SetValue = function(value)
                     updateSlider(value)
-                end,
-                getValue = function()
-                    return currentValue
                 end
             }
-            table.insert(tab.window.configElements, elementRecord)
             
             self.nextPosition = self.nextPosition + 50 
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
@@ -547,7 +537,6 @@ function Leaf:CreateWindow(config)
         end
         
         function tab:CreateDropdown(props)
-            local tab = self
             local DropdownFrame = Instance.new("Frame")
             local UICornerDrop = Instance.new("UICorner")
             local Dropdownname = Instance.new("TextLabel")
@@ -713,26 +702,23 @@ function Leaf:CreateWindow(config)
                 return Info.Text
             end
             
-            function dropdownObject:setState(option)
-                Info.Text = option
-                props.Callback(option)
-            end
-            
-            function dropdownObject:getState()
-                return Info.Text
-            end
-            
-            local elementRecord = {
-                type = "dropdown",
-                name = props.Name,
-                setState = function(option)
-                    dropdownObject:setState(option)
-                end,
-                getState = function()
-                    return dropdownObject:getState()
+            local key = props.Name
+            self.window.elements[key] = {
+                GetValue = function() return Info.Text end,
+                SetValue = function(value)
+                    local found = false
+                    for _, option in ipairs(props.Options) do
+                        if option == value then
+                            found = true
+                            break
+                        end
+                    end
+                    if found then
+                        Info.Text = value
+                        if props.Callback then pcall(props.Callback, value) end
+                    end
                 end
             }
-            table.insert(tab.window.configElements, elementRecord)
             
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
@@ -741,7 +727,6 @@ function Leaf:CreateWindow(config)
         end
         
         function tab:CreateColorPicker(props)
-            local tab = self
             local Name = props.Name
             local Color = props.Color
             local Callback = props.Callback
@@ -1056,27 +1041,20 @@ function Leaf:CreateWindow(config)
             
             table.insert(allColorPickers, ChangeColor)
             
-            local elementRecord = {
-                type = "colorpicker",
-                name = props.Name,
-                setState = function(color)
-                    ColorIndicator.BackgroundColor3 = color
-                    if Callback then
-                        Callback(color)
-                    end
-                end,
-                getState = function()
-                    return ColorIndicator.BackgroundColor3
+            local key = props.Name
+            self.window.elements[key] = {
+                GetValue = function() return ColorIndicator.BackgroundColor3 end,
+                SetValue = function(value)
+                    ColorIndicator.BackgroundColor3 = value
+                    if Callback then pcall(Callback, value) end
                 end
             }
-            table.insert(tab.window.configElements, elementRecord)
             
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
         end
         
         function tab:Input(props)
-            local tab = self
             local InputFrame = Instance.new("Frame")
             local UICornerInp = Instance.new("UICorner")
             local NameLabel = Instance.new("TextLabel")
@@ -1121,20 +1099,14 @@ function Leaf:CreateWindow(config)
                 end
             end)
             
-            local elementRecord = {
-                type = "input",
-                name = props.Title,
-                setState = function(text)
-                    InputBox.Text = text
-                    if props.Callback then
-                        pcall(props.Callback, text)
-                    end
-                end,
-                getState = function()
-                    return InputBox.Text
+            local key = props.Title
+            self.window.elements[key] = {
+                GetValue = function() return InputBox.Text end,
+                SetValue = function(value)
+                    InputBox.Text = value
+                    if props.Callback then pcall(props.Callback, value) end
                 end
             }
-            table.insert(tab.window.configElements, elementRecord)
             
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
