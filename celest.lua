@@ -1359,7 +1359,7 @@ function Leaf:CreateWindow(config)
     if window.ConfigSystem and window.ConfigSystem.Enabled then
         ConfigManager:Init(window)
         -- Добавление вкладки Configs
-        local configTab = window:CreateTab({Name = "Configs", Image = "rbxassetid://1234567890", Opened = false})
+        local configTab = window:CreateTab({Name = "Configs", Image = "rbxassetid://1234567890", Opened = true})
         
         configTab:Input({
             Title = "Config Name",
