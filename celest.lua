@@ -1356,66 +1356,6 @@ function Leaf:CreateWindow(config)
         end
     end)
     
-    if window.ConfigSystem and window.ConfigSystem.Enabled then
-        ConfigManager:Init(window)
-        -- Добавление вкладки Configs
-        local configTab = window:CreateTab({Name = "Configs", Image = "rbxassetid://1234567890", Opened = true})
-        
-        configTab:Input({
-            Title = "Config Name",
-            Default = "",
-            Placeholder = "Enter config name"
-        })
-        local inputFrame = configTab.ScrollingFrame:GetChildren()[#configTab.ScrollingFrame:GetChildren()]
-        window.configNameBox = inputFrame:FindFirstChild("TextBox")
-        
-        configTab:Button({
-            Title = "Save Config",
-            Callback = function()
-                local configName = window.configNameBox.Text
-                if configName == "" then
-                    warn("Пожалуйста, введите название конфигурации.")
-                    return
-                end
-                if not ConfigManager.Configs[configName] then
-                    ConfigManager:CreateConfig(configName)
-                    for name, element in pairs(window.savableElements) do
-                        ConfigManager.Configs[configName]:Register(name, element)
-                    end
-                end
-                ConfigManager.Configs[configName]:Save()
-            end
-        })
-        
-        configTab:CreateDropdown({
-            Name = "Select Config",
-            Options = function()
-                return ConfigManager:AllConfigs()
-            end,
-            CurrentOption = "",
-            Callback = function(option)
-                window.selectedConfig = option
-            end
-        })
-        
-        configTab:Button({
-            Title = "Load Config",
-            Callback = function()
-                if window.selectedConfig and ConfigManager.Configs[window.selectedConfig] then
-                    ConfigManager.Configs[window.selectedConfig]:Load()
-                end
-            end
-        })
-        
-        configTab:Toggle({
-            Title = "AutoSave",
-            Default = false,
-            Callback = function(state)
-                window.autoSave = state
-            end
-        })
-    end
-    
     return window
 end
 
