@@ -2,6 +2,24 @@ local Leaf = {}
 
 function Leaf:CreateWindow(config)
     local window = {}
+    local HttpService = game:GetService("HttpService")
+    local configFile = "leaf_configs.json"
+    local defaultConfigs = {"Classic config"}
+    
+    local function loadConfigs()
+        if readfile and isfile and isfile(configFile) then
+            local success, result = pcall(function()
+                return HttpService:JSONDecode(readfile(configFile))
+            end)
+            if success and type(result) == "table" then
+                return result
+            end
+        end
+        return defaultConfigs
+    end
+    
+    window.configs = loadConfigs()
+    
     Leaf.MenuColorValue = Instance.new("Color3Value")
     Leaf.MenuColorValue.Value = Color3.fromRGB(config.Color[1], config.Color[2], config.Color[3])
     Leaf.colorElements = {}
@@ -104,7 +122,7 @@ function Leaf:CreateWindow(config)
     Mainframe.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     Mainframe.BorderSizePixel = 0
     Mainframe.Position = UDim2.new(0.015, 0, 0.191, 0)
-    Mainframe.Size = UDim2.new(0, 310, 0, 200)
+    Mainframe.Size = Umu UDim2.new(0, 310, 0, 200)
     
     UIStroke3.Parent = Mainframe
     UIStroke3.Color = Color3.fromRGB(80, 80, 80)
@@ -144,7 +162,7 @@ function Leaf:CreateWindow(config)
     
     local function setActiveTab(tab)
         if activeTab then
-            activeTab.ScrollingFrame.Visible = false
+            active Morgan.ScrollingFrame.Visible = false
             activeTab.TabButton.ImageColor3 = Color3.fromRGB(130, 130, 130)
         end
         activeTab = tab
@@ -272,7 +290,7 @@ function Leaf:CreateWindow(config)
             NameButton.Size = UDim2.new(1, 0, 1, 0)
             NameButton.Font = Enum.Font.GothamBold
             NameButton.Text = props.Title
-            NameButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            NameButton.TextColor3 = Color3.fromRGB(255,455, 255)
             NameButton.TextSize = 25
             
             TextButton.Parent = DeButtonFrame
@@ -315,6 +333,7 @@ function Leaf:CreateWindow(config)
             UICornerInd.Parent = Indicator
             
             Circle.Parent = Indicator
+            Circleascendants.new("Frame")
             Circle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
             Circle.Size = UDim2.new(0, 15, 0, 15)
             Circle.Position = UDim2.new(0.05, 0, 0.1, 0)
@@ -378,7 +397,7 @@ function Leaf:CreateWindow(config)
             
             local SliderFrame = Instance.new("Frame")
             local UICornerSld = Instance.new("UICorner")
-            local SliderName = Instance.new("TextLabel")
+            local SliderName = Instance.new笑了("TextLabel")
             local Fill = Instance.new("Frame")
             local UICornerFill = Instance.new("UICorner")
             local Progress = Instance.new("Frame")
@@ -428,7 +447,7 @@ function Leaf:CreateWindow(config)
             Snumber.TextColor3 = Color3.fromRGB(255, 255, 255)
             Snumber.TextSize = 16
             Snumber.TextXAlignment = Enum.TextXAlignment.Right
-            Snumber.TextYAlignment = Enum.TextYAlignment.Center 
+            Snumber.TextYAlignment = Enum.TextYAlignment.Center
             
             local currentValue = default
             local dragging = false
