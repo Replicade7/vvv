@@ -11,7 +11,7 @@ ConfigManager = {
             Save = function(obj)
                 return {
                     __type = obj.__type,
-                    value = obj.Value:ToHex()
+                    value = obj.Value:ToHex(),
                 }
             end,
             Load = function(element, data)
@@ -24,7 +24,7 @@ ConfigManager = {
             Save = function(obj)
                 return {
                     __type = obj.__type,
-                    value = obj.Value
+                    value = obj.Value,
                 }
             end,
             Load = function(element, data)
@@ -37,7 +37,7 @@ ConfigManager = {
             Save = function(obj)
                 return {
                     __type = obj.__type,
-                    value = obj.Value
+                    value = obj.Value,
                 }
             end,
             Load = function(element, data)
@@ -50,7 +50,7 @@ ConfigManager = {
             Save = function(obj)
                 return {
                     __type = obj.__type,
-                    value = obj.Value.Default
+                    value = obj.Value.Default,
                 }
             end,
             Load = function(element, data)
@@ -63,7 +63,7 @@ ConfigManager = {
             Save = function(obj)
                 return {
                     __type = obj.__type,
-                    value = obj.Value
+                    value = obj.Value,
                 }
             end,
             Load = function(element, data)
@@ -71,7 +71,7 @@ ConfigManager = {
                     element:Set(data.value)
                 end
             end
-        }
+        },
     }
 }
 
@@ -89,6 +89,10 @@ function ConfigManager:Init(Window)
     local configs = ConfigManager:AllConfigs()
     for _, configName in ipairs(configs) do
         ConfigManager:CreateConfig(configName)
+    end
+    local defaultConfigName = Window.ConfigSystem.DefaultConfig
+    if not ConfigManager.Configs[defaultConfigName] then
+        ConfigManager:CreateConfig(defaultConfigName)
     end
     return ConfigManager
 end
@@ -143,15 +147,6 @@ function ConfigManager:AllConfigs()
         return files
     end
     return {}
-end
-
-function ConfigManager:SaveDefaultConfig()
-    if self.Window.ConfigSystem and self.Window.ConfigSystem.Enabled and self.Window.ConfigSystem.AutoSave and self.Window.ConfigSystem.DefaultConfig then
-        local defaultConfig = self.Configs[self.Window.ConfigSystem.DefaultConfig]
-        if defaultConfig then
-            defaultConfig:Save()
-        end
-    end
 end
 
 local Leaf = {}
@@ -545,9 +540,14 @@ function Leaf:CreateWindow(config)
                 updateToggle()
                 if window.ConfigSystem and window.ConfigSystem.Enabled then
                     toggleElement.Value = state
+                    if window.ConfigSystem.AutoSave then
+                        local defaultConfig = ConfigManager.Configs[window.ConfigSystem.DefaultConfig]
+                        if defaultConfig then
+                            defaultConfig:Save()
+                        end
+                    end
                 end
                 if props.Callback then pcall(props.Callback, state) end
-                ConfigManager:SaveDefaultConfig()
             end)
             
             self.nextPosition = self.nextPosition + 45
@@ -648,7 +648,12 @@ function Leaf:CreateWindow(config)
             local function endInput(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     dragging = false
-                    ConfigManager:SaveDefaultConfig()
+                    if window.ConfigSystem and window.ConfigSystem.Enabled and window.ConfigSystem.AutoSave then
+                        local defaultConfig = ConfigManager.Configs[window.ConfigSystem.DefaultConfig]
+                        if defaultConfig then
+                            defaultConfig:Save()
+                        end
+                    end
                 end
             end
             
@@ -839,10 +844,15 @@ function Leaf:CreateWindow(config)
                     Info.Text = option
                     if window.ConfigSystem and window.ConfigSystem.Enabled then
                         dropdownElement.Value = option
+                        if window.ConfigSystem.AutoSave then
+                            local defaultConfig = ConfigManager.Configs[window.ConfigSystem.DefaultConfig]
+                            if defaultConfig then
+                                defaultConfig:Save()
+                            end
+                        end
                     end
                     props.Callback(option)
                     DropdownList.Visible = false
-                    ConfigManager:SaveDefaultConfig()
                 end)
             end
             
@@ -1180,12 +1190,17 @@ function Leaf:CreateWindow(config)
                 ChangeColor.Visible = false
                 if window.ConfigSystem and window.ConfigSystem.Enabled then
                     colorPickerElement.Value = ColorIndicator.BackgroundColor3
+                    if window.ConfigSystem.AutoSave then
+                        local defaultConfig = ConfigManager.Configs[window.ConfigSystem.DefaultConfig]
+                        if defaultConfig then
+                            defaultConfig:Save()
+                        end
+                    end
                 end
                 Color = ColorIndicator.BackgroundColor3
                 if Callback then
                     Callback(Color)
                 end
-                ConfigManager:SaveDefaultConfig()
             end)
             
             CancelButton.MouseButton1Click:Connect(function()
@@ -1287,7 +1302,12 @@ function Leaf:CreateWindow(config)
                 if props.Callback then
                     pcall(props.Callback, InputBox.Text)
                 end
-                ConfigManager:SaveDefaultConfig()
+                if window.ConfigSystem and window.ConfigSystem.Enabled and window.ConfigSystem.AutoSave then
+                    local defaultConfig = ConfigManager.Configs[window.ConfigSystem.DefaultConfig]
+                    if defaultConfig then
+                        defaultConfig:Save()
+                    end
+                end
             end)
             
             self.nextPosition = self.nextPosition + 45
@@ -1367,7 +1387,7 @@ function Leaf:CreateWindow(config)
     
     if window.ConfigSystem and window.ConfigSystem.Enabled then
         ConfigManager:Init(window)
-        if window.ConfigSystem.DefaultConfig then
+        if window.ConfigSystem.AutoSave then
             local defaultConfig = ConfigManager.Configs[window.ConfigSystem.DefaultConfig]
             if defaultConfig then
                 defaultConfig:Load()
