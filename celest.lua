@@ -148,12 +148,12 @@ function Leaf:CreateWindow(config)
         
         local buttonWidth = 25
         local gap = 1
-        local rightPadding = 5
+        local rightPadding = (n == 5) and 2 or 5
         local totalWidth = buttonWidth * n + gap * (n - 1)
         local startX = 310 - rightPadding - totalWidth
         
         for i, tab in ipairs(allTabs) do
-            tab.TabButton.Position = UDim2.new(0, startX + (i - 1) * (buttonWidth + gap), 0, 2)
+            tab.TabButton.Position = UDim2.new(0, startX + (i - 1) * (buttonWidth + gap), 0.073, 0)
         end
     end
     
