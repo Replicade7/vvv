@@ -142,15 +142,18 @@ function Leaf:CreateWindow(config)
     local allDropdowns = {}
     local allColorPickers = {}
     
-    local function updateTabsPosition()
-        local tabWidth = 25
-        local spacing = 1
+    local function updateTabPositions()
+        local n = #allTabs
+        if n == 0 then return end
+        
+        local buttonWidth = 25
+        local gap = 1
         local rightPadding = 5
-        local totalWidth = 310
+        local totalWidth = buttonWidth * n + gap * (n - 1)
+        local startX = 310 - rightPadding - totalWidth
         
         for i, tab in ipairs(allTabs) do
-            local x = totalWidth - rightPadding - i * tabWidth - (i - 1) * spacing
-            tab.TabButton.Position = UDim2.new(0, x, 0.073, 0)
+            tab.TabButton.Position = UDim2.new(0, startX + (i - 1) * (buttonWidth + gap), 0.073, 0)
         end
     end
     
@@ -173,7 +176,7 @@ function Leaf:CreateWindow(config)
     
     function window:CreateTab(props)
         if #allTabs >= 5 then
-            return
+            return nil
         end
         
         local tab = {}
@@ -184,7 +187,6 @@ function Leaf:CreateWindow(config)
         TabButton.Name = "Tab"..#allTabs+1
         TabButton.Parent = TopBar
         TabButton.BackgroundTransparency = 1
-        TabButton.Position = UDim2.new(0, 0, 0.073, 0)
         TabButton.Size = UDim2.new(0, 25, 0, 25)
         TabButton.Image = props.Image
         TabButton.ImageColor3 = props.Opened and Leaf.MenuColorValue.Value or Color3.fromRGB(130, 130, 130)
@@ -988,7 +990,7 @@ function Leaf:CreateWindow(config)
             end)
             
             TopBarCP.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MenuButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     draggingCP = true
                     dragStartCP = input.Position
                     startPosCP = ChangeColor.Position
@@ -1148,7 +1150,7 @@ function Leaf:CreateWindow(config)
         
         TabButton.MouseButton1Click:Connect(function() setActiveTab(tab) end)
         table.insert(allTabs, tab)
-        updateTabsPosition()
+        updateTabPositions()
         return tab
     end
 
