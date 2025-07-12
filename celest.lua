@@ -148,7 +148,7 @@ function Leaf:CreateWindow(config)
         
         local buttonWidth = 25
         local gap = 1
-        local rightPadding = (n == 5) and 2 or 5
+        local rightPadding = 5
         local totalWidth = buttonWidth * n + gap * (n - 1)
         local startX = 310 - rightPadding - totalWidth
         
