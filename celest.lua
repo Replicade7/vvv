@@ -14,9 +14,7 @@ function Leaf:CreateWindow(config)
             item.element[item.property] = Leaf.MenuColorValue.Value
         end
         for _, toggleData in ipairs(Leaf.toggles) do
-            if toggleData.state then
-                toggleData.indicator.BackgroundColor3 = Leaf.MenuColorValue.Value
-            end
+            toggleData.update()
         end
         if activeTab then
             activeTab.TabButton.ImageColor3 = Leaf.MenuColorValue.Value
@@ -342,11 +340,6 @@ function Leaf:CreateWindow(config)
             
             local state = props.Default or false
             local tweenService = game:GetService("TweenService")
-            local toggleData = {
-                state = state,
-                indicator = Indicator
-            }
-            table.insert(Leaf.toggles, toggleData)
             
             local function updateToggle()
                 if state then
@@ -359,6 +352,13 @@ function Leaf:CreateWindow(config)
                     tweenService:Create(Circle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
                 end
             end
+            
+            local toggleData = {
+                state = state,
+                indicator = Indicator,
+                update = updateToggle
+            }
+            table.insert(Leaf.toggles, toggleData)
             
             updateToggle()
             
