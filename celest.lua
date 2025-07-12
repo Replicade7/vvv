@@ -142,25 +142,6 @@ function Leaf:CreateWindow(config)
     local allDropdowns = {}
     local allColorPickers = {}
     
-    local function updateTabPositions()
-        local totalTabs = #allTabs
-        if totalTabs <= 4 then
-            for i, tab in ipairs(allTabs) do
-                tab.TabButton.Position = UDim2.new(0.743 + (i-1)*0.081, 0, 0.073, 0)
-            end
-        else
-            local buttonWidth = 25
-            local spacing = 10
-            local totalWidth = totalTabs * buttonWidth + (totalTabs - 1) * spacing
-            local startPixel = math.max(0, 310 - totalWidth)
-            local startX = startPixel / 310
-            local stepX = (buttonWidth + spacing) / 310
-            for i, tab in ipairs(allTabs) do
-                tab.TabButton.Position = UDim2.new(startX + (i-1)*stepX, 0, 0.073, 0)
-            end
-        end
-    end
-    
     local function setActiveTab(tab)
         if activeTab then
             activeTab.ScrollingFrame.Visible = false
@@ -179,6 +160,10 @@ function Leaf:CreateWindow(config)
     end
     
     function window:CreateTab(props)
+        if #allTabs >= 5 then
+            return nil
+        end
+        
         local tab = {}
         tab.window = self
         local TabButton = Instance.new("ImageButton")
@@ -392,7 +377,7 @@ function Leaf:CreateWindow(config)
                 GetValue = function() return state end,
                 SetValue = function(value)
                     state = value
-                    toggleData.state = value
+                    toggleData.state = state
                     updateToggle()
                     if props.Callback then pcall(props.Callback, state) end
                 end
@@ -1150,7 +1135,13 @@ function Leaf:CreateWindow(config)
         
         TabButton.MouseButton1Click:Connect(function() setActiveTab(tab) end)
         table.insert(allTabs, tab)
-        updateTabPositions()
+        
+        local n = #allTabs
+        for index, t in ipairs(allTabs) do
+            local xPos = 310 - 25 - (n - index) * 35
+            t.TabButton.Position = UDim2.new(0, xPos, 0.073, 0)
+        end
+
         return tab
     end
 
