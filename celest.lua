@@ -1043,10 +1043,22 @@ function Leaf:CreateWindow(config)
             
             local key = props.Name
             self.window.elements[key] = {
-                GetValue = function() return ColorIndicator.BackgroundColor3 end,
+                GetValue = function()
+                    local c = ColorIndicator.BackgroundColor3
+                    return { c.R, c.G, c.B }
+                end,
                 SetValue = function(value)
-                    ColorIndicator.BackgroundColor3 = value
-                    if Callback then pcall(Callback, value) end
+                    local color
+                    if type(value) == "table" and #value == 3 then
+                        color = Color3.new(value[1], value[2], value[3])
+                    elseif typeof(value) == "Color3" then
+                        color = value
+                    else
+                        return
+                    end
+                    Color = color
+                    ColorIndicator.BackgroundColor3 = color
+                    if Callback then pcall(Callback, color) end
                 end
             }
             
