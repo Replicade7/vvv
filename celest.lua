@@ -142,6 +142,15 @@ function Leaf:CreateWindow(config)
     local allDropdowns = {}
     local allColorPickers = {}
     
+    local function updateTabsPosition()
+        local n = #allTabs
+        for index, tab in ipairs(allTabs) do
+            local i = index - 1
+            local x = 310 - 30 * n + 30 * i
+            tab.TabButton.Position = UDim2.new(0, x, 0.073, 0)
+        end
+    end
+    
     local function setActiveTab(tab)
         if activeTab then
             activeTab.ScrollingFrame.Visible = false
@@ -159,20 +168,10 @@ function Leaf:CreateWindow(config)
         end
     end
     
-    local function updateTabPositions()
-        local tabWidth = 25
-        local spacing = 15
-        local totalWidth = #allTabs * tabWidth + (#allTabs - 1) * spacing
-        local startX = 310 - totalWidth - spacing
-        
-        for i, tab in ipairs(allTabs) do
-            local xPos = startX + (i - 1) * (tabWidth + spacing)
-            tab.TabButton.Position = UDim2.new(0, xPos, 0.073, 0)
-        end
-    end
-    
     function window:CreateTab(props)
-        if #allTabs >= 5 then return end
+        if #allTabs >= 5 then
+            return nil
+        end
         
         local tab = {}
         tab.window = self
@@ -182,6 +181,7 @@ function Leaf:CreateWindow(config)
         TabButton.Name = "Tab"..#allTabs+1
         TabButton.Parent = TopBar
         TabButton.BackgroundTransparency = 1
+        TabButton.Position = UDim2.new(0, 0, 0.073, 0)
         TabButton.Size = UDim2.new(0, 25, 0, 25)
         TabButton.Image = props.Image
         TabButton.ImageColor3 = props.Opened and Leaf.MenuColorValue.Value or Color3.fromRGB(130, 130, 130)
@@ -1145,7 +1145,7 @@ function Leaf:CreateWindow(config)
         
         TabButton.MouseButton1Click:Connect(function() setActiveTab(tab) end)
         table.insert(allTabs, tab)
-        updateTabPositions()
+        updateTabsPosition()
         return tab
     end
 
