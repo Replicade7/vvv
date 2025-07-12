@@ -159,10 +159,20 @@ function Leaf:CreateWindow(config)
         end
     end
     
-    function window:CreateTab(props)
-        if #allTabs >= 5 then
-            return nil
+    local function updateTabPositions()
+        local tabWidth = 25
+        local spacing = 15
+        local totalWidth = #allTabs * tabWidth + (#allTabs - 1) * spacing
+        local startX = 310 - totalWidth - spacing
+        
+        for i, tab in ipairs(allTabs) do
+            local xPos = startX + (i - 1) * (tabWidth + spacing)
+            tab.TabButton.Position = UDim2.new(0, xPos, 0.073, 0)
         end
+    end
+    
+    function window:CreateTab(props)
+        if #allTabs >= 5 then return end
         
         local tab = {}
         tab.window = self
@@ -1135,13 +1145,7 @@ function Leaf:CreateWindow(config)
         
         TabButton.MouseButton1Click:Connect(function() setActiveTab(tab) end)
         table.insert(allTabs, tab)
-        
-        local n = #allTabs
-        for index, t in ipairs(allTabs) do
-            local xPos = 310 - 25 - (n - index) * 35
-            t.TabButton.Position = UDim2.new(0, xPos, 0.073, 0)
-        end
-
+        updateTabPositions()
         return tab
     end
 
