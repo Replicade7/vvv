@@ -142,12 +142,15 @@ function Leaf:CreateWindow(config)
     local allDropdowns = {}
     local allColorPickers = {}
     
-    local function updateTabPositions()
-        local totalTabs = #allTabs
-        for index, tabItem in ipairs(allTabs) do
-            local k = totalTabs - index
-            local x = 280 - 27 * k
-            tabItem.TabButton.Position = UDim2.new(0, x, 0.073, 0)
+    local function updateTabsPosition()
+        local tabWidth = 25
+        local spacing = 1
+        local rightPadding = 5
+        local totalWidth = 310
+        
+        for i, tab in ipairs(allTabs) do
+            local x = totalWidth - rightPadding - i * tabWidth - (i - 1) * spacing
+            tab.TabButton.Position = UDim2.new(0, x, 0.073, 0)
         end
     end
     
@@ -170,7 +173,7 @@ function Leaf:CreateWindow(config)
     
     function window:CreateTab(props)
         if #allTabs >= 5 then
-            return nil
+            return
         end
         
         local tab = {}
@@ -387,7 +390,7 @@ function Leaf:CreateWindow(config)
                 GetValue = function() return state end,
                 SetValue = function(value)
                     state = value
-                    toggleData.state = state
+                    toggleData.state = value
                     updateToggle()
                     if props.Callback then pcall(props.Callback, state) end
                 end
@@ -985,7 +988,7 @@ function Leaf:CreateWindow(config)
             end)
             
             TopBarCP.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                if input.UserInputType == Enum.UserInputType.MenuButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     draggingCP = true
                     dragStartCP = input.Position
                     startPosCP = ChangeColor.Position
@@ -1145,7 +1148,7 @@ function Leaf:CreateWindow(config)
         
         TabButton.MouseButton1Click:Connect(function() setActiveTab(tab) end)
         table.insert(allTabs, tab)
-        updateTabPositions()
+        updateTabsPosition()
         return tab
     end
 
