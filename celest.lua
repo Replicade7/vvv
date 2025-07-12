@@ -142,12 +142,12 @@ function Leaf:CreateWindow(config)
     local allDropdowns = {}
     local allColorPickers = {}
     
-    local function updateTabsPosition()
-        local n = #allTabs
-        for index, tab in ipairs(allTabs) do
-            local i = index - 1
-            local x = 310 - 30 * n + 30 * i
-            tab.TabButton.Position = UDim2.new(0, x, 0.073, 0)
+    local function updateTabPositions()
+        local totalTabs = #allTabs
+        for index, tabItem in ipairs(allTabs) do
+            local k = totalTabs - index
+            local x = 280 - 27 * k
+            tabItem.TabButton.Position = UDim2.new(0, x, 0.073, 0)
         end
     end
     
@@ -1145,7 +1145,7 @@ function Leaf:CreateWindow(config)
         
         TabButton.MouseButton1Click:Connect(function() setActiveTab(tab) end)
         table.insert(allTabs, tab)
-        updateTabsPosition()
+        updateTabPositions()
         return tab
     end
 
