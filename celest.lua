@@ -82,7 +82,7 @@ function Leaf:CreateWindow(config)
     OuterFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     OuterFrame.BorderSizePixel = 0
     OuterFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    OuterFrame.Size = UDim2.new(0, 336, 0, 303)
+    OuterFrame.Size = UDim2.new(0, 336, 0, 331)
     
     UIStroke1.Parent = OuterFrame
     UIStroke1.Color = Color3.fromRGB(80, 80, 80)
@@ -93,7 +93,7 @@ function Leaf:CreateWindow(config)
     InnerFrame.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
     InnerFrame.BorderSizePixel = 0
     InnerFrame.Position = UDim2.new(0.024, 0, 0.0315, 0)
-    InnerFrame.Size = UDim2.new(0, 320, 0, 285)
+    InnerFrame.Size = UDim2.new(0, 320, 0, 313)
     
     UIStroke2.Parent = InnerFrame
     UIStroke2.Color = Color3.fromRGB(80, 80, 80)
@@ -103,8 +103,11 @@ function Leaf:CreateWindow(config)
     Mainframe.Parent = InnerFrame
     Mainframe.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     Mainframe.BorderSizePixel = 0
-    Mainframe.Position = UDim2.new(0.015, 0, 0.191, 0)
+    Mainframe.Position = UDim2.new(0.015, 0, 0, 49)
     Mainframe.Size = UDim2.new(0, 310, 0, 200)
+    
+    UICornerMain.CornerRadius = UDim.new(0, 4)
+    UICornerMain.Parent = Mainframe
     
     UIStroke3.Parent = Mainframe
     UIStroke3.Color = Color3.fromRGB(80, 80, 80)
@@ -137,6 +140,61 @@ function Leaf:CreateWindow(config)
     Line.Size = UDim2.new(1, 0, 0, 3)
     table.insert(Leaf.colorElements, {element = Line, property = "BackgroundColor3"})
 
+    local SubTab = Instance.new("Frame")
+    local TextButton = Instance.new("TextButton")
+    local TextButton_2 = Instance.new("TextButton")
+    local TextButton_3 = Instance.new("TextButton")
+    
+    SubTab.Name = "SubTab"
+    SubTab.Parent = InnerFrame
+    SubTab.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    SubTab.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    SubTab.BorderSizePixel = 0
+    SubTab.Position = UDim2.new(0.015, 0, 0, 287)
+    SubTab.Size = UDim2.new(0, 310, 0, 20)
+    
+    local SubTabStroke = Instance.new("UIStroke")
+    SubTabStroke.Parent = SubTab
+    SubTabStroke.Color = Color3.fromRGB(60, 60, 60)
+    SubTabStroke.Thickness = 2
+    SubTabStroke.LineJoinMode = Enum.LineJoinMode.Round
+    
+    TextButton.Parent = SubTab
+    TextButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextButton.BackgroundTransparency = 1.000
+    TextButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    TextButton.BorderSizePixel = 0
+    TextButton.Position = UDim2.new(0.106451511, 0, 0, 0)
+    TextButton.Size = UDim2.new(0, 78, 0, 20)
+    TextButton.Font = Enum.Font.GothamBold
+    TextButton.Text = "AimBot"
+    TextButton.TextColor3 = Color3.fromRGB(130, 130, 130)
+    TextButton.TextSize = 13.000
+    
+    TextButton_2.Parent = SubTab
+    TextButton_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextButton_2.BackgroundTransparency = 1.000
+    TextButton_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    TextButton_2.BorderSizePixel = 0
+    TextButton_2.Position = UDim2.new(0.390322477, 0, 0, 0)
+    TextButton_2.Size = UDim2.new(0, 78, 0, 20)
+    TextButton_2.Font = Enum.Font.GothamBold
+    TextButton_2.Text = "SlientAim"
+    TextButton_2.TextColor3 = Color3.fromRGB(183, 255, 128)
+    TextButton_2.TextSize = 14.000
+    
+    TextButton_3.Parent = SubTab
+    TextButton_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextButton_3.BackgroundTransparency = 1.000
+    TextButton_3.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    TextButton_3.BorderSizePixel = 0
+    TextButton_3.Position = UDim2.new(0.641935408, 0, 0, 0)
+    TextButton_3.Size = UDim2.new(0, 78, 0, 20)
+    TextButton_3.Font = Enum.Font.GothamBold
+    TextButton_3.Text = "Others"
+    TextButton_3.TextColor3 = Color3.fromRGB(130, 130, 130)
+    TextButton_3.TextSize = 13.000
+
     local allTabs = {}
     local activeTab
     local allDropdowns = {}
@@ -159,28 +217,12 @@ function Leaf:CreateWindow(config)
     
     local function setActiveTab(tab)
         if activeTab then
+            activeTab.ScrollingFrame.Visible = false
             activeTab.TabButton.ImageColor3 = Color3.fromRGB(130, 130, 130)
-            if activeTab.SubTabFrame then
-                activeTab.SubTabFrame.Visible = false
-            end
-            if activeTab.activeSubTab then
-                activeTab.activeSubTab.ScrollingFrame.Visible = false
-            else
-                activeTab.ScrollingFrame.Visible = false
-            end
         end
-        
         activeTab = tab
+        activeTab.ScrollingFrame.Visible = true
         activeTab.TabButton.ImageColor3 = Leaf.MenuColorValue.Value
-        
-        if #activeTab.subTabs > 0 then
-            activeTab.SubTabFrame.Visible = true
-            if activeTab.activeSubTab then
-                activeTab.activeSubTab.ScrollingFrame.Visible = true
-            end
-        else
-            activeTab.ScrollingFrame.Visible = true
-        end
         
         for _, dropdown in ipairs(allDropdowns) do
             dropdown.Visible = false
@@ -197,10 +239,6 @@ function Leaf:CreateWindow(config)
         
         local tab = {}
         tab.window = self
-        tab.subTabs = {}
-        tab.activeSubTab = nil
-        tab.SubTabFrame = nil
-
         local TabButton = Instance.new("ImageButton")
         local UICornerTab = Instance.new("UICorner")
         
@@ -223,29 +261,11 @@ function Leaf:CreateWindow(config)
         ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
         ScrollingFrame.ScrollBarThickness = 3
         
-        local SubTabFrame = Instance.new("Frame")
-        SubTabFrame.Name = "SubTabFrame"
-        SubTabFrame.Parent = InnerFrame
-        SubTabFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-        SubTabFrame.BorderSizePixel = 0
-        SubTabFrame.Position = UDim2.new(0.015, 0, 0, 254)
-        SubTabFrame.Size = UDim2.new(0, 310, 0, 25)
-        SubTabFrame.Visible = false
-
-        local SubTabStroke = Instance.new("UIStroke")
-        SubTabStroke.Parent = SubTabFrame
-        SubTabStroke.Color = Color3.fromRGB(60, 60, 60)
-        SubTabStroke.Thickness = 2
-        SubTabStroke.LineJoinMode = Enum.LineJoinMode.Round
-
         tab.TabButton = TabButton
         tab.ScrollingFrame = ScrollingFrame
-        tab.SubTabFrame = SubTabFrame
         tab.nextPosition = 10
         
-        local elementFunctions = {}
-
-        function elementFunctions:Button(props)
+        function tab:Button(props)
             local ButtonFrame = Instance.new("Frame")
             local UICornerBtn = Instance.new("UICorner")
             local Indicator = Instance.new("Frame")
@@ -290,7 +310,9 @@ function Leaf:CreateWindow(config)
             TextButton.MouseButton1Click:Connect(function()
                 clickCount = clickCount + 1
                 local currentClick = clickCount
+                
                 Indicator.BackgroundColor3 = Leaf.MenuColorValue.Value
+                
                 if props.Callback then pcall(props.Callback) end
                 
                 local startTime = os.clock()
@@ -307,7 +329,7 @@ function Leaf:CreateWindow(config)
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
         end
 
-        function elementFunctions:DeButton(props)
+        function tab:DeButton(props)
             local DeButtonFrame = Instance.new("Frame")
             local UICornerDeBtn = Instance.new("UICorner")
             local NameButton = Instance.new("TextLabel")
@@ -343,7 +365,7 @@ function Leaf:CreateWindow(config)
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
         end
 
-        function elementFunctions:Toggle(props)
+        function tab:Toggle(props)
             local ToggleFrame = Instance.new("Frame")
             local UICornerTog = Instance.new("UICorner")
             local Indicator = Instance.new("Frame")
@@ -438,7 +460,7 @@ function Leaf:CreateWindow(config)
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
         end
 
-        function elementFunctions:Slider(props)
+        function tab:Slider(props)
             local min = props.Value.Min
             local max = props.Value.Max
             local increment = props.Value.Increment
@@ -558,7 +580,7 @@ function Leaf:CreateWindow(config)
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
         end
         
-        function elementFunctions:Section(props)
+        function tab:Section(props)
             local SectionFrame = Instance.new("Frame")
             local UICornerSec = Instance.new("UICorner")
             local SectionTitle = Instance.new("TextLabel")
@@ -590,7 +612,7 @@ function Leaf:CreateWindow(config)
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
         end
         
-        function elementFunctions:CreateDropdown(props)
+        function tab:CreateDropdown(props)
             local DropdownFrame = Instance.new("Frame")
             local UICornerDrop = Instance.new("UICorner")
             local Dropdownname = Instance.new("TextLabel")
@@ -780,7 +802,7 @@ function Leaf:CreateWindow(config)
             return dropdownObject
         end
         
-        function elementFunctions:CreateColorPicker(props)
+        function tab:CreateColorPicker(props)
             local Name = props.Name
             local Color = props.Color
             local Callback = props.Callback
@@ -1120,7 +1142,7 @@ function Leaf:CreateWindow(config)
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
         end
         
-        function elementFunctions:Input(props)
+        function tab:Input(props)
             local InputFrame = Instance.new("Frame")
             local UICornerInp = Instance.new("UICorner")
             local NameLabel = Instance.new("TextLabel")
@@ -1178,122 +1200,6 @@ function Leaf:CreateWindow(config)
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
         end
         
-        tab.Button = elementFunctions.Button
-        tab.DeButton = elementFunctions.DeButton
-        tab.Toggle = elementFunctions.Toggle
-        tab.Slider = elementFunctions.Slider
-        tab.Section = elementFunctions.Section
-        tab.CreateDropdown = elementFunctions.CreateDropdown
-        tab.CreateColorPicker = elementFunctions.CreateColorPicker
-        tab.Input = elementFunctions.Input
-
-        function tab:CreateSubTab(props)
-            if #self.subTabs >= 3 then return nil end
-
-            local parentTab = self
-            if #parentTab.subTabs == 0 then
-                parentTab.ScrollingFrame.Visible = false
-                if activeTab == parentTab then
-                    parentTab.SubTabFrame.Visible = true
-                end
-            end
-
-            local subTab = {}
-            subTab.Name = props.Name
-            subTab.parentTab = parentTab
-            subTab.window = parentTab.window
-            subTab.nextPosition = 10
-
-            subTab.ScrollingFrame = Instance.new("ScrollingFrame")
-            subTab.ScrollingFrame.Parent = Mainframe
-            subTab.ScrollingFrame.Active = true
-            subTab.ScrollingFrame.BackgroundTransparency = 1
-            subTab.ScrollingFrame.Size = UDim2.new(0, 309, 0, 200)
-            subTab.ScrollingFrame.Visible = false
-            subTab.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-            subTab.ScrollingFrame.ScrollBarThickness = 3
-
-            subTab.Button = Instance.new("TextButton")
-            subTab.Button.Parent = parentTab.SubTabFrame
-            subTab.Button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            subTab.Button.BackgroundTransparency = 1.000
-            subTab.Button.BorderSizePixel = 0
-            subTab.Button.Size = UDim2.new(0, 80, 0, 25)
-            subTab.Button.Font = Enum.Font.GothamBold
-            subTab.Button.Text = props.Name
-
-            subTab.Button = elementFunctions.Button
-            subTab.DeButton = elementFunctions.DeButton
-            subTab.Toggle = elementFunctions.Toggle
-            subTab.Slider = elementFunctions.Slider
-            subTab.Section = elementFunctions.Section
-            subTab.CreateDropdown = elementFunctions.CreateDropdown
-            subTab.CreateColorPicker = elementFunctions.CreateColorPicker
-            subTab.Input = elementFunctions.Input
-            
-            table.insert(parentTab.subTabs, subTab)
-
-            local function setActiveSubTab(subTabToActivate)
-                for _, otherSubTab in ipairs(parentTab.subTabs) do
-                    otherSubTab.ScrollingFrame.Visible = false
-                    otherSubTab.Button.TextColor3 = Color3.fromRGB(130, 130, 130)
-                    otherSubTab.Button.TextSize = 13
-                end
-                
-                subTabToActivate.ScrollingFrame.Visible = true
-                subTabToActivate.Button.TextColor3 = Leaf.MenuColorValue.Value
-                subTabToActivate.Button.TextSize = 14
-                parentTab.activeSubTab = subTabToActivate
-            end
-
-            local function updateSubTabButtonLayout()
-                local n = #parentTab.subTabs
-                local buttonWidth = 80
-                local frameWidth = 310
-                local gap = 10
-
-                if n == 1 then
-                    local btn = parentTab.subTabs[1].Button
-                    btn.Position = UDim2.new(0.5, -buttonWidth / 2, 0, 0)
-                elseif n == 2 then
-                    local totalWidth = buttonWidth * 2 + gap
-                    local startPos = (frameWidth - totalWidth) / 2
-                    parentTab.subTabs[1].Button.Position = UDim2.new(0, startPos, 0, 0)
-                    parentTab.subTabs[2].Button.Position = UDim2.new(0, startPos + buttonWidth + gap, 0, 0)
-                elseif n == 3 then
-                    local centerBtn = parentTab.subTabs[2].Button
-                    centerBtn.Position = UDim2.new(0.5, -buttonWidth / 2, 0, 0)
-                    
-                    local leftBtn = parentTab.subTabs[1].Button
-                    leftBtn.Position = UDim2.new(0.5, -buttonWidth / 2 - buttonWidth - gap, 0, 0)
-
-                    local rightBtn = parentTab.subTabs[3].Button
-                    rightBtn.Position = UDim2.new(0.5, -buttonWidth / 2 + buttonWidth + gap, 0, 0)
-                end
-            end
-            
-            subTab.Button:GetPropertyChangedSignal("Parent"):Connect(function()
-                 subTab.Button.MouseButton1Click:Connect(function()
-                    setActiveSubTab(subTab)
-                end)
-            end)
-
-             subTab.Button.MouseButton1Click:Connect(function()
-                setActiveSubTab(subTab)
-            end)
-
-            updateSubTabButtonLayout()
-            
-            if props.Opened or not parentTab.activeSubTab then
-                setActiveSubTab(subTab)
-            else
-                subTab.Button.TextColor3 = Color3.fromRGB(130, 130, 130)
-                subTab.Button.TextSize = 13
-            end
-            
-            return subTab
-        end
-
         if props.Opened then
             activeTab = tab
         else
