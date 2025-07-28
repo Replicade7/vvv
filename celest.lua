@@ -11,7 +11,9 @@ function Leaf:CreateWindow(config)
     
     Leaf.MenuColorValue.Changed:Connect(function()
         for _, item in ipairs(Leaf.colorElements) do
-            item.element[item.property] = Leaf.MenuColorValue.Value
+            if item.element and item.element.Parent then
+                item.element[item.property] = Leaf.MenuColorValue.Value
+            end
         end
         for _, toggleData in ipairs(Leaf.toggles) do
             toggleData.update()
@@ -160,22 +162,15 @@ function Leaf:CreateWindow(config)
     local function setActiveTab(tab)
         if activeTab then
             activeTab.ScrollingFrame.Visible = false
-            if activeTab.subTabFrame then
-                activeTab.subTabFrame.Visible = false
-            end
-            if activeTab.activeSubTab then
-                activeTab.activeSubTab.ScrollingFrame.Visible = false
+            if activeTab.SubTabFrame then
+                activeTab.SubTabFrame.Visible = false
             end
             activeTab.TabButton.ImageColor3 = Color3.fromRGB(130, 130, 130)
         end
         activeTab = tab
-        if tab.activeSubTab then
-            tab.activeSubTab.ScrollingFrame.Visible = true
-        else
-            tab.ScrollingFrame.Visible = true
-        end
-        if tab.subTabFrame then
-            tab.subTabFrame.Visible = true
+        activeTab.ScrollingFrame.Visible = true
+        if activeTab.SubTabFrame then
+            activeTab.SubTabFrame.Visible = true
         end
         activeTab.TabButton.ImageColor3 = Leaf.MenuColorValue.Value
         
@@ -219,7 +214,10 @@ function Leaf:CreateWindow(config)
         tab.TabButton = TabButton
         tab.ScrollingFrame = ScrollingFrame
         tab.nextPosition = 10
-        
+        tab.subTabs = {}
+        tab.activeSubTab = nil
+        tab.SubTabFrame = nil
+
         function tab:Button(props)
             local ButtonFrame = Instance.new("Frame")
             local UICornerBtn = Instance.new("UICorner")
@@ -1156,123 +1154,98 @@ function Leaf:CreateWindow(config)
         end
 
         function tab:CreateSubTab(props)
-            if not self.subTabs then
-                self.subTabs = {}
-                self.activeSubTab = nil
-                self.subTabFrame = Instance.new("Frame")
-                self.subTabFrame.Name = "SubTabFrame"
-                self.subTabFrame.Parent = Mainframe
-                self.subTabFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-                self.subTabFrame.BorderSizePixel = 0
-                self.subTabFrame.Position = UDim2.new(0, 0, 0, 0)
-                self.subTabFrame.Size = UDim2.new(0, 310, 0, 20)
-                self.subTabFrame.Visible = props.Opened
-
-                local subTabStroke = Instance.new("UIStroke")
-                subTabStroke.Parent = self.subTabFrame
-                subTabStroke.Color = Color3.fromRGB(60, 60, 60)
-                subTabStroke.Thickness = 2
-                subTabStroke.LineJoinMode = Enum.LineJoinMode.Round
-
-                self.ScrollingFrame.Position = UDim2.new(0.015, 0, 0.1, 0)
-                self.ScrollingFrame.Size = UDim2.new(0, 309, 0, 180)
-            end
-
             if #self.subTabs >= 3 then
+                warn("Cannot create more than 3 sub-tabs.")
                 return nil
             end
-
-            local subTab = {}
-            subTab.window = self.window
-            subTab.parentTab = self
-
+        
+            if not self.SubTabFrame then
+                self.SubTabFrame = Instance.new("Frame")
+                self.SubTabFrame.Name = "SubTabFrame"
+                self.SubTabFrame.Parent = Mainframe
+                self.SubTabFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+                self.SubTabFrame.BorderSizePixel = 0
+                self.SubTabFrame.Position = UDim2.new(0, 0, 1, -20)
+                self.SubTabFrame.Size = UDim2.new(1, 0, 0, 20)
+                self.SubTabFrame.Visible = self.ScrollingFrame.Visible
+        
+                local SubTabStroke = Instance.new("UIStroke")
+                SubTabStroke.Parent = self.SubTabFrame
+                SubTabStroke.Color = Color3.fromRGB(60, 60, 60)
+                SubTabStroke.Thickness = 2
+                SubTabStroke.LineJoinMode = Enum.LineJoinMode.Round
+        
+                self.ScrollingFrame.Size = UDim2.new(0, 309, 0, 180)
+            end
+        
             local subTabButton = Instance.new("TextButton")
-            subTabButton.Parent = self.subTabFrame
-            subTabButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            subTabButton.BackgroundTransparency = 1.000
-            subTabButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+            subTabButton.Parent = self.SubTabFrame
+            subTabButton.BackgroundTransparency = 1.0
             subTabButton.BorderSizePixel = 0
             subTabButton.Size = UDim2.new(0, 78, 0, 20)
             subTabButton.Font = Enum.Font.GothamBold
             subTabButton.Text = props.Name
-
-            local SubScrollingFrame = Instance.new("ScrollingFrame")
-            SubScrollingFrame.Parent = Mainframe
-            SubScrollingFrame.Active = true
-            SubScrollingFrame.BackgroundTransparency = 1
-            SubScrollingFrame.Size = UDim2.new(0, 309, 0, 180)
-            SubScrollingFrame.Position = UDim2.new(0.015, 0, 0.1, 0)
-            SubScrollingFrame.Visible = props.Opened
-            SubScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-            SubScrollingFrame.ScrollBarThickness = 3
-
-            subTab.button = subTabButton
-            subTab.ScrollingFrame = SubScrollingFrame
-            subTab.nextPosition = 10
-
-            subTab.Button = function(s, p) tab.Button(subTab, p) end
-            subTab.DeButton = function(s, p) tab.DeButton(subTab, p) end
-            subTab.Toggle = function(s, p) tab.Toggle(subTab, p) end
-            subTab.Slider = function(s, p) tab.Slider(subTab, p) end
-            subTab.Section = function(s, p) tab.Section(subTab, p) end
-            subTab.CreateDropdown = function(s, p) tab.CreateDropdown(subTab, p) end
-            subTab.CreateColorPicker = function(s, p) tab.CreateColorPicker(subTab, p) end
-            subTab.Input = function(s, p) tab.Input(subTab, p) end
-
-            table.insert(self.subTabs, subTab)
-
-            local function updateSubTabButtons()
+            subTabButton.TextColor3 = Color3.fromRGB(130, 130, 130)
+            subTabButton.TextSize = 13
+        
+            local newSubTab = {
+                Name = props.Name,
+                Button = subTabButton,
+                Opened = props.Opened
+            }
+        
+            table.insert(self.subTabs, newSubTab)
+        
+            local function updateSubTabPositions()
                 local numSubTabs = #self.subTabs
-                for i, st in ipairs(self.subTabs) do
-                    local btn = st.button
-                    if numSubTabs == 1 then
-                        btn.Position = UDim2.new(0.5, -39, 0, 0)
-                    elseif numSubTabs == 2 then
-                        if i == 1 then
-                            btn.Position = UDim2.new(0.25, -39, 0, 0)
-                        else
-                            btn.Position = UDim2.new(0.75, -39, 0, 0)
-                        end
-                    elseif numSubTabs == 3 then
-                        if i == 1 then
-                            btn.Position = UDim2.new(0.15, -39, 0, 0)
-                        elseif i == 2 then
-                            btn.Position = UDim2.new(0.5, -39, 0, 0)
-                        else
-                            btn.Position = UDim2.new(0.85, -39, 0, 0)
+                local buttonWidth = 78
+                local frameWidth = self.SubTabFrame.AbsoluteSize.X
+                if frameWidth == 0 then frameWidth = 310 end
+        
+                if numSubTabs == 1 then
+                    self.subTabs[1].Button.Position = UDim2.new(0.5, -buttonWidth / 2, 0, 0)
+                elseif numSubTabs == 2 then
+                    local space = (frameWidth - buttonWidth * 2) / 3
+                    self.subTabs[1].Button.Position = UDim2.new(0, space, 0, 0)
+                    self.subTabs[2].Button.Position = UDim2.new(0, space * 2 + buttonWidth, 0, 0)
+                else 
+                    local space = (frameWidth - buttonWidth * 3) / 4
+                    self.subTabs[1].Button.Position = UDim2.new(0, space, 0, 0)
+                    self.subTabs[2].Button.Position = UDim2.new(0, space * 2 + buttonWidth, 0, 0)
+                    self.subTabs[3].Button.Position = UDim2.new(0, space * 3 + buttonWidth * 2, 0, 0)
+                end
+            end
+        
+            local function setActiveSubTab(subTab)
+                if self.activeSubTab then
+                    self.activeSubTab.Button.TextSize = 13
+                    self.activeSubTab.Button.TextColor3 = Color3.fromRGB(130, 130, 130)
+                    for i, item in ipairs(Leaf.colorElements) do
+                        if item.element == self.activeSubTab.Button then
+                            table.remove(Leaf.colorElements, i)
+                            break
                         end
                     end
                 end
+                self.activeSubTab = subTab
+                subTab.Button.TextSize = 14
+                subTab.Button.TextColor3 = Leaf.MenuColorValue.Value
+                table.insert(Leaf.colorElements, {element = subTab.Button, property = "TextColor3"})
+        
+                if props.Callback then pcall(props.Callback) end
             end
-
-            local function setSubTabActive(st)
-                if self.activeSubTab then
-                    self.activeSubTab.ScrollingFrame.Visible = false
-                    self.activeSubTab.button.TextSize = 13
-                    self.activeSubTab.button.TextColor3 = Color3.fromRGB(130, 130, 130)
-                end
-                self.activeSubTab = st
-                st.ScrollingFrame.Visible = true
-                st.button.TextSize = 14
-                st.button.TextColor3 = Leaf.MenuColorValue.Value
-                self.ScrollingFrame.Visible = false
-            end
-
+        
             subTabButton.MouseButton1Click:Connect(function()
-                setSubTabActive(subTab)
+                setActiveSubTab(newSubTab)
             end)
-
+        
+            pcall(updateSubTabPositions)
+        
             if props.Opened then
-                setSubTabActive(subTab)
-            else
-                subTab.ScrollingFrame.Visible = false
-                subTabButton.TextSize = 13
-                subTabButton.TextColor3 = Color3.fromRGB(130, 130, 130)
+                setActiveSubTab(newSubTab)
             end
-
-            updateSubTabButtons()
-
-            return subTab
+        
+            return newSubTab
         end
         
         if props.Opened then
