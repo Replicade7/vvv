@@ -82,7 +82,7 @@ function Leaf:CreateWindow(config)
     OuterFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     OuterFrame.BorderSizePixel = 0
     OuterFrame.Position = UDim2.new(0.498529375, 0, 0.552845418, 0)
-    OuterFrame.Size = UDim2.new(0, 336, 0, 304)
+    OuterFrame.Size = UDim2.new(0, 336, 0, 302)
 
     UIStroke1.Parent = OuterFrame
     UIStroke1.Color = Color3.fromRGB(80, 80, 80)
