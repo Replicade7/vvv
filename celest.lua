@@ -252,7 +252,7 @@ function Leaf:CreateWindow(config)
             versionBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
             versionBar.BorderSizePixel = 0
             versionBar.Size = UDim2.new(0, 310, 0, 20)
-            versionBar.Position = UDim2.new(0, 0, 1.03, 0)
+            versionBar.Position = UDim2.new(0, 0, 1.04, 0)
             versionBar.Visible = props.Opened
 
             local versionStroke = Instance.new("UIStroke")
