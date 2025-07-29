@@ -277,7 +277,7 @@ function Leaf:CreateWindow(config)
             numberVersionLabel.Name = "NumberVersion"
             numberVersionLabel.Parent = versionBar
             numberVersionLabel.BackgroundTransparency = 1.000
-            numberVersionLabel.Position = UDim2.new(0.92, 0, 0, 0)
+            numberVersionLabel.Position = UDim2.new(0.98, 0, 0, 0)
             numberVersionLabel.Size = UDim2.new(0.45, 0, 1, 0)
             numberVersionLabel.AnchorPoint = Vector2.new(1, 0)
             numberVersionLabel.Font = Enum.Font.GothamBold
