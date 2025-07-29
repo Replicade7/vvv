@@ -111,9 +111,9 @@ function Leaf:CreateWindow(config)
     UIStroke3.Thickness = 2
     
     TopBar.Name = "TopBar"
-    TopBar.Parent = Mainframe
+    TopBar.Parent = InnerFrame 
     TopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    TopBar.Position = UDim2.new(0, 0, -0.19, 0)
+    TopBar.Position = UDim2.new(0.015, 0, 0.015, 0) 
     TopBar.Size = UDim2.new(0, 310, 0, 30)
     
     UIStroke4.Parent = TopBar
@@ -133,7 +133,7 @@ function Leaf:CreateWindow(config)
     Line.Name = "Line"
     Line.Parent = TopBar
     Line.BackgroundColor3 = Leaf.MenuColorValue.Value
-    Line.Position = UDim2.new(0, 0, -0.238999993, 0)
+    Line.Position = UDim2.new(0, 0, 0.9, 0) 
     Line.Size = UDim2.new(1, 0, 0, 3)
     table.insert(Leaf.colorElements, {element = Line, property = "BackgroundColor3"})
 
@@ -204,7 +204,7 @@ function Leaf:CreateWindow(config)
         ScrollingFrame.Parent = Mainframe
         ScrollingFrame.Active = true
         ScrollingFrame.BackgroundTransparency = 1
-        ScrollingFrame.Size = UDim2.new(0, 309, 0, 200)
+        ScrollingFrame.Size = UDim2.new(1, 0, 1, 0) 
         ScrollingFrame.Visible = props.Opened
         ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
         ScrollingFrame.ScrollBarThickness = 3
@@ -221,7 +221,7 @@ function Leaf:CreateWindow(config)
                 
                 self.subTabFrame = Instance.new("Frame")
                 self.subTabFrame.Name = "SubTabFrame"
-                self.subTabFrame.Parent = Mainframe.Parent
+                self.subTabFrame.Parent = InnerFrame 
                 self.subTabFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
                 self.subTabFrame.BorderSizePixel = 0
                 self.subTabFrame.Size = UDim2.new(0, 310, 0, 20)
@@ -234,6 +234,7 @@ function Leaf:CreateWindow(config)
                 subTabStroke.Thickness = 2
                 subTabStroke.LineJoinMode = Enum.LineJoinMode.Round
 
+                Mainframe.Position = UDim2.new(Mainframe.Position.X.Scale, Mainframe.Position.X.Offset, Mainframe.Position.Y.Scale, Mainframe.Position.Y.Offset + 25)
                 Mainframe.Size = UDim2.new(Mainframe.Size.X.Scale, Mainframe.Size.X.Offset, 0, 175)
                 self.ScrollingFrame.Size = UDim2.new(self.ScrollingFrame.Size.X.Scale, self.ScrollingFrame.Size.X.Offset, 0, 175)
             end
@@ -256,15 +257,15 @@ function Leaf:CreateWindow(config)
 
             local function updateSubTabPositions()
                 local numSubTabs = #self.subTabs
-                if numSubTabs == 1 then
-                    self.subTabs[1].button.Position = UDim2.new(0.5, -39, 0, 0)
-                elseif numSubTabs == 2 then
-                    self.subTabs[1].button.Position = UDim2.new(0.5, -78 - 5, 0, 0)
-                    self.subTabs[2].button.Position = UDim2.new(0.5, 5, 0, 0)
-                elseif numSubTabs == 3 then
-                    self.subTabs[1].button.Position = UDim2.new(0.5, -78 - 78 - 10, 0, 0)
-                    self.subTabs[2].button.Position = UDim2.new(0.5, -39, 0, 0)
-                    self.subTabs[3].button.Position = UDim2.new(0.5, 78 + 10 - 39, 0, 0)
+                local totalWidth = 0
+                for _, sub in ipairs(self.subTabs) do
+                    totalWidth = totalWidth + sub.button.AbsoluteSize.X
+                end
+                local spacing = (self.subTabFrame.AbsoluteSize.X - totalWidth) / (numSubTabs + 1)
+                local currentX = spacing
+                for _, sub in ipairs(self.subTabs) do
+                    sub.button.Position = UDim2.new(0, currentX, 0, 0)
+                    currentX = currentX + sub.button.AbsoluteSize.X + spacing
                 end
             end
             
