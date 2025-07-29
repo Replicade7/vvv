@@ -306,7 +306,7 @@ function Leaf:CreateWindow(config)
                 self.subTabFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
                 self.subTabFrame.BorderSizePixel = 0
                 self.subTabFrame.Size = UDim2.new(0, 310, 0, 20)
-                self.subTabFrame.Position = UDim2.new(0, 0, 1.06, 0)
+                self.subTabFrame.Position = UDim2.new(0, 0, 1.05, 0)
                 self.subTabFrame.Visible = self.ScrollingFrame.Visible
                 local subTabStroke = Instance.new("UIStroke")
                 subTabStroke.Name = "SubTabStroke" 
