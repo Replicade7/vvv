@@ -227,6 +227,12 @@ function Leaf:CreateWindow(config)
                 self.subTabFrame.Size = UDim2.new(0, 310, 0, 20)
                 self.subTabFrame.Position = UDim2.new(-0.00400000019, 0, 1.03999996, 0)
                 self.subTabFrame.Visible = self.ScrollingFrame.Visible
+                local subTabStroke = Instance.new("UIStroke")
+                subTabStroke.Name = "SubTabStroke" 
+                subTabStroke.Parent = self.subTabFrame
+                subTabStroke.Color = Color3.fromRGB(60, 60, 60) 
+                subTabStroke.Thickness = 2 
+                subTabStroke.LineJoinMode = Enum.LineJoinMode.Round 
             end
 
             if #self.subTabs >= 3 then return nil end
