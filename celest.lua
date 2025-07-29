@@ -60,9 +60,14 @@ function Leaf:CreateWindow(config)
 
     local ScreenGui = Instance.new("ScreenGui")
     local OuterFrame = Instance.new("Frame")
+    local UIStroke1 = Instance.new("UIStroke")
     local InnerFrame = Instance.new("Frame")
+    local UIStroke2 = Instance.new("UIStroke")
     local Mainframe = Instance.new("Frame")
+    local UICornerMain = Instance.new("UICorner")
+    local UIStroke3 = Instance.new("UIStroke")
     local TopBar = Instance.new("Frame")
+    local UIStroke4 = Instance.new("UIStroke")
     local TextLabel = Instance.new("TextLabel")
     local Line = Instance.new("Frame")
     
@@ -78,6 +83,10 @@ function Leaf:CreateWindow(config)
     OuterFrame.BorderSizePixel = 0
     OuterFrame.Position = UDim2.new(0.498529375, 0, 0.552845418, 0)
     OuterFrame.Size = UDim2.new(0, 336, 0, 304)
+
+    UIStroke1.Parent = OuterFrame
+    UIStroke1.Color = Color3.fromRGB(80, 80, 80)
+    UIStroke1.Thickness = 2
     
     InnerFrame.Name = "InnerFrame"
     InnerFrame.Parent = OuterFrame
@@ -85,19 +94,31 @@ function Leaf:CreateWindow(config)
     InnerFrame.BorderSizePixel = 0
     InnerFrame.Position = UDim2.new(0.0239998959, 0, 0.0314999633, 0)
     InnerFrame.Size = UDim2.new(0, 320, 0, 283)
+
+    UIStroke2.Parent = InnerFrame
+    UIStroke2.Color = Color3.fromRGB(80, 80, 80)
+    UIStroke2.Thickness = 2
     
     Mainframe.Name = "MainFrame"
     Mainframe.Parent = InnerFrame
     Mainframe.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     Mainframe.BorderSizePixel = 0
-    Mainframe.Position = UDim2.new(0.0128749851, 0, 0.176454529, 0)
+    Mainframe.Position = UDim2.new(0.017, 0, 0.176454529, 0)
     Mainframe.Size = UDim2.new(0, 310, 0, 200)
+
+    UIStroke3.Parent = Mainframe
+    UIStroke3.Color = Color3.fromRGB(80, 80, 80)
+    UIStroke3.Thickness = 2
     
     TopBar.Name = "TopBar"
     TopBar.Parent = Mainframe 
     TopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     TopBar.Position = UDim2.new(0, 0, -0.189999998, 0)
     TopBar.Size = UDim2.new(0, 310, 0, 30)
+
+    UIStroke4.Parent = TopBar
+    UIStroke4.Color = Color3.fromRGB(80, 80, 80)
+    UIStroke4.Thickness = 2
     
     TextLabel.Parent = TopBar
     TextLabel.BackgroundTransparency = 1
