@@ -22,16 +22,12 @@ function Leaf:CreateWindow(config)
 
     Leaf.MenuColorValue.Changed:Connect(function()
         for _, item in ipairs(Leaf.colorElements) do
-            item.element[item.property] = Leaf.MenuColorValue.Value
+            if item.element and item.element.Parent then
+                item.element[item.property] = Leaf.MenuColorValue.Value
+            end
         end
         for _, toggleData in ipairs(Leaf.toggles) do
             toggleData.update()
-        end
-        if activeTab then
-            activeTab.TabButton.ImageColor3 = Leaf.MenuColorValue.Value
-            if activeTab.activeSubTab then
-                activeTab.activeSubTab.button.TextColor3 = Leaf.MenuColorValue.Value
-            end
         end
     end)
     
@@ -184,6 +180,11 @@ function Leaf:CreateWindow(config)
                 activeTab.versionBar.Visible = false
             end
             activeTab.TabButton.ImageColor3 = Color3.fromRGB(130, 130, 130)
+            for i = #Leaf.colorElements, 1, -1 do
+                if Leaf.colorElements[i].element == activeTab.TabButton then
+                    table.remove(Leaf.colorElements, i)
+                end
+            end
         end
         
         activeTab = tab
@@ -206,6 +207,7 @@ function Leaf:CreateWindow(config)
         end
         
         activeTab.TabButton.ImageColor3 = Leaf.MenuColorValue.Value
+        table.insert(Leaf.colorElements, {element = activeTab.TabButton, property = "ImageColor3"})
         
         for _, dropdown in ipairs(allDropdowns) do
             dropdown.Visible = false
@@ -366,6 +368,11 @@ function Leaf:CreateWindow(config)
                     self.activeSubTab.button.TextSize = 13
                     self.activeSubTab.button.TextColor3 = Color3.fromRGB(130, 130, 130)
                     self.activeSubTab.ScrollingFrame.Visible = false
+                    for i = #Leaf.colorElements, 1, -1 do
+                        if Leaf.colorElements[i].element == self.activeSubTab.button then
+                            table.remove(Leaf.colorElements, i)
+                        end
+                    end
                 else
                     self.ScrollingFrame.Visible = false
                 end
@@ -373,6 +380,7 @@ function Leaf:CreateWindow(config)
                 self.activeSubTab.button.TextSize = 14
                 self.activeSubTab.button.TextColor3 = Leaf.MenuColorValue.Value
                 self.activeSubTab.ScrollingFrame.Visible = (activeTab == self)
+                table.insert(Leaf.colorElements, {element = self.activeSubTab.button, property = "TextColor3"})
             end
 
             subTabButton.MouseButton1Click:Connect(function()
@@ -577,7 +585,7 @@ function Leaf:CreateWindow(config)
                 if props.Callback then pcall(props.Callback, state) end
             end)
             
-            local key = props.Title
+            local key = props.ID or props.Title
             self.window.elements[key] = {
                 GetValue = function() return state end,
                 SetValue = function(value)
@@ -663,7 +671,7 @@ function Leaf:CreateWindow(config)
                 local percent = (currentValue - min) / (max - min)
                 Progress.Size = UDim2.new(percent, 0, 1, 0)
                 
-                local text = string.format("%f", currentValue)
+                local text = string.format("%.2f", currentValue)
                 text = text:gsub("0+$", "")
                 text = text:gsub("%.$", "")
                 Snumber.Text = text
@@ -704,7 +712,7 @@ function Leaf:CreateWindow(config)
             
             updateSlider(default)
             
-            local key = props.Title
+            local key = props.ID or props.Title
             self.window.elements[key] = {
                 GetValue = function() return currentValue end,
                 SetValue = function(value)
@@ -914,7 +922,7 @@ function Leaf:CreateWindow(config)
                 return Info.Text
             end
             
-            local key = props.Name
+            local key = props.ID or props.Name
             self.window.elements[key] = {
                 GetValue = function() return Info.Text end,
                 SetValue = function(value)
@@ -1253,16 +1261,16 @@ function Leaf:CreateWindow(config)
             
             table.insert(allColorPickers, ChangeColor)
             
-            local key = props.Name
+            local key = props.ID or props.Name
             self.window.elements[key] = {
                 GetValue = function()
                     local c = ColorIndicator.BackgroundColor3
-                    return { c.R, c.G, c.B }
+                    return {R = c.R, G = c.G, B = c.B}
                 end,
                 SetValue = function(value)
                     local color
-                    if type(value) == "table" and #value == 3 then
-                        color = Color3.new(value[1], value[2], value[3])
+                    if type(value) == "table" and value.R and value.G and value.B then
+                        color = Color3.new(value.R, value.G, value.B)
                     elseif typeof(value) == "Color3" then
                         color = value
                     else
@@ -1323,7 +1331,7 @@ function Leaf:CreateWindow(config)
                 end
             end)
             
-            local key = props.Title
+            local key = props.ID or props.Title
             self.window.elements[key] = {
                 GetValue = function() return InputBox.Text end,
                 SetValue = function(value)
