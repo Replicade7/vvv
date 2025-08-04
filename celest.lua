@@ -657,22 +657,14 @@ function Leaf:CreateWindow(config)
             
             local function updateSlider(value)
                 value = math.clamp(value, min, max)
-                value = min + math.floor((value - min) / increment + 0.5) * increment
-                currentValue = value
-            
+                local steps = math.floor((value - min) / increment + 0.5)
+                currentValue = min + steps * increment
+                currentValue = math.clamp(currentValue, min, max)
+                
                 local percent = (currentValue - min) / (max - min)
                 Progress.Size = UDim2.new(percent, 0, 1, 0)
-            
-                local s = tostring(increment)
-                local i = s:find(".")
-                local decimalPlaces = i and #s - i or 0
-            
-                if decimalPlaces > 0 then
-                    Snumber.Text = string.format("%."..decimalPlaces.."f", currentValue)
-                else
-                    Snumber.Text = tostring(math.floor(currentValue + 0.5))
-                end
-            
+                Snumber.Text = string.format("%.1f", currentValue)
+                
                 if props.Callback then pcall(props.Callback, currentValue) end
             end
             
