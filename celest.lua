@@ -585,16 +585,20 @@ function Leaf:CreateWindow(config)
                 if props.Callback then pcall(props.Callback, state) end
             end)
             
-            local key = props.Key or props.Title
-            self.window.elements[key] = {
-                GetValue = function() return state end,
-                SetValue = function(value)
-                    state = value
-                    toggleData.state = value
-                    updateToggle()
-                    if props.Callback then pcall(props.Callback, state) end
-                end
-            }
+            local key = props.ID or props.Title
+            if key then
+                self.window.elements[key] = {
+                    GetValue = function() return state end,
+                    SetValue = function(value)
+                        if type(value) == "boolean" then
+                            state = value
+                            toggleData.state = value
+                            updateToggle()
+                            if props.Callback then pcall(props.Callback, state) end
+                        end
+                    end
+                }
+            end
             
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
@@ -671,9 +675,8 @@ function Leaf:CreateWindow(config)
                 local percent = (currentValue - min) / (max - min)
                 Progress.Size = UDim2.new(percent, 0, 1, 0)
                 
-                local text = string.format("%f", currentValue)
-                text = text:gsub("0+$", "")
-                text = text:gsub("%.", "")
+                local text = string.format("%.2f", currentValue)
+                text = text:gsub("%.?0+$", "")
                 Snumber.Text = text
                 
                 if props.Callback then pcall(props.Callback, currentValue) end
@@ -712,13 +715,17 @@ function Leaf:CreateWindow(config)
             
             updateSlider(default)
             
-            local key = props.Key or props.Title
-            self.window.elements[key] = {
-                GetValue = function() return currentValue end,
-                SetValue = function(value)
-                    updateSlider(value)
-                end
-            }
+            local key = props.ID or props.Title
+            if key then
+                self.window.elements[key] = {
+                    GetValue = function() return currentValue end,
+                    SetValue = function(value)
+                        if type(value) == "number" then
+                            updateSlider(value)
+                        end
+                    end
+                }
+            end
             
             self.nextPosition = self.nextPosition + 50 
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
@@ -922,23 +929,27 @@ function Leaf:CreateWindow(config)
                 return Info.Text
             end
             
-            local key = props.Key or props.Name
-            self.window.elements[key] = {
-                GetValue = function() return Info.Text end,
-                SetValue = function(value)
-                    local found = false
-                    for _, option in ipairs(props.Options) do
-                        if option == value then
-                            found = true
-                            break
+            local key = props.ID or props.Name
+            if key then
+                self.window.elements[key] = {
+                    GetValue = function() return Info.Text end,
+                    SetValue = function(value)
+                        if type(value) == "string" then
+                            local found = false
+                            for _, option in ipairs(props.Options) do
+                                if option == value then
+                                    found = true
+                                    break
+                                end
+                            end
+                            if found then
+                                Info.Text = value
+                                if props.Callback then pcall(props.Callback, value) end
+                            end
                         end
                     end
-                    if found then
-                        Info.Text = value
-                        if props.Callback then pcall(props.Callback, value) end
-                    end
-                end
-            }
+                }
+            end
             
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
@@ -1261,26 +1272,28 @@ function Leaf:CreateWindow(config)
             
             table.insert(allColorPickers, ChangeColor)
             
-            local key = props.Key or props.Name
-            self.window.elements[key] = {
-                GetValue = function()
-                    local c = ColorIndicator.BackgroundColor3
-                    return { c.R, c.G, c.B }
-                end,
-                SetValue = function(value)
-                    local color
-                    if type(value) == "table" and #value == 3 then
-                        color = Color3.new(value[1], value[2], value[3])
-                    elseif typeof(value) == "Color3" then
-                        color = value
-                    else
-                        return
+            local key = props.ID or props.Name
+            if key then
+                self.window.elements[key] = {
+                    GetValue = function()
+                        local c = ColorIndicator.BackgroundColor3
+                        return {R = c.R, G = c.G, B = c.B}
+                    end,
+                    SetValue = function(value)
+                        local color
+                        if type(value) == "table" and value.R and value.G and value.B then
+                            color = Color3.new(value.R, value.G, value.B)
+                        elseif typeof(value) == "Color3" then
+                            color = value
+                        else
+                            return
+                        end
+                        Color = color
+                        ColorIndicator.BackgroundColor3 = color
+                        if Callback then pcall(Callback, color) end
                     end
-                    Color = color
-                    ColorIndicator.BackgroundColor3 = color
-                    if Callback then pcall(Callback, color) end
-                end
-            }
+                }
+            end
             
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
@@ -1331,14 +1344,18 @@ function Leaf:CreateWindow(config)
                 end
             end)
             
-            local key = props.Key or props.Title
-            self.window.elements[key] = {
-                GetValue = function() return InputBox.Text end,
-                SetValue = function(value)
-                    InputBox.Text = value
-                    if props.Callback then pcall(props.Callback, value) end
-                end
-            }
+            local key = props.ID or props.Title
+            if key then
+                self.window.elements[key] = {
+                    GetValue = function() return InputBox.Text end,
+                    SetValue = function(value)
+                        if type(value) == "string" then
+                            InputBox.Text = value
+                            if props.Callback then pcall(props.Callback, value) end
+                        end
+                    end
+                }
+            end
             
             self.nextPosition = self.nextPosition + 45
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
