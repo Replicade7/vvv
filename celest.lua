@@ -8,7 +8,6 @@ function Leaf:CreateWindow(config)
     Leaf.MenuColorValue.Value = Color3.fromRGB(config.Color[1], config.Color[2], config.Color[3])
     Leaf.colorElements = {}
     Leaf.toggles = {}
-    Leaf.activeSubTabButton = nil
     
     local windowName
     if type(config.Name) == "table" then
@@ -21,8 +20,6 @@ function Leaf:CreateWindow(config)
         Leaf.versionNumber = nil
     end
 
-    window.name = windowName
-
     Leaf.MenuColorValue.Changed:Connect(function()
         for _, item in ipairs(Leaf.colorElements) do
             item.element[item.property] = Leaf.MenuColorValue.Value
@@ -32,9 +29,9 @@ function Leaf:CreateWindow(config)
         end
         if activeTab then
             activeTab.TabButton.ImageColor3 = Leaf.MenuColorValue.Value
-        end
-        if Leaf.activeSubTabButton then
-            Leaf.activeSubTabButton.TextColor3 = Leaf.MenuColorValue.Value
+            if activeTab.activeSubTab then
+                activeTab.activeSubTab.button.TextColor3 = Leaf.MenuColorValue.Value
+            end
         end
     end)
     
@@ -198,7 +195,6 @@ function Leaf:CreateWindow(config)
             if activeTab.versionBar then
                 activeTab.versionBar.Visible = false
             end
-            Leaf.activeSubTabButton = activeTab.activeSubTab.button
         else
             activeTab.ScrollingFrame.Visible = true
             if activeTab.subTabFrame then
@@ -207,7 +203,6 @@ function Leaf:CreateWindow(config)
             if activeTab.versionBar then
                 activeTab.versionBar.Visible = true
             end
-            Leaf.activeSubTabButton = nil
         end
         
         activeTab.TabButton.ImageColor3 = Leaf.MenuColorValue.Value
@@ -227,7 +222,6 @@ function Leaf:CreateWindow(config)
         
         local tab = {}
         tab.window = self
-        tab.name = props.Name
         local TabButton = Instance.new("ImageButton")
         local UICornerTab = Instance.new("UICorner")
         
@@ -301,7 +295,6 @@ function Leaf:CreateWindow(config)
         function tab:CreateSubTab(subProps)
             local subTab = {}
             subTab.window = self.window
-            subTab.name = subProps.Name
 
             if not self.subTabs then
                 self.subTabs = {}
@@ -380,7 +373,6 @@ function Leaf:CreateWindow(config)
                 self.activeSubTab.button.TextSize = 14
                 self.activeSubTab.button.TextColor3 = Leaf.MenuColorValue.Value
                 self.activeSubTab.ScrollingFrame.Visible = (activeTab == self)
-                Leaf.activeSubTabButton = stab.button
             end
 
             subTabButton.MouseButton1Click:Connect(function()
@@ -585,7 +577,7 @@ function Leaf:CreateWindow(config)
                 if props.Callback then pcall(props.Callback, state) end
             end)
             
-            local key = self.name .. "_" .. props.Title
+            local key = props.Title
             self.window.elements[key] = {
                 GetValue = function() return state end,
                 SetValue = function(value)
@@ -665,18 +657,22 @@ function Leaf:CreateWindow(config)
             
             local function updateSlider(value)
                 value = math.clamp(value, min, max)
-                value = math.floor(value / increment + 0.5) * increment
+                value = min + math.floor((value - min) / increment + 0.5) * increment
                 currentValue = value
-                
+            
                 local percent = (currentValue - min) / (max - min)
                 Progress.Size = UDim2.new(percent, 0, 1, 0)
-                
-                local decimalPlaces = 0
-                if increment > 0 and increment < 1 then
-                    decimalPlaces = math.ceil(-math.log10(increment))
+            
+                local s = tostring(increment)
+                local i = s:find(".")
+                local decimalPlaces = i and #s - i or 0
+            
+                if decimalPlaces > 0 then
+                    Snumber.Text = string.format("%."..decimalPlaces.."f", currentValue)
+                else
+                    Snumber.Text = tostring(math.floor(currentValue + 0.5))
                 end
-                Snumber.Text = string.format("%." .. decimalPlaces .. "f", currentValue)
-                
+            
                 if props.Callback then pcall(props.Callback, currentValue) end
             end
             
@@ -713,7 +709,7 @@ function Leaf:CreateWindow(config)
             
             updateSlider(default)
             
-            local key = self.name .. "_" .. props.Title
+            local key = props.Title
             self.window.elements[key] = {
                 GetValue = function() return currentValue end,
                 SetValue = function(value)
@@ -923,7 +919,7 @@ function Leaf:CreateWindow(config)
                 return Info.Text
             end
             
-            local key = self.name .. "_" .. props.Name
+            local key = props.Name
             self.window.elements[key] = {
                 GetValue = function() return Info.Text end,
                 SetValue = function(value)
@@ -1262,7 +1258,7 @@ function Leaf:CreateWindow(config)
             
             table.insert(allColorPickers, ChangeColor)
             
-            local key = self.name .. "_" .. props.Name
+            local key = props.Name
             self.window.elements[key] = {
                 GetValue = function()
                     local c = ColorIndicator.BackgroundColor3
@@ -1332,7 +1328,7 @@ function Leaf:CreateWindow(config)
                 end
             end)
             
-            local key = self.name .. "_" .. props.Title
+            local key = props.Title
             self.window.elements[key] = {
                 GetValue = function() return InputBox.Text end,
                 SetValue = function(value)
