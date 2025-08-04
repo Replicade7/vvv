@@ -39,6 +39,9 @@ function Leaf:CreateWindow(config)
         end
         if activeTab then
             activeTab.TabButton.ImageColor3 = Leaf.MenuColorValue.Value
+            if activeTab.activeSubTab then
+                activeTab.activeSubTab.button.TextColor3 = Leaf.MenuColorValue.Value
+            end
         end
     end)
     
