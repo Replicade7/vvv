@@ -585,7 +585,7 @@ function Leaf:CreateWindow(config)
                 if props.Callback then pcall(props.Callback, state) end
             end)
             
-            local key = props.Title
+            local key = props.Key or props.Title
             self.window.elements[key] = {
                 GetValue = function() return state end,
                 SetValue = function(value)
@@ -712,7 +712,7 @@ function Leaf:CreateWindow(config)
             
             updateSlider(default)
             
-            local key = props.Title
+            local key = props.Key or props.Title
             self.window.elements[key] = {
                 GetValue = function() return currentValue end,
                 SetValue = function(value)
@@ -922,7 +922,7 @@ function Leaf:CreateWindow(config)
                 return Info.Text
             end
             
-            local key = props.Name
+            local key = props.Key or props.Name
             self.window.elements[key] = {
                 GetValue = function() return Info.Text end,
                 SetValue = function(value)
@@ -1261,7 +1261,7 @@ function Leaf:CreateWindow(config)
             
             table.insert(allColorPickers, ChangeColor)
             
-            local key = props.Name
+            local key = props.Key or props.Name
             self.window.elements[key] = {
                 GetValue = function()
                     local c = ColorIndicator.BackgroundColor3
@@ -1331,7 +1331,7 @@ function Leaf:CreateWindow(config)
                 end
             end)
             
-            local key = props.Title
+            local key = props.Key or props.Title
             self.window.elements[key] = {
                 GetValue = function() return InputBox.Text end,
                 SetValue = function(value)
