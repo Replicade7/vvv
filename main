@@ -1,5 +1,15 @@
 local Leaf = {}
 
+local function countDecimalPlaces(n)
+    if n == math.floor(n) or tostring(n):find("e") then return 0 end
+    local s = tostring(n)
+    local i = s:find('%.')
+    if i then
+        return #s - i
+    end
+    return 0
+end
+
 function Leaf:CreateWindow(config)
     local window = {}
     window.elements = {}
@@ -595,6 +605,8 @@ function Leaf:CreateWindow(config)
             local increment = props.Value.Increment
             local default = props.Value.Default
             
+            local decimalPlaces = countDecimalPlaces(increment)
+
             local SliderFrame = Instance.new("Frame")
             local UICornerSld = Instance.new("UICorner")
             local SliderName = Instance.new("TextLabel")
@@ -643,7 +655,11 @@ function Leaf:CreateWindow(config)
             Snumber.Position = UDim2.new(1, -60, 0, 0) 
             Snumber.Size = UDim2.new(0, 50, 0.5, 0)      
             Snumber.Font = Enum.Font.GothamBold
-            Snumber.Text = tostring(default)
+            if decimalPlaces > 0 then
+                Snumber.Text = string.format("%."..decimalPlaces.."f", default)
+            else
+                Snumber.Text = tostring(math.floor(default + 0.5))
+            end
             Snumber.TextColor3 = Color3.fromRGB(255, 255, 255)
             Snumber.TextSize = 16
             Snumber.TextXAlignment = Enum.TextXAlignment.Right
@@ -659,7 +675,11 @@ function Leaf:CreateWindow(config)
                 
                 local percent = (currentValue - min) / (max - min)
                 Progress.Size = UDim2.new(percent, 0, 1, 0)
-                Snumber.Text = tostring(currentValue)
+                if decimalPlaces > 0 then
+                    Snumber.Text = string.format("%."..decimalPlaces.."f", currentValue)
+                else
+                    Snumber.Text = tostring(math.floor(currentValue + 0.5))
+                end
                 
                 if props.Callback then pcall(props.Callback, currentValue) end
             end
