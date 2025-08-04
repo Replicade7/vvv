@@ -494,7 +494,7 @@ function Leaf:CreateWindow(config)
             self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.nextPosition + 10)
         end
 
-        function tab:Toggle(props)
+        function tab:Toggle(props, id)
             local ToggleFrame = Instance.new("Frame")
             local UICornerTog = Instance.new("UICorner")
             local Indicator = Instance.new("Frame")
@@ -574,7 +574,7 @@ function Leaf:CreateWindow(config)
                 if props.Callback then pcall(props.Callback, state) end
             end)
             
-            local key = props.Id or props.Title
+            local key = id or props.Id or props.Title
             self.window.elements[key] = {
                 GetValue = function() return state end,
                 SetValue = function(value)
