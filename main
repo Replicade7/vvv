@@ -1,338 +1,327 @@
 local Leaf = {}
 
-function Leaf:CreateWindow(config)
-    local LuckyLeaf30 = Instance.new("ScreenGui")
-    local MainFrame = Instance.new("Frame")
-    local UICorner = Instance.new("UICorner")
-    local Frame = Instance.new("Frame")
-    local ScrollingFrame = Instance.new("ScrollingFrame")
-    local TopBar = Instance.new("Frame")
-    local UICorner_19 = Instance.new("UICorner")
-    local Frame_2 = Instance.new("Frame")
-    local Search = Instance.new("ImageButton")
-    local Manage = Instance.new("ImageButton")
-    local Settings_3 = Instance.new("ImageButton")
-    local LeftLine = Instance.new("Frame")
-    local TabFrame = Instance.new("Frame")
-    local UICorner_23 = Instance.new("UICorner")
-    local MenuName = Instance.new("TextLabel")
-    local MenuImage = Instance.new("ImageLabel")
+-- Services
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
-    LuckyLeaf30.Name = "Lucky Leaf 3.0"
-    LuckyLeaf30.Parent = game:GetService("CoreGui")
-    LuckyLeaf30.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+-- Mini Menu GUI
+local MiniMenu = Instance.new("ScreenGui")
+local MiniMenuFrame = Instance.new("Frame")
+local UICorner = Instance.new("UICorner")
+local ImageMiniMenu = Instance.new("ImageLabel")
+local Bmenu = Instance.new("TextButton")
 
-    MainFrame.Name = "MainFrame"
-    MainFrame.Parent = LuckyLeaf30
-    MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-    MainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    MainFrame.BorderSizePixel = 0
-    MainFrame.Position = UDim2.new(0.322925955, 0, 0.158558533, 0)
-    MainFrame.Size = UDim2.new(0, 649, 0, 419)
-    MainFrame.Visible = false
+MiniMenu.Name = "MiniMenu"
+MiniMenu.Parent = game:GetService("CoreGui")
+MiniMenu.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+MiniMenu.ResetOnSpawn = false
 
-    UICorner.CornerRadius = UDim.new(0, 4)
-    UICorner.Parent = MainFrame
+MiniMenuFrame.Name = "MiniMenu"
+MiniMenuFrame.Parent = MiniMenu
+MiniMenuFrame.BackgroundColor3 = Color3.fromRGB(44, 44, 44)
+MiniMenuFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+MiniMenuFrame.BorderSizePixel = 0
+MiniMenuFrame.Position = UDim2.new(0.5, -25, 0.5, -25)
+MiniMenuFrame.Size = UDim2.new(0, 50, 0, 50)
+MiniMenuFrame.Active = true
+MiniMenuFrame.Draggable = true
 
-    Frame.Parent = MainFrame
-    Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-    Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    Frame.BorderSizePixel = 0
-    Frame.Position = UDim2.new(0.845916808, 0, 0, 0)
-    Frame.Size = UDim2.new(0, 100, 0, 6)
+UICorner.CornerRadius = UDim.new(0, 4)
+UICorner.Parent = MiniMenuFrame
 
-    ScrollingFrame.Parent = MainFrame
-    ScrollingFrame.Active = true
-    ScrollingFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    ScrollingFrame.BackgroundTransparency = 1.000
-    ScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    ScrollingFrame.BorderSizePixel = 0
-    ScrollingFrame.Position = UDim2.new(0.00657016644, 0, 0, 0)
-    ScrollingFrame.Size = UDim2.new(0, 644, 0, 379)
-    ScrollingFrame.ScrollBarThickness = 5
+ImageMiniMenu.Name = "ImageMiniMenu"
+ImageMiniMenu.Parent = MiniMenuFrame
+ImageMiniMenu.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ImageMiniMenu.BackgroundTransparency = 1.000
+ImageMiniMenu.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ImageMiniMenu.BorderSizePixel = 0
+ImageMiniMenu.Position = UDim2.new(0.14, 0, 0.14, 0)
+ImageMiniMenu.Size = UDim2.new(0, 35, 0, 35)
+ImageMiniMenu.Image = "rbxassetid://139375697107825"
+ImageMiniMenu.ImageColor3 = Color3.fromRGB(183, 255, 128)
 
-    TopBar.Name = "TopBar"
-    TopBar.Parent = MainFrame
-    TopBar.BackgroundColor3 = Color3.fromRGB(44, 44, 44)
-    TopBar.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    TopBar.BorderSizePixel = 0
-    TopBar.Position = UDim2.new(-0.000648721878, 0, -0.115887262, 0)
-    TopBar.Size = UDim2.new(0, 649, 0, 49)
+Bmenu.Name = "Bmenu"
+Bmenu.Parent = MiniMenuFrame
+Bmenu.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Bmenu.BackgroundTransparency = 1.000
+Bmenu.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Bmenu.BorderSizePixel = 0
+Bmenu.Size = UDim2.new(0, 50, 0, 50)
+Bmenu.Font = Enum.Font.SourceSans
+Bmenu.TextColor3 = Color3.fromRGB(0, 0, 0)
+Bmenu.TextSize = 14.000
+Bmenu.TextTransparency = 1.000
 
-    UICorner_19.CornerRadius = UDim.new(0, 4)
-    UICorner_19.Parent = TopBar
+-- Main GUI
+local LuckyLeaf30 = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local UICorner2 = Instance.new("UICorner")
+local Frame = Instance.new("Frame")
+local ScrollingFrame = Instance.new("ScrollingFrame")
+local TopBar = Instance.new("Frame")
+local UICorner19 = Instance.new("UICorner")
+local Frame2 = Instance.new("Frame")
+local Search = Instance.new("ImageButton")
+local Manage = Instance.new("ImageButton")
+local Settings3 = Instance.new("ImageButton")
+local LeftLine = Instance.new("Frame")
+local TabFrame = Instance.new("Frame")
+local UICorner23 = Instance.new("UICorner")
+local MenuName = Instance.new("TextLabel")
+local MenuImage = Instance.new("ImageLabel")
+local Parahraftab = Instance.new("TextLabel")
+local TabButtonEnabled = Instance.new("Frame")
+local ImageTab = Instance.new("ImageLabel")
+local NameTab = Instance.new("TextLabel")
+local TextButton = Instance.new("TextButton")
 
-    Frame_2.Parent = TopBar
-    Frame_2.BackgroundColor3 = Color3.fromRGB(44, 44, 44)
-    Frame_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    Frame_2.BorderSizePixel = 0
-    Frame_2.Position = UDim2.new(0.845916808, 0, 0.849999547, 0)
-    Frame_2.Size = UDim2.new(0, 100, 0, 7)
+LuckyLeaf30.Name = "Lucky Leaf 3.0"
+LuckyLeaf30.Parent = game:GetService("CoreGui")
+LuckyLeaf30.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+LuckyLeaf30.ResetOnSpawn = false
 
-    Search.Name = "Search"
-    Search.Parent = TopBar
-    Search.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Search.BackgroundTransparency = 1.000
-    Search.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    Search.BorderSizePixel = 0
-    Search.Position = UDim2.new(0.862255394, 0, 0.285714298, 0)
-    Search.Size = UDim2.new(0, 20, 0, 20)
-    Search.Image = "rbxassetid://74838149107043"
-    Search.ImageColor3 = Color3.fromRGB(172, 172, 172)
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = LuckyLeaf30
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.322, 0, 0.158, 0)
+MainFrame.Size = UDim2.new(0, 649, 0, 419)
+MainFrame.Visible = false
 
-    Manage.Name = "Manage"
-    Manage.Parent = TopBar
-    Manage.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Manage.BackgroundTransparency = 1.000
-    Manage.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    Manage.BorderSizePixel = 0
-    Manage.Position = UDim2.new(0.902317047, 0, 0.285714298, 0)
-    Manage.Size = UDim2.new(0, 20, 0, 20)
-    Manage.Image = "rbxassetid://94341423317036"
-    Manage.ImageColor3 = Color3.fromRGB(172, 172, 172)
+UICorner2.CornerRadius = UDim.new(0, 4)
+UICorner2.Parent = MainFrame
 
-    Settings_3.Name = "Settings"
-    Settings_3.Parent = TopBar
-    Settings_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Settings_3.BackgroundTransparency = 1.000
-    Settings_3.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    Settings_3.BorderSizePixel = 0
-    Settings_3.Position = UDim2.new(0.94083786, 0, 0.285714298, 0)
-    Settings_3.Size = UDim2.new(0, 20, 0, 20)
-    Settings_3.Image = "rbxassetid://74379261280917"
-    Settings_3.ImageColor3 = Color3.fromRGB(172, 172, 172)
+Frame.Parent = MainFrame
+Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Frame.BorderSizePixel = 0
+Frame.Position = UDim2.new(0.846, 0, 0, 0)
+Frame.Size = UDim2.new(0, 100, 0, 6)
 
-    LeftLine.Name = "LeftLine"
-    LeftLine.Parent = MainFrame
-    LeftLine.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    LeftLine.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    LeftLine.BorderSizePixel = 0
-    LeftLine.Position = UDim2.new(0.00400000019, 0, -0.115999997, 0)
-    LeftLine.Size = UDim2.new(0, -4, 0, 468)
-    LeftLine.ZIndex = 2
+ScrollingFrame.Parent = MainFrame
+ScrollingFrame.Active = true
+ScrollingFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ScrollingFrame.BackgroundTransparency = 1.000
+ScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ScrollingFrame.BorderSizePixel = 0
+ScrollingFrame.Position = UDim2.new(0.007, 0, 0, 0)
+ScrollingFrame.Size = UDim2.new(0, 644, 0, 379)
+ScrollingFrame.ScrollBarThickness = 5
 
-    TabFrame.Name = "TabFrame"
-    TabFrame.Parent = MainFrame
-    TabFrame.BackgroundColor3 = Color3.fromRGB(44, 44, 44)
-    TabFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    TabFrame.BorderSizePixel = 0
-    TabFrame.Position = UDim2.new(-0.245000005, 0, -0.115999997, 0)
-    TabFrame.Size = UDim2.new(0, 160, 0, 468)
+TopBar.Name = "TopBar"
+TopBar.Parent = MainFrame
+TopBar.BackgroundColor3 = Color3.fromRGB(44, 44, 44)
+TopBar.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TopBar.BorderSizePixel = 0
+TopBar.Position = UDim2.new(-0.001, 0, -0.116, 0)
+TopBar.Size = UDim2.new(0, 649, 0, 49)
 
-    UICorner_23.CornerRadius = UDim.new(0, 4)
-    UICorner_23.Parent = TabFrame
+UICorner19.CornerRadius = UDim.new(0, 4)
+UICorner19.Parent = TopBar
 
-    MenuName.Name = "MenuName"
-    MenuName.Parent = TabFrame
-    MenuName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    MenuName.BackgroundTransparency = 1.000
-    MenuName.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    MenuName.BorderSizePixel = 0
-    MenuName.Position = UDim2.new(0.219999999, 0, 0.0189999994, 0)
-    MenuName.Size = UDim2.new(0, 130, 0, 50)
-    MenuName.Font = Enum.Font.SourceSansBold
-    MenuName.Text = config.Name[1]
-    MenuName.TextColor3 = Color3.fromRGB(255, 255, 255)
-    MenuName.TextSize = 20.000
+Frame2.Parent = TopBar
+Frame2.BackgroundColor3 = Color3.fromRGB(44, 44, 44)
+Frame2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Frame2.BorderSizePixel = 0
+Frame2.Position = UDim2.new(0.846, 0, 0.85, 0)
+Frame2.Size = UDim2.new(0, 100, 0, 7)
 
-    MenuImage.Name = "MenuImage"
-    MenuImage.Parent = TabFrame
-    MenuImage.BackgroundColor3 = Color3.fromRGB(172, 172, 172)
-    MenuImage.BackgroundTransparency = 1.000
-    MenuImage.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    MenuImage.BorderSizePixel = 0
-    MenuImage.Position = UDim2.new(0.075000003, 0, 0.0300154723, 0)
-    MenuImage.Size = UDim2.new(0, 40, 0, 40)
-    MenuImage.Image = "rbxassetid://"..config.LogoID
+Search.Name = "Search"
+Search.Parent = TopBar
+Search.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Search.BackgroundTransparency = 1.000
+Search.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Search.BorderSizePixel = 0
+Search.Position = UDim2.new(0.862, 0, 0.286, 0)
+Search.Size = UDim2.new(0, 20, 0, 20)
+Search.Image = "rbxassetid://74838149107043"
+Search.ImageColor3 = Color3.fromRGB(172, 172, 172)
 
-    local MiniMenu = Instance.new("ScreenGui")
-    local MiniMenu_2 = Instance.new("Frame")
-    local UICorner = Instance.new("UICorner")
-    local ImageMiniMenu = Instance.new("ImageLabel")
-    local Bmenu = Instance.new("TextButton")
+Manage.Name = "Manage"
+Manage.Parent = TopBar
+Manage.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Manage.BackgroundTransparency = 1.000
+Manage.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Manage.BorderSizePixel = 0
+Manage.Position = UDim2.new(0.902, 0, 0.286, 0)
+Manage.Size = UDim2.new(0, 20, 0, 20)
+Manage.Image = "rbxassetid://94341423317036"
+Manage.ImageColor3 = Color3.fromRGB(172, 172, 172)
 
-    MiniMenu.Name = "MiniMenu"
-    MiniMenu.Parent = game:GetService("CoreGui")
-    MiniMenu.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+Settings3.Name = "Settings"
+Settings3.Parent = TopBar
+Settings3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Settings3.BackgroundTransparency = 1.000
+Settings3.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Settings3.BorderSizePixel = 0
+Settings3.Position = UDim2.new(0.941, 0, 0.286, 0)
+Settings3.Size = UDim2.new(0, 20, 0, 20)
+Settings3.Image = "rbxassetid://74379261280917"
+Settings3.ImageColor3 = Color3.fromRGB(172, 172, 172)
 
-    MiniMenu_2.Name = "MiniMenu"
-    MiniMenu_2.Parent = MiniMenu
-    MiniMenu_2.BackgroundColor3 = Color3.fromRGB(44, 44, 44)
-    MiniMenu_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    MiniMenu_2.BorderSizePixel = 0
-    MiniMenu_2.Position = UDim2.new(0.5, -25, 0.065040648, 0)
-    MiniMenu_2.Size = UDim2.new(0, 50, 0, 50)
+LeftLine.Name = "LeftLine"
+LeftLine.Parent = MainFrame
+LeftLine.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+LeftLine.BorderColor3 = Color3.fromRGB(0, 0, 0)
+LeftLine.BorderSizePixel = 0
+LeftLine.Position = UDim2.new(0.004, 0, -0.116, 0)
+LeftLine.Size = UDim2.new(0, -4, 0, 468)
+LeftLine.ZIndex = 2
 
-    UICorner.CornerRadius = UDim.new(0, 4)
-    UICorner.Parent = MiniMenu_2
+TabFrame.Name = "TabFrame"
+TabFrame.Parent = MainFrame
+TabFrame.BackgroundColor3 = Color3.fromRGB(44, 44, 44)
+TabFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TabFrame.BorderSizePixel = 0
+TabFrame.Position = UDim2.new(-0.245, 0, -0.116, 0)
+TabFrame.Size = UDim2.new(0, 160, 0, 468)
 
-    ImageMiniMenu.Name = "ImageMiniMenu"
-    ImageMiniMenu.Parent = MiniMenu_2
-    ImageMiniMenu.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    ImageMiniMenu.BackgroundTransparency = 1.000
-    ImageMiniMenu.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    ImageMiniMenu.BorderSizePixel = 0
-    ImageMiniMenu.Position = UDim2.new(0.140000001, 0, 0.140000001, 0)
-    ImageMiniMenu.Size = UDim2.new(0, 35, 0, 35)
-    ImageMiniMenu.Image = "rbxassetid://139375697107825"
-    ImageMiniMenu.ImageColor3 = Color3.fromRGB(183, 255, 128)
+UICorner23.CornerRadius = UDim.new(0, 4)
+UICorner23.Parent = TabFrame
 
-    Bmenu.Name = "Bmenu"
-    Bmenu.Parent = MiniMenu_2
-    Bmenu.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Bmenu.BackgroundTransparency = 1.000
-    Bmenu.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    Bmenu.BorderSizePixel = 0
-    Bmenu.Size = UDim2.new(0, 50, 0, 50)
-    Bmenu.Font = Enum.Font.SourceSans
-    Bmenu.TextColor3 = Color3.fromRGB(0, 0, 0)
-    Bmenu.TextSize = 14.000
-    Bmenu.TextTransparency = 1.000
+MenuName.Name = "MenuName"
+MenuName.Parent = TabFrame
+MenuName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+MenuName.BackgroundTransparency = 1.000
+MenuName.BorderColor3 = Color3.fromRGB(0, 0, 0)
+MenuName.BorderSizePixel = 0
+MenuName.Position = UDim2.new(0.22, 0, 0.019, 0)
+MenuName.Size = UDim2.new(0, 130, 0, 50)
+MenuName.Font = Enum.Font.SourceSansBold
+MenuName.Text = "Lucky Leaf"
+MenuName.TextColor3 = Color3.fromRGB(255, 255, 255)
+MenuName.TextSize = 20.000
 
-    local Tabs = {}
-    local Paragraphs = {}
-    local SubTabs = {}
+MenuImage.Name = "MenuImage"
+MenuImage.Parent = TabFrame
+MenuImage.BackgroundColor3 = Color3.fromRGB(172, 172, 172)
+MenuImage.BackgroundTransparency = 1.000
+MenuImage.BorderColor3 = Color3.fromRGB(0, 0, 0)
+MenuImage.BorderSizePixel = 0
+MenuImage.Position = UDim2.new(0.075, 0, 0.03, 0)
+MenuImage.Size = UDim2.new(0, 40, 0, 40)
+MenuImage.Image = "rbxassetid://139375697107825"
 
-    local function ToggleMenu()
-        MainFrame.Visible = not MainFrame.Visible
+Parahraftab.Name = "Parahraf tab"
+Parahraftab.Parent = TabFrame
+Parahraftab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Parahraftab.BackgroundTransparency = 1.000
+Parahraftab.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Parahraftab.BorderSizePixel = 0
+Parahraftab.Position = UDim2.new(-0.206, 0, 0.096, 0)
+Parahraftab.Size = UDim2.new(0, 130, 0, 50)
+Parahraftab.Font = Enum.Font.SourceSansBold
+Parahraftab.Text = "Player"
+Parahraftab.TextColor3 = Color3.fromRGB(172, 172, 172)
+Parahraftab.TextSize = 14.000
+
+TabButtonEnabled.Name = "TabButton Enabled"
+TabButtonEnabled.Parent = Parahraftab
+TabButtonEnabled.BackgroundColor3 = Color3.fromRGB(183, 255, 128)
+TabButtonEnabled.BackgroundTransparency = 0.550
+TabButtonEnabled.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TabButtonEnabled.BorderSizePixel = 0
+TabButtonEnabled.Position = UDim2.new(0.254, 0, 0.722, 0)
+TabButtonEnabled.Size = UDim2.new(0, 157, 0, 28)
+
+ImageTab.Name = "ImageTab"
+ImageTab.Parent = TabButtonEnabled
+ImageTab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ImageTab.BackgroundTransparency = 1.000
+ImageTab.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ImageTab.BorderSizePixel = 0
+ImageTab.Position = UDim2.new(0.075, 0, 0.127, 0)
+ImageTab.Size = UDim2.new(0, 20, 0, 20)
+ImageTab.ZIndex = 2
+ImageTab.Image = "rbxassetid://73894673959243"
+ImageTab.ImageColor3 = Color3.fromRGB(183, 255, 128)
+
+NameTab.Name = "NameTab"
+NameTab.Parent = TabButtonEnabled
+NameTab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+NameTab.BackgroundTransparency = 1.000
+NameTab.BorderColor3 = Color3.fromRGB(0, 0, 0)
+NameTab.BorderSizePixel = 0
+NameTab.Position = UDim2.new(0.002, 0, -0.404, 0)
+NameTab.Size = UDim2.new(0, 130, 0, 50)
+NameTab.Font = Enum.Font.GothamMedium
+NameTab.Text = "Visuals"
+NameTab.TextColor3 = Color3.fromRGB(183, 255, 128)
+NameTab.TextSize = 14.000
+
+TextButton.Parent = TabButtonEnabled
+TextButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextButton.BackgroundTransparency = 1.000
+TextButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextButton.BorderSizePixel = 0
+TextButton.Size = UDim2.new(0, 157, 0, 28)
+TextButton.Font = Enum.Font.SourceSans
+TextButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton.TextSize = 14.000
+TextButton.TextTransparency = 1.000
+
+-- Functions
+local function ToggleMenu()
+    MainFrame.Visible = not MainFrame.Visible
+end
+
+Bmenu.MouseButton1Click:Connect(ToggleMenu)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        ToggleMenu()
     end
+end)
 
-    game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed then return end
-        if input.KeyCode == Enum.KeyCode.RightShift then
-            ToggleMenu()
-        end
-    end)
+local dragStart = nil
+local startPos = nil
 
-    Bmenu.MouseButton1Click:Connect(ToggleMenu)
+local function update(input)
+    local delta = input.Position - dragStart
+    MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
 
-    local mobileButton = Instance.new("ImageButton")
-    mobileButton.Name = "MobileMenuButton"
-    mobileButton.Parent = LuckyLeaf30
-    mobileButton.BackgroundTransparency = 1
-    mobileButton.Image = "rbxassetid://139375697107825"
-    mobileButton.Position = UDim2.new(0.5, -25, 0, 10)
-    mobileButton.Size = UDim2.new(0, 50, 0, 50)
-    mobileButton.Visible = false
-
-    if game:GetService("UserInputService").TouchEnabled then
-        mobileButton.Visible = true
+TopBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragStart = nil
+            end
+        end)
     end
+end)
 
-    mobileButton.MouseButton1Click:Connect(ToggleMenu)
-
-    local dragInput
-    local dragStart
-    local startPos
-
-    local function update(input)
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-
-    TopBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragStart = input.Position
-            startPos = MainFrame.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragInput = nil
-                end
-            end)
-        end
-    end)
-
-    TopBar.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            dragInput = input
-        end
-    end)
-
-    game:GetService("UserInputService").InputChanged:Connect(function(input)
-        if input == dragInput then
+TopBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        if dragStart then
             update(input)
         end
-    end)
-
-    local window = {}
-
-    function window:CreateParagraph(properties)
-        local Paragraph = Instance.new("TextLabel")
-        Paragraph.Name = "Paragraph"
-        Paragraph.Parent = ScrollingFrame
-        Paragraph.BackgroundTransparency = 1
-        Paragraph.Size = UDim2.new(1, 0, 0, 30)
-        Paragraph.Font = Enum.Font.SourceSansBold
-        Paragraph.Text = properties.Name
-        Paragraph.TextColor3 = Color3.fromRGB(255, 255, 255)
-        Paragraph.TextSize = 18
-        Paragraph.TextXAlignment = Enum.TextXAlignment.Left
-        table.insert(Paragraphs, Paragraph)
-        return Paragraph
     end
+end)
 
-    function window:CreateTab(properties)
-        local TabButton = Instance.new("TextButton")
-        local NameTab = Instance.new("TextLabel")
-        local ImageTab = Instance.new("ImageLabel")
-        local Tab = {}
-
-        TabButton.Name = "TabButton"
-        TabButton.Parent = TabFrame
-        TabButton.BackgroundColor3 = Color3.fromRGB(183, 255, 128)
-        TabButton.BackgroundTransparency = 0.950
-        TabButton.BorderSizePixel = 0
-        TabButton.Size = UDim2.new(1, -10, 0, 28)
-        TabButton.Font = Enum.Font.SourceSans
-        TabButton.Text = ""
-        TabButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-        TabButton.TextSize = 14.000
-
-        NameTab.Name = "NameTab"
-        NameTab.Parent = TabButton
-        NameTab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        NameTab.BackgroundTransparency = 1.000
-        NameTab.Size = UDim2.new(1, -30, 1, 0)
-        NameTab.Font = Enum.Font.GothamMedium
-        NameTab.Text = properties.Name
-        NameTab.TextColor3 = Color3.fromRGB(172, 172, 172)
-        NameTab.TextSize = 14.000
-        NameTab.TextXAlignment = Enum.TextXAlignment.Left
-
-        ImageTab.Name = "ImageTab"
-        ImageTab.Parent = TabButton
-        ImageTab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        ImageTab.BackgroundTransparency = 1.000
-        ImageTab.Size = UDim2.new(0, 20, 0, 20)
-        ImageTab.Image = properties.Image
-        ImageTab.ImageColor3 = Color3.fromRGB(172, 172, 172)
-
-        local TabContent = Instance.new("ScrollingFrame")
-        TabContent.Name = "TabContent"
-        TabContent.Parent = ScrollingFrame
-        TabContent.Active = true
-        TabContent.BackgroundTransparency = 1
-        TabContent.Size = UDim2.new(1, 0, 1, 0)
-        TabContent.Visible = false
-        TabContent.ScrollBarThickness = 5
-
-        function Tab:CreateSubTab(properties)
-            local SubTab = {}
-            return SubTab
-        end
-
-        TabButton.MouseButton1Click:Connect(function()
-            for _, tab in pairs(Tabs) do
-                tab.TabContent.Visible = false
+MiniMenuFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragStart = input.Position
+        startPos = MiniMenuFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragStart = nil
             end
-            TabContent.Visible = true
         end)
-
-        table.insert(Tabs, {TabContent = TabContent})
-        return Tab
     end
+end)
 
-    return window
-end
+MiniMenuFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        if dragStart then
+            update(input)
+        end
+    end
+end)
 
 return Leaf
