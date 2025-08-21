@@ -1,726 +1,465 @@
-local Leaf = {}
+local LuckyLeaf30 = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local UICorner = Instance.new("UICorner")
+local Frame = Instance.new("Frame")
+local ScrollingFrame = Instance.new("ScrollingFrame")
+local TopBar = Instance.new("Frame")
+local UICorner_19 = Instance.new("UICorner")
+local Frame_2 = Instance.new("Frame")
+local Search = Instance.new("ImageButton")
+local Manage = Instance.new("ImageButton")
+local Settings_3 = Instance.new("ImageButton")
+local SubTabEnabled = Instance.new("TextButton")
+local NameSubTAb = Instance.new("TextLabel")
+local Frame_3 = Instance.new("Frame")
+local UICorner_20 = Instance.new("UICorner")
+local SubTabDisabled = Instance.new("TextButton")
+local NameSubTAb_2 = Instance.new("TextLabel")
+local Frame_4 = Instance.new("Frame")
+local UICorner_21 = Instance.new("UICorner")
+local SubTabDisabled_2 = Instance.new("TextButton")
+local NameSubTAb_3 = Instance.new("TextLabel")
+local Frame_5 = Instance.new("Frame")
+local UICorner_22 = Instance.new("UICorner")
+local LeftLine = Instance.new("Frame")
+local TabFrame = Instance.new("Frame")
+local UICorner_23 = Instance.new("UICorner")
+local MenuName = Instance.new("TextLabel")
+local MenuImage = Instance.new("ImageLabel")
+local Parahraftab = Instance.new("TextLabel")
+local TabButtonEnabled = Instance.new("Frame")
+local ImageTab = Instance.new("ImageLabel")
+local NameTab = Instance.new("TextLabel")
+local TextButton = Instance.new("TextButton")
+local Parahraftab_2 = Instance.new("TextLabel")
+local TabButtonDisabled = Instance.new("Frame")
+local NameTab_2 = Instance.new("TextLabel")
+local TextButton_2 = Instance.new("TextButton")
+local ImageTab_2 = Instance.new("ImageLabel")
+local TabButtonDisabled_2 = Instance.new("Frame")
+local NameTab_3 = Instance.new("TextLabel")
+local TextButton_3 = Instance.new("TextButton")
+local ImageTab_3 = Instance.new("ImageLabel")
 
-local function countDecimalPlaces(n)
-    if n == math.floor(n) or tostring(n):find("e") then return 0 end
-    local s = tostring(n)
-    local i = s:find('%.')
-    if i then
-        return #s - i
-    end
-    return 0
+LuckyLeaf30.Name = "Lucky Leaf 3.0"
+LuckyLeaf30.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+LuckyLeaf30.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = LuckyLeaf30
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.322925955, 0, 0.158558533, 0)
+MainFrame.Size = UDim2.new(0, 649, 0, 419)
+MainFrame.Visible = false
+
+UICorner.CornerRadius = UDim.new(0, 4)
+UICorner.Parent = MainFrame
+
+Frame.Parent = MainFrame
+Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Frame.BorderSizePixel = 0
+Frame.Position = UDim2.new(0.845916808, 0, 0, 0)
+Frame.Size = UDim2.new(0, 100, 0, 6)
+
+ScrollingFrame.Parent = MainFrame
+ScrollingFrame.Active = true
+ScrollingFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ScrollingFrame.BackgroundTransparency = 1.000
+ScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ScrollingFrame.BorderSizePixel = 0
+ScrollingFrame.Position = UDim2.new(0.00657016644, 0, 0, 0)
+ScrollingFrame.Size = UDim2.new(0, 644, 0, 379)
+ScrollingFrame.ScrollBarThickness = 5
+
+TopBar.Name = "TopBar"
+TopBar.Parent = MainFrame
+TopBar.BackgroundColor3 = Color3.fromRGB(44, 44, 44)
+TopBar.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TopBar.BorderSizePixel = 0
+TopBar.Position = UDim2.new(-0.000648721878, 0, -0.115887262, 0)
+TopBar.Size = UDim2.new(0, 649, 0, 49)
+TopBar.Active = true 
+TopBar.Draggable = true
+
+UICorner_19.CornerRadius = UDim.new(0, 4)
+UICorner_19.Parent = TopBar
+
+Frame_2.Parent = TopBar
+Frame_2.BackgroundColor3 = Color3.fromRGB(44, 44, 44)
+Frame_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Frame_2.BorderSizePixel = 0
+Frame_2.Position = UDim2.new(0.845916808, 0, 0.849999547, 0)
+Frame_2.Size = UDim2.new(0, 100, 0, 7)
+
+Search.Name = "Search"
+Search.Parent = TopBar
+Search.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Search.BackgroundTransparency = 1.000
+Search.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Search.BorderSizePixel = 0
+Search.Position = UDim2.new(0.862255394, 0, 0.285714298, 0)
+Search.Size = UDim2.new(0, 20, 0, 20)
+Search.Image = "rbxassetid://74838149107043"
+Search.ImageColor3 = Color3.fromRGB(172, 172, 172)
+
+Manage.Name = "Manage"
+Manage.Parent = TopBar
+Manage.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Manage.BackgroundTransparency = 1.000
+Manage.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Manage.BorderSizePixel = 0
+Manage.Position = UDim2.new(0.902317047, 0, 0.285714298, 0)
+Manage.Size = UDim2.new(0, 20, 0, 20)
+Manage.Image = "rbxassetid://94341423317036"
+Manage.ImageColor3 = Color3.fromRGB(172, 172, 172)
+
+Settings_3.Name = "Settings"
+Settings_3.Parent = TopBar
+Settings_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Settings_3.BackgroundTransparency = 1.000
+Settings_3.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Settings_3.BorderSizePixel = 0
+Settings_3.Position = UDim2.new(0.94083786, 0, 0.285714298, 0)
+Settings_3.Size = UDim2.new(0, 20, 0, 20)
+Settings_3.Image = "rbxassetid://74379261280917"
+Settings_3.ImageColor3 = Color3.fromRGB(172, 172, 172)
+
+SubTabEnabled.Name = "SubTab Enabled"
+SubTabEnabled.Parent = TopBar
+SubTabEnabled.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+SubTabEnabled.BackgroundTransparency = 1.000
+SubTabEnabled.BorderColor3 = Color3.fromRGB(0, 0, 0)
+SubTabEnabled.BorderSizePixel = 0
+SubTabEnabled.Position = UDim2.new(0.0238303263, 0, 0, 0)
+SubTabEnabled.Size = UDim2.new(0, 93, 0, 50)
+SubTabEnabled.Font = Enum.Font.SourceSans
+SubTabEnabled.TextColor3 = Color3.fromRGB(0, 0, 0)
+SubTabEnabled.TextSize = 14.000
+SubTabEnabled.TextTransparency = 1.000
+
+NameSubTAb.Name = "NameSubTAb"
+NameSubTAb.Parent = SubTabEnabled
+NameSubTAb.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+NameSubTAb.BackgroundTransparency = 1.000
+NameSubTAb.BorderColor3 = Color3.fromRGB(0, 0, 0)
+NameSubTAb.BorderSizePixel = 0
+NameSubTAb.Position = UDim2.new(0.189884633, 0, 0.181632698, 0)
+NameSubTAb.Size = UDim2.new(0, 50, 0, 29)
+NameSubTAb.Font = Enum.Font.SourceSansBold
+NameSubTAb.Text = "Kill delay"
+NameSubTAb.TextColor3 = Color3.fromRGB(218, 237, 255)
+NameSubTAb.TextSize = 15.000
+
+Frame_3.Parent = SubTabEnabled
+Frame_3.BackgroundColor3 = Color3.fromRGB(183, 255, 128)
+Frame_3.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Frame_3.BorderSizePixel = 0
+Frame_3.Position = UDim2.new(-0.0107097011, 0, 0.932999551, 0)
+Frame_3.Size = UDim2.new(0, 88, 0, 2)
+
+UICorner_20.CornerRadius = UDim.new(0, 4)
+UICorner_20.Parent = Frame_3
+
+SubTabDisabled.Name = "SubTab Disabled"
+SubTabDisabled.Parent = TopBar
+SubTabDisabled.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+SubTabDisabled.BackgroundTransparency = 1.000
+SubTabDisabled.BorderColor3 = Color3.fromRGB(0, 0, 0)
+SubTabDisabled.BorderSizePixel = 0
+SubTabDisabled.Position = UDim2.new(0.17704159, 0, 0, 0)
+SubTabDisabled.Size = UDim2.new(0, 93, 0, 50)
+SubTabDisabled.Font = Enum.Font.SourceSans
+SubTabDisabled.TextColor3 = Color3.fromRGB(0, 0, 0)
+SubTabDisabled.TextSize = 14.000
+SubTabDisabled.TextTransparency = 1.000
+
+NameSubTAb_2.Name = "NameSubTAb"
+NameSubTAb_2.Parent = SubTabDisabled
+NameSubTAb_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+NameSubTAb_2.BackgroundTransparency = 1.000
+NameSubTAb_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+NameSubTAb_2.BorderSizePixel = 0
+NameSubTAb_2.Position = UDim2.new(0.189884633, 0, 0.181632698, 0)
+NameSubTAb_2.Size = UDim2.new(0, 50, 0, 29)
+NameSubTAb_2.Font = Enum.Font.SourceSansBold
+NameSubTAb_2.Text = "Kill delay"
+NameSubTAb_2.TextColor3 = Color3.fromRGB(218, 237, 255)
+NameSubTAb_2.TextSize = 15.000
+
+Frame_4.Parent = SubTabDisabled
+Frame_4.BackgroundColor3 = Color3.fromRGB(183, 255, 128)
+Frame_4.BackgroundTransparency = 1.000
+Frame_4.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Frame_4.BorderSizePixel = 0
+Frame_4.Position = UDim2.new(-0.0107097011, 0, 0.932999551, 0)
+Frame_4.Size = UDim2.new(0, 88, 0, 2)
+
+UICorner_21.CornerRadius = UDim.new(0, 4)
+UICorner_21.Parent = Frame_4
+
+SubTabDisabled_2.Name = "SubTab Disabled"
+SubTabDisabled_2.Parent = TopBar
+SubTabDisabled_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+SubTabDisabled_2.BackgroundTransparency = 1.000
+SubTabDisabled_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+SubTabDisabled_2.BorderSizePixel = 0
+SubTabDisabled_2.Position = UDim2.new(0.329583913, 0, 0, 0)
+SubTabDisabled_2.Size = UDim2.new(0, 93, 0, 50)
+SubTabDisabled_2.Font = Enum.Font.SourceSans
+SubTabDisabled_2.TextColor3 = Color3.fromRGB(0, 0, 0)
+SubTabDisabled_2.TextSize = 14.000
+SubTabDisabled_2.TextTransparency = 1.000
+
+NameSubTAb_3.Name = "NameSubTAb"
+NameSubTAb_3.Parent = SubTabDisabled_2
+NameSubTAb_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+NameSubTAb_3.BackgroundTransparency = 1.000
+NameSubTAb_3.BorderColor3 = Color3.fromRGB(0, 0, 0)
+NameSubTAb_3.BorderSizePixel = 0
+NameSubTAb_3.Position = UDim2.new(0.189884633, 0, 0.181632698, 0)
+NameSubTAb_3.Size = UDim2.new(0, 50, 0, 29)
+NameSubTAb_3.Font = Enum.Font.SourceSansBold
+NameSubTAb_3.Text = "Kill delay"
+NameSubTAb_3.TextColor3 = Color3.fromRGB(218, 237, 255)
+NameSubTAb_3.TextSize = 15.000
+
+Frame_5.Parent = SubTabDisabled_2
+Frame_5.BackgroundColor3 = Color3.fromRGB(183, 255, 128)
+Frame_5.BackgroundTransparency = 1.000
+Frame_5.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Frame_5.BorderSizePixel = 0
+Frame_5.Position = UDim2.new(-0.0107097011, 0, 0.932999551, 0)
+Frame_5.Size = UDim2.new(0, 88, 0, 2)
+
+UICorner_22.CornerRadius = UDim.new(0, 4)
+UICorner_22.Parent = Frame_5
+
+LeftLine.Name = "LeftLine"
+LeftLine.Parent = MainFrame
+LeftLine.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+LeftLine.BorderColor3 = Color3.fromRGB(0, 0, 0)
+LeftLine.BorderSizePixel = 0
+LeftLine.Position = UDim2.new(0.00400000019, 0, -0.115999997, 0)
+LeftLine.Size = UDim2.new(0, -4, 0, 468)
+LeftLine.ZIndex = 2
+
+TabFrame.Name = "TabFrame"
+TabFrame.Parent = MainFrame
+TabFrame.BackgroundColor3 = Color3.fromRGB(44, 44, 44)
+TabFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TabFrame.BorderSizePixel = 0
+TabFrame.Position = UDim2.new(-0.245000005, 0, -0.115999997, 0)
+TabFrame.Size = UDim2.new(0, 160, 0, 468)
+
+UICorner_23.CornerRadius = UDim.new(0, 4)
+UICorner_23.Parent = TabFrame
+
+MenuName.Name = "MenuName"
+MenuName.Parent = TabFrame
+MenuName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+MenuName.BackgroundTransparency = 1.000
+MenuName.BorderColor3 = Color3.fromRGB(0, 0, 0)
+MenuName.BorderSizePixel = 0
+MenuName.Position = UDim2.new(0.219999999, 0, 0.0189999994, 0)
+MenuName.Size = UDim2.new(0, 130, 0, 50)
+MenuName.Font = Enum.Font.SourceSansBold
+MenuName.Text = "Lucky Leaf"
+MenuName.TextColor3 = Color3.fromRGB(255, 255, 255)
+MenuName.TextSize = 20.000
+
+MenuImage.Name = "MenuImage"
+MenuImage.Parent = TabFrame
+MenuImage.BackgroundColor3 = Color3.fromRGB(172, 172, 172)
+MenuImage.BackgroundTransparency = 1.000
+MenuImage.BorderColor3 = Color3.fromRGB(0, 0, 0)
+MenuImage.BorderSizePixel = 0
+MenuImage.Position = UDim2.new(0.075000003, 0, 0.0300154723, 0)
+MenuImage.Size = UDim2.new(0, 40, 0, 40)
+MenuImage.Image = "rbxassetid://139375697107825"
+
+Parahraftab.Name = "Parahraf tab"
+Parahraftab.Parent = TabFrame
+Parahraftab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Parahraftab.BackgroundTransparency = 1.000
+Parahraftab.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Parahraftab.BorderSizePixel = 0
+Parahraftab.Position = UDim2.new(-0.206249997, 0, 0.0961538479, 0)
+Parahraftab.Size = UDim2.new(0, 130, 0, 50)
+Parahraftab.Font = Enum.Font.SourceSansBold
+Parahraftab.Text = "Combat"
+Parahraftab.TextColor3 = Color3.fromRGB(172, 172, 172)
+Parahraftab.TextSize = 14.000
+
+TabButtonEnabled.Name = "TabButton Enabled"
+TabButtonEnabled.Parent = Parahraftab
+TabButtonEnabled.BackgroundColor3 = Color3.fromRGB(183, 255, 128)
+TabButtonEnabled.BackgroundTransparency = 0.550
+TabButtonEnabled.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TabButtonEnabled.BorderSizePixel = 0
+TabButtonEnabled.Position = UDim2.new(0.253846169, 0, 0.721624136, 0)
+TabButtonEnabled.Size = UDim2.new(0, 157, 0, 28)
+
+ImageTab.Name = "ImageTab"
+ImageTab.Parent = TabButtonEnabled
+ImageTab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ImageTab.BackgroundTransparency = 1.000
+ImageTab.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ImageTab.BorderSizePixel = 0
+ImageTab.Position = UDim2.new(0.0749999583, 0, 0.12728937, 0)
+ImageTab.Size = UDim2.new(0, 20, 0, 20)
+ImageTab.ZIndex = 2
+ImageTab.Image = "rbxassetid://73894673959243"
+ImageTab.ImageColor3 = Color3.fromRGB(183, 255, 128)
+
+NameTab.Name = "NameTab"
+NameTab.Parent = TabButtonEnabled
+NameTab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+NameTab.BackgroundTransparency = 1.000
+NameTab.BorderColor3 = Color3.fromRGB(0, 0, 0)
+NameTab.BorderSizePixel = 0
+NameTab.Position = UDim2.new(0.002, 0, -0.403846204, 0)
+NameTab.Size = UDim2.new(0, 130, 0, 50)
+NameTab.Font = Enum.Font.GothamMedium
+NameTab.Text = "Combat"
+NameTab.TextColor3 = Color3.fromRGB(183, 255, 128)
+NameTab.TextSize = 14.000
+
+TextButton.Parent = TabButtonEnabled
+TextButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextButton.BackgroundTransparency = 1.000
+TextButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextButton.BorderSizePixel = 0
+TextButton.Size = UDim2.new(0, 157, 0, 28)
+TextButton.Font = Enum.Font.SourceSans
+TextButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton.TextSize = 14.000
+TextButton.TextTransparency = 1.000
+
+Parahraftab_2.Name = "Parahraf tab"
+Parahraftab_2.Parent = TabFrame
+Parahraftab_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Parahraftab_2.BackgroundTransparency = 1.000
+Parahraftab_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Parahraftab_2.BorderSizePixel = 0
+Parahraftab_2.Position = UDim2.new(-0.206, 0, 0.209999993, 0)
+Parahraftab_2.Size = UDim2.new(0, 130, 0, 50)
+Parahraftab_2.Font = Enum.Font.SourceSansBold
+Parahraftab_2.Text = "Combat"
+Parahraftab_2.TextColor3 = Color3.fromRGB(172, 172, 172)
+Parahraftab_2.TextSize = 14.000
+
+TabButtonDisabled.Name = "TabButton Disabled"
+TabButtonDisabled.Parent = Parahraftab_2
+TabButtonDisabled.BackgroundColor3 = Color3.fromRGB(183, 255, 128)
+TabButtonDisabled.BackgroundTransparency = 1.000
+TabButtonDisabled.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TabButtonDisabled.BorderSizePixel = 0
+TabButtonDisabled.Position = UDim2.new(0.253846169, 0, 0.721624136, 0)
+TabButtonDisabled.Size = UDim2.new(0, 157, 0, 28)
+
+NameTab_2.Name = "NameTab"
+NameTab_2.Parent = TabButtonDisabled
+NameTab_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+NameTab_2.BackgroundTransparency = 1.000
+NameTab_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+NameTab_2.BorderSizePixel = 0
+NameTab_2.Position = UDim2.new(0.002, 0, -0.403846204, 0)
+NameTab_2.Size = UDim2.new(0, 130, 0, 50)
+NameTab_2.Font = Enum.Font.GothamMedium
+NameTab_2.Text = "Combat"
+NameTab_2.TextColor3 = Color3.fromRGB(172, 172, 172)
+NameTab_2.TextSize = 14.000
+
+TextButton_2.Parent = TabButtonDisabled
+TextButton_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextButton_2.BackgroundTransparency = 1.000
+TextButton_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextButton_2.BorderSizePixel = 0
+TextButton_2.Size = UDim2.new(0, 157, 0, 28)
+TextButton_2.Font = Enum.Font.SourceSans
+TextButton_2.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton_2.TextSize = 14.000
+TextButton_2.TextTransparency = 1.000
+
+ImageTab_2.Name = "ImageTab"
+ImageTab_2.Parent = TabButtonDisabled
+ImageTab_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ImageTab_2.BackgroundTransparency = 1.000
+ImageTab_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ImageTab_2.BorderSizePixel = 0
+ImageTab_2.Position = UDim2.new(0.0749999583, 0, 0.12728937, 0)
+ImageTab_2.Size = UDim2.new(0, 20, 0, 20)
+ImageTab_2.ZIndex = 2
+ImageTab_2.Image = "rbxassetid://73894673959243"
+ImageTab_2.ImageColor3 = Color3.fromRGB(172, 172, 172)
+
+TabButtonDisabled_2.Name = "TabButton Disabled"
+TabButtonDisabled_2.Parent = Parahraftab_2
+TabButtonDisabled_2.BackgroundColor3 = Color3.fromRGB(183, 255, 128)
+TabButtonDisabled_2.BackgroundTransparency = 1.000
+TabButtonDisabled_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TabButtonDisabled_2.BorderSizePixel = 0
+TabButtonDisabled_2.Position = UDim2.new(0.254000008, 0, 1.25, 0)
+TabButtonDisabled_2.Size = UDim2.new(0, 157, 0, 28)
+
+NameTab_3.Name = "NameTab"
+NameTab_3.Parent = TabButtonDisabled_2
+NameTab_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+NameTab_3.BackgroundTransparency = 1.000
+NameTab_3.BorderColor3 = Color3.fromRGB(0, 0, 0)
+NameTab_3.BorderSizePixel = 0
+NameTab_3.Position = UDim2.new(0.002, 0, -0.403846204, 0)
+NameTab_3.Size = UDim2.new(0, 130, 0, 50)
+NameTab_3.Font = Enum.Font.GothamMedium
+NameTab_3.Text = "Combat"
+NameTab_3.TextColor3 = Color3.fromRGB(172, 172, 172)
+NameTab_3.TextSize = 14.000
+
+TextButton_3.Parent = TabButtonDisabled_2
+TextButton_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextButton_3.BackgroundTransparency = 1.000
+TextButton_3.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextButton_3.BorderSizePixel = 0
+TextButton_3.Size = UDim2.new(0, 157, 0, 28)
+TextButton_3.Font = Enum.Font.SourceSans
+TextButton_3.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton_3.TextSize = 14.000
+TextButton_3.TextTransparency = 1.000
+
+ImageTab_3.Name = "ImageTab"
+ImageTab_3.Parent = TabButtonDisabled_2
+ImageTab_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ImageTab_3.BackgroundTransparency = 1.000
+ImageTab_3.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ImageTab_3.BorderSizePixel = 0
+ImageTab_3.Position = UDim2.new(0.0749999583, 0, 0.12728937, 0)
+ImageTab_3.Size = UDim2.new(0, 20, 0, 20)
+ImageTab_3.ZIndex = 2
+ImageTab_3.Image = "rbxassetid://94341423317036"
+ImageTab_3.ImageColor3 = Color3.fromRGB(172, 172, 172)
+
+local UserInputService = game:GetService("UserInputService")
+
+local function ToggleMenu()
+    MainFrame.Visible = not MainFrame.Visible
 end
 
-function Leaf:CreateWindow(config)
-    local window = {}
-    window.elements = {}
-    Leaf.CurrentWindow = window
-    Leaf.MenuColorValue = Instance.new("Color3Value")
-    Leaf.MenuColorValue.Value = Color3.fromRGB(config.Color[1], config.Color[2], config.Color[3])
-    Leaf.colorElements = {}
-    Leaf.toggles = {}
-    
-    local windowName
-    if type(config.Name) == "table" then
-        windowName = config.Name[1]
-    else
-        windowName = config.Name
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        ToggleMenu()
     end
-
-    Leaf.MenuColorValue.Changed:Connect(function()
-        for _, item in ipairs(Leaf.colorElements) do
-            item.element[item.property] = Leaf.MenuColorValue.Value
-        end
-        for _, toggleData in ipairs(Leaf.toggles) do
-            toggleData.update()
-        end
-    end)
-    
-    local LuckyLeaf30 = Instance.new("ScreenGui")
-    local MainFrame = Instance.new("Frame")
-    local UICorner = Instance.new("UICorner")
-    local Frame = Instance.new("Frame")
-    local ScrollingFrame = Instance.new("ScrollingFrame")
-    local TopBar = Instance.new("Frame")
-    local UICorner_19 = Instance.new("UICorner")
-    local Frame_2 = Instance.new("Frame")
-    local Search = Instance.new("ImageButton")
-    local Manage = Instance.new("ImageButton")
-    local Settings_3 = Instance.new("ImageButton")
-    local LeftLine = Instance.new("Frame")
-    local TabFrame = Instance.new("Frame")
-    local UICorner_23 = Instance.new("UICorner")
-    local MenuName = Instance.new("TextLabel")
-    local MenuImage = Instance.new("ImageLabel")
-
-    LuckyLeaf30.Name = "Lucky Leaf 3.0"
-    LuckyLeaf30.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-    LuckyLeaf30.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-    MainFrame.Name = "MainFrame"
-    MainFrame.Parent = LuckyLeaf30
-    MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-    MainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    MainFrame.BorderSizePixel = 0
-    MainFrame.Position = UDim2.new(0.322925955, 0, 0.158558533, 0)
-    MainFrame.Size = UDim2.new(0, 649, 0, 419)
-
-    UICorner.CornerRadius = UDim.new(0, 4)
-    UICorner.Parent = MainFrame
-
-    Frame.Parent = MainFrame
-    Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-    Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    Frame.BorderSizePixel = 0
-    Frame.Position = UDim2.new(0.845916808, 0, 0, 0)
-    Frame.Size = UDim2.new(0, 100, 0, 6)
-
-    ScrollingFrame.Parent = MainFrame
-    ScrollingFrame.Active = true
-    ScrollingFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    ScrollingFrame.BackgroundTransparency = 1.000
-    ScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    ScrollingFrame.BorderSizePixel = 0
-    ScrollingFrame.Position = UDim2.new(0.00657016644, 0, 0, 0)
-    ScrollingFrame.Size = UDim2.new(0, 644, 0, 379)
-    ScrollingFrame.ScrollBarThickness = 5
-
-    TopBar.Name = "TopBar"
-    TopBar.Parent = MainFrame
-    TopBar.BackgroundColor3 = Color3.fromRGB(44, 44, 44)
-    TopBar.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    TopBar.BorderSizePixel = 0
-    TopBar.Position = UDim2.new(-0.000648721878, 0, -0.115887262, 0)
-    TopBar.Size = UDim2.new(0, 649, 0, 49)
-
-    UICorner_19.CornerRadius = UDim.new(0, 4)
-    UICorner_19.Parent = TopBar
-
-    Frame_2.Parent = TopBar
-    Frame_2.BackgroundColor3 = Color3.fromRGB(44, 44, 44)
-    Frame_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    Frame_2.BorderSizePixel = 0
-    Frame_2.Position = UDim2.new(0.845916808, 0, 0.849999547, 0)
-    Frame_2.Size = UDim2.new(0, 100, 0, 7)
-
-    Search.Name = "Search"
-    Search.Parent = TopBar
-    Search.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Search.BackgroundTransparency = 1.000
-    Search.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    Search.BorderSizePixel = 0
-    Search.Position = UDim2.new(0.862255394, 0, 0.285714298, 0)
-    Search.Size = UDim2.new(0, 20, 0, 20)
-    Search.Image = "rbxassetid://74838149107043"
-    Search.ImageColor3 = Color3.fromRGB(172, 172, 172)
-
-    Manage.Name = "Manage"
-    Manage.Parent = TopBar
-    Manage.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Manage.BackgroundTransparency = 1.000
-    Manage.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    Manage.BorderSizePixel = 0
-    Manage.Position = UDim2.new(0.902317047, 0, 0.285714298, 0)
-    Manage.Size = UDim2.new(0, 20, 0, 20)
-    Manage.Image = "rbxassetid://94341423317036"
-    Manage.ImageColor3 = Color3.fromRGB(172, 172, 172)
-
-    Settings_3.Name = "Settings"
-    Settings_3.Parent = TopBar
-    Settings_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Settings_3.BackgroundTransparency = 1.000
-    Settings_3.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    Settings_3.BorderSizePixel = 0
-    Settings_3.Position = UDim2.new(0.94083786, 0, 0.285714298, 0)
-    Settings_3.Size = UDim2.new(0, 20, 0, 20)
-    Settings_3.Image = "rbxassetid://74379261280917"
-    Settings_3.ImageColor3 = Color3.fromRGB(172, 172, 172)
-
-    LeftLine.Name = "LeftLine"
-    LeftLine.Parent = MainFrame
-    LeftLine.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    LeftLine.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    LeftLine.BorderSizePixel = 0
-    LeftLine.Position = UDim2.new(0.00400000019, 0, -0.115999997, 0)
-    LeftLine.Size = UDim2.new(0, -4, 0, 468)
-    LeftLine.ZIndex = 2
-
-    TabFrame.Name = "TabFrame"
-    TabFrame.Parent = MainFrame
-    TabFrame.BackgroundColor3 = Color3.fromRGB(44, 44, 44)
-    TabFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    TabFrame.BorderSizePixel = 0
-    TabFrame.Position = UDim2.new(-0.245000005, 0, -0.115999997, 0)
-    TabFrame.Size = UDim2.new(0, 160, 0, 468)
-
-    UICorner_23.CornerRadius = UDim.new(0, 4)
-    UICorner_23.Parent = TabFrame
-
-    MenuName.Name = "MenuName"
-    MenuName.Parent = TabFrame
-    MenuName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    MenuName.BackgroundTransparency = 1.000
-    MenuName.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    MenuName.BorderSizePixel = 0
-    MenuName.Position = UDim2.new(0.219999999, 0, 0.0189999994, 0)
-    MenuName.Size = UDim2.new(0, 130, 0, 50)
-    MenuName.Font = Enum.Font.SourceSansBold
-    MenuName.Text = windowName
-    MenuName.TextColor3 = Color3.fromRGB(255, 255, 255)
-    MenuName.TextSize = 20.000
-
-    MenuImage.Name = "MenuImage"
-    MenuImage.Parent = TabFrame
-    MenuImage.BackgroundColor3 = Color3.fromRGB(172, 172, 172)
-    MenuImage.BackgroundTransparency = 1.000
-    MenuImage.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    MenuImage.BorderSizePixel = 0
-    MenuImage.Position = UDim2.new(0.075000003, 0, 0.0300154723, 0)
-    MenuImage.Size = UDim2.new(0, 40, 0, 40)
-    MenuImage.Image = "rbxassetid://"..config.LogoID
-    table.insert(Leaf.colorElements, {element = MenuImage, property = "ImageColor3"})
-
-    local MiniMenu = Instance.new("ScreenGui")
-    local MiniMenuFrame = Instance.new("Frame")
-    local UICornerMini = Instance.new("UICorner")
-    local ImageMiniMenu = Instance.new("ImageLabel")
-    local Bmenu = Instance.new("TextButton")
-    
-    MiniMenu.Name = "MiniMenu"
-    MiniMenu.Parent = game:GetService("CoreGui")
-    MiniMenu.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    
-    MiniMenuFrame.Name = "MiniMenu"
-    MiniMenuFrame.Parent = MiniMenu
-    MiniMenuFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    MiniMenuFrame.BorderSizePixel = 0
-    MiniMenuFrame.Position = UDim2.new(0.442, 0, 0.065, 0)
-    MiniMenuFrame.Size = UDim2.new(0, 50, 0, 50)
-    
-    UICornerMini.CornerRadius = UDim.new(0, 4)
-    UICornerMini.Parent = MiniMenuFrame
-    
-    ImageMiniMenu.Name = "ImageMiniMenu"
-    ImageMiniMenu.Parent = MiniMenuFrame
-    ImageMiniMenu.BackgroundTransparency = 1
-    ImageMiniMenu.Position = UDim2.new(0.14, 0, 0.14, 0)
-    ImageMiniMenu.Size = UDim2.new(0, 35, 0, 35)
-    ImageMiniMenu.Image = "rbxassetid://"..config.LogoID
-    ImageMiniMenu.ImageColor3 = Leaf.MenuColorValue.Value
-    table.insert(Leaf.colorElements, {element = ImageMiniMenu, property = "ImageColor3"})
-    
-    Bmenu.Name = "Bmenu"
-    Bmenu.Parent = MiniMenuFrame
-    Bmenu.BackgroundTransparency = 1
-    Bmenu.Size = UDim2.new(0, 50, 0, 50)
-    Bmenu.Font = Enum.Font.SourceSans
-    Bmenu.Text = ""
-    Bmenu.TextTransparency = 1
-
-    local allTabs = {}
-    local activeTab
-    local allDropdowns = {}
-    local allColorPickers = {}
-    
-    local function updateTabPositions()
-    end
-    
-    local function setActiveTab(tab)
-    end
-    
-    function window:CreateTab(props)
-        local tab = {}
-        tab.window = self
-        
-        local TabButtonEnabled = Instance.new("Frame")
-        local ImageTab = Instance.new("ImageLabel")
-        local NameTab = Instance.new("TextLabel")
-        local TextButton = Instance.new("TextButton")
-        local Parahraftab = Instance.new("TextLabel")
-
-        Parahraftab.Name = "Parahraf tab"
-        Parahraftab.Parent = TabFrame
-        Parahraftab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        Parahraftab.BackgroundTransparency = 1.000
-        Parahraftab.BorderColor3 = Color3.fromRGB(0, 0, 0)
-        Parahraftab.BorderSizePixel = 0
-        Parahraftab.Position = UDim2.new(-0.206249997, 0, 0.0961538479, 0)
-        Parahraftab.Size = UDim2.new(0, 130, 0, 50)
-        Parahraftab.Font = Enum.Font.SourceSansBold
-        Parahraftab.Text = props.Name or "Tab"
-        Parahraftab.TextColor3 = Color3.fromRGB(172, 172, 172)
-        Parahraftab.TextSize = 14.000
-
-        TabButtonEnabled.Name = "TabButton Enabled"
-        TabButtonEnabled.Parent = Parahraftab
-        TabButtonEnabled.BackgroundColor3 = Color3.fromRGB(183, 255, 128)
-        TabButtonEnabled.BackgroundTransparency = 0.550
-        TabButtonEnabled.BorderColor3 = Color3.fromRGB(0, 0, 0)
-        TabButtonEnabled.BorderSizePixel = 0
-        TabButtonEnabled.Position = UDim2.new(0.253846169, 0, 0.721624136, 0)
-        TabButtonEnabled.Size = UDim2.new(0, 157, 0, 28)
-
-        ImageTab.Name = "ImageTab"
-        ImageTab.Parent = TabButtonEnabled
-        ImageTab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        ImageTab.BackgroundTransparency = 1.000
-        ImageTab.BorderColor3 = Color3.fromRGB(0, 0, 0)
-        ImageTab.BorderSizePixel = 0
-        ImageTab.Position = UDim2.new(0.0749999583, 0, 0.12728937, 0)
-        ImageTab.Size = UDim2.new(0, 20, 0, 20)
-        ImageTab.ZIndex = 2
-        ImageTab.Image = props.Image or "rbxassetid://73894673959243"
-        ImageTab.ImageColor3 = Color3.fromRGB(183, 255, 128)
-
-        NameTab.Name = "NameTab"
-        NameTab.Parent = TabButtonEnabled
-        NameTab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        NameTab.BackgroundTransparency = 1.000
-        NameTab.BorderColor3 = Color3.fromRGB(0, 0, 0)
-        NameTab.BorderSizePixel = 0
-        NameTab.Position = UDim2.new(0.002, 0, -0.403846204, 0)
-        NameTab.Size = UDim2.new(0, 130, 0, 50)
-        NameTab.Font = Enum.Font.GothamMedium
-        NameTab.Text = props.Name or "Tab"
-        NameTab.TextColor3 = Color3.fromRGB(183, 255, 128)
-        NameTab.TextSize = 14.000
-
-        TextButton.Parent = TabButtonEnabled
-        TextButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        TextButton.BackgroundTransparency = 1.000
-        TextButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
-        TextButton.BorderSizePixel = 0
-        TextButton.Size = UDim2.new(0, 157, 0, 28)
-        TextButton.Font = Enum.Font.SourceSans
-        TextButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-        TextButton.TextSize = 14.000
-        TextButton.TextTransparency = 1.000
-
-        tab.TabButton = TabButtonEnabled
-        tab.ScrollingFrame = ScrollingFrame
-        tab.nextPosition = 10
-
-        function tab:CreateSubTab(subProps)
-            local subTab = {}
-            subTab.window = self.window
-
-            local SubTabEnabled = Instance.new("TextButton")
-            local NameSubTAb = Instance.new("TextLabel")
-            local Frame_3 = Instance.new("Frame")
-            local UICorner_20 = Instance.new("UICorner")
-
-            SubTabEnabled.Name = "SubTab Enabled"
-            SubTabEnabled.Parent = TopBar
-            SubTabEnabled.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            SubTabEnabled.BackgroundTransparency = 1.000
-            SubTabEnabled.BorderColor3 = Color3.fromRGB(0, 0, 0)
-            SubTabEnabled.BorderSizePixel = 0
-            SubTabEnabled.Position = UDim2.new(0.0238303263, 0, 0, 0)
-            SubTabEnabled.Size = UDim2.new(0, 93, 0, 50)
-            SubTabEnabled.Font = Enum.Font.SourceSans
-            SubTabEnabled.TextColor3 = Color3.fromRGB(0, 0, 0)
-            SubTabEnabled.TextSize = 14.000
-            SubTabEnabled.TextTransparency = 1.000
-
-            NameSubTAb.Name = "NameSubTAb"
-            NameSubTAb.Parent = SubTabEnabled
-            NameSubTAb.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            NameSubTAb.BackgroundTransparency = 1.000
-            NameSubTAb.BorderColor3 = Color3.fromRGB(0, 0, 0)
-            NameSubTAb.BorderSizePixel = 0
-            NameSubTAb.Position = UDim2.new(0.189884633, 0, 0.181632698, 0)
-            NameSubTAb.Size = UDim2.new(0, 50, 0, 29)
-            NameSubTAb.Font = Enum.Font.SourceSansBold
-            NameSubTAb.Text = subProps.Name or "SubTab"
-            NameSubTAb.TextColor3 = Color3.fromRGB(218, 237, 255)
-            NameSubTAb.TextSize = 15.000
-
-            Frame_3.Parent = SubTabEnabled
-            Frame_3.BackgroundColor3 = Color3.fromRGB(183, 255, 128)
-            Frame_3.BorderColor3 = Color3.fromRGB(0, 0, 0)
-            Frame_3.BorderSizePixel = 0
-            Frame_3.Position = UDim2.new(-0.0107097011, 0, 0.932999551, 0)
-            Frame_3.Size = UDim2.new(0, 88, 0, 2)
-
-            UICorner_20.CornerRadius = UDim.new(0, 4)
-            UICorner_20.Parent = Frame_3
-
-            subTab.button = SubTabEnabled
-            subTab.name = subProps.Name
-            subTab.ScrollingFrame = ScrollingFrame
-            subTab.nextPosition = 10
-
-            function subTab:CheckBox(props, id)
-                local ButtonPanel = Instance.new("Frame")
-                local UICorner_2 = Instance.new("UICorner")
-                local NameButtonPanel = Instance.new("TextLabel")
-                local CheckBoxEnabled = Instance.new("TextButton")
-                local UICorner_3 = Instance.new("UICorner")
-                local CheckBoxName = Instance.new("TextLabel")
-                local ImageLabel = Instance.new("ImageLabel")
-
-                ButtonPanel.Name = "ButtonPanel"
-                ButtonPanel.Parent = ScrollingFrame
-                ButtonPanel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-                ButtonPanel.BorderColor3 = Color3.fromRGB(0, 0, 0)
-                ButtonPanel.BorderSizePixel = 0
-                ButtonPanel.Position = UDim2.new(0.505807042, 0, 0.0155737884, 0)
-                ButtonPanel.Size = UDim2.new(0, 300, 0, 200)
-                ButtonPanel.ZIndex = 2
-
-                UICorner_2.CornerRadius = UDim.new(0, 4)
-                UICorner_2.Parent = ButtonPanel
-
-                NameButtonPanel.Name = "Name Button Panel"
-                NameButtonPanel.Parent = ButtonPanel
-                NameButtonPanel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                NameButtonPanel.BackgroundTransparency = 1.000
-                NameButtonPanel.BorderColor3 = Color3.fromRGB(0, 0, 0)
-                NameButtonPanel.BorderSizePixel = 0
-                NameButtonPanel.Position = UDim2.new(-0.223333329, 0, -0.0399999991, 0)
-                NameButtonPanel.Size = UDim2.new(0, 200, 0, 50)
-                NameButtonPanel.Font = Enum.Font.ArialBold
-                NameButtonPanel.Text = props.Title or "CheckBox"
-                NameButtonPanel.TextColor3 = Color3.fromRGB(50, 50, 50)
-                NameButtonPanel.TextSize = 15.000
-
-                CheckBoxEnabled.Name = "CheckBox Enabled"
-                CheckBoxEnabled.Parent = ButtonPanel
-                CheckBoxEnabled.BackgroundColor3 = Color3.fromRGB(183, 255, 128)
-                CheckBoxEnabled.BorderColor3 = Color3.fromRGB(0, 0, 0)
-                CheckBoxEnabled.BorderSizePixel = 0
-                CheckBoxEnabled.Position = UDim2.new(0.0366666652, 0, 0.344999999, 0)
-                CheckBoxEnabled.Size = UDim2.new(0, 18, 0, 18)
-                CheckBoxEnabled.Font = Enum.Font.SourceSans
-                CheckBoxEnabled.TextColor3 = Color3.fromRGB(0, 0, 0)
-                CheckBoxEnabled.TextSize = 14.000
-                CheckBoxEnabled.TextTransparency = 1.000
-
-                UICorner_3.CornerRadius = UDim.new(0, 4)
-                UICorner_3.Parent = CheckBoxEnabled
-
-                CheckBoxName.Name = "CheckBox Name"
-                CheckBoxName.Parent = CheckBoxEnabled
-                CheckBoxName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                CheckBoxName.BackgroundTransparency = 1.000
-                CheckBoxName.BorderColor3 = Color3.fromRGB(0, 0, 0)
-                CheckBoxName.BorderSizePixel = 0
-                CheckBoxName.Position = UDim2.new(1.10000002, 0, -0.365999997, 0)
-                CheckBoxName.Size = UDim2.new(0, 50, 0, 29)
-                CheckBoxName.Font = Enum.Font.GothamBold
-                CheckBoxName.Text = props.Title or "Enable"
-                CheckBoxName.TextColor3 = Color3.fromRGB(218, 237, 255)
-                CheckBoxName.TextSize = 12.000
-
-                ImageLabel.Parent = CheckBoxEnabled
-                ImageLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                ImageLabel.BackgroundTransparency = 1.000
-                ImageLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
-                ImageLabel.BorderSizePixel = 0
-                ImageLabel.Position = UDim2.new(0.100000001, 0, 0.109999999, 0)
-                ImageLabel.Size = UDim2.new(0, 15, 0, 15)
-                ImageLabel.Image = "rbxassetid://117429211744366"
-                ImageLabel.ImageColor3 = Color3.fromRGB(0, 0, 0)
-
-                local state = props.Default or false
-                local function updateToggle()
-                    if state then
-                        CheckBoxEnabled.BackgroundColor3 = Leaf.MenuColorValue.Value
-                        ImageLabel.Visible = true
-                    else
-                        CheckBoxEnabled.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-                        ImageLabel.Visible = false
-                    end
-                end
-
-                local toggleData = {
-                    state = state,
-                    update = updateToggle
-                }
-                table.insert(Leaf.toggles, toggleData)
-                
-                updateToggle()
-                
-                CheckBoxEnabled.MouseButton1Click:Connect(function()
-                    state = not state
-                    toggleData.state = state
-                    updateToggle()
-                    if props.Callback then pcall(props.Callback, state) end
-                end)
-                
-                local key = id or props.Id or props.Title
-                self.window.elements[key] = {
-                    GetValue = function() return state end,
-                    SetValue = function(value)
-                        state = value
-                        toggleData.state = value
-                        updateToggle()
-                        if props.Callback then pcall(props.Callback, state) end
-                    end
-                }
-            end
-
-            function subTab:Slider(props)
-                local min = props.Value.Min
-                local max = props.Value.Max
-                local increment = props.Value.Increment
-                local default = props.Value.Default
-                
-                local decimalPlaces = countDecimalPlaces(increment)
-
-                local ButtonPanel = Instance.new("Frame")
-                local UICorner_2 = Instance.new("UICorner")
-                local NameButtonPanel = Instance.new("TextLabel")
-                local Slider = Instance.new("Frame")
-                local SliderName = Instance.new("TextLabel")
-                local UICorner_6 = Instance.new("UICorner")
-                local Progress = Instance.new("Frame")
-                local UICorner_7 = Instance.new("UICorner")
-                local Circle = Instance.new("Frame")
-                local UICorner_8 = Instance.new("UICorner")
-                local UIStroke = Instance.new("UIStroke")
-                local Number = Instance.new("TextLabel")
-                local Pline = Instance.new("Frame")
-
-                ButtonPanel.Name = "ButtonPanel"
-                ButtonPanel.Parent = ScrollingFrame
-                ButtonPanel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-                ButtonPanel.BorderColor3 = Color3.fromRGB(0, 0, 0)
-                ButtonPanel.BorderSizePixel = 0
-                ButtonPanel.Position = UDim2.new(0.505807042, 0, 0.0155737884, 0)
-                ButtonPanel.Size = UDim2.new(0, 300, 0, 200)
-                ButtonPanel.ZIndex = 2
-
-                UICorner_2.CornerRadius = UDim.new(0, 4)
-                UICorner_2.Parent = ButtonPanel
-
-                NameButtonPanel.Name = "Name Button Panel"
-                NameButtonPanel.Parent = ButtonPanel
-                NameButtonPanel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                NameButtonPanel.BackgroundTransparency = 1.000
-                NameButtonPanel.BorderColor3 = Color3.fromRGB(0, 0, 0)
-                NameButtonPanel.BorderSizePixel = 0
-                NameButtonPanel.Position = UDim2.new(-0.223333329, 0, -0.0399999991, 0)
-                NameButtonPanel.Size = UDim2.new(0, 200, 0, 50)
-                NameButtonPanel.Font = Enum.Font.ArialBold
-                NameButtonPanel.Text = props.Title or "Slider"
-                NameButtonPanel.TextColor3 = Color3.fromRGB(50, 50, 50)
-                NameButtonPanel.TextSize = 15.000
-
-                Slider.Name = "Slider"
-                Slider.Parent = ButtonPanel
-                Slider.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-                Slider.BorderColor3 = Color3.fromRGB(0, 0, 0)
-                Slider.BorderSizePixel = 0
-                Slider.Position = UDim2.new(0.0363334157, 0, 0.599000037, 0)
-                Slider.Size = UDim2.new(0, 275, 0, 5)
-
-                SliderName.Name = "Slider Name"
-                SliderName.Parent = Slider
-                SliderName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                SliderName.BackgroundTransparency = 1.000
-                SliderName.BorderColor3 = Color3.fromRGB(0, 0, 0)
-                SliderName.BorderSizePixel = 0
-                SliderName.Position = UDim2.new(-0.00999999978, 0, -7, 0)
-                SliderName.Size = UDim2.new(0, 50, 0, 29)
-                SliderName.Font = Enum.Font.GothamBold
-                SliderName.Text = props.Title or "Slider"
-                SliderName.TextColor3 = Color3.fromRGB(218, 237, 255)
-                SliderName.TextSize = 12.000
-
-                UICorner_6.CornerRadius = UDim.new(0, 4)
-                UICorner_6.Parent = Slider
-
-                Progress.Name = "Progress"
-                Progress.Parent = Slider
-                Progress.BackgroundColor3 = Leaf.MenuColorValue.Value
-                table.insert(Leaf.colorElements, {element = Progress, property = "BackgroundColor3"})
-                Progress.BorderColor3 = Color3.fromRGB(0, 0, 0)
-                Progress.BorderSizePixel = 0
-                Progress.Position = UDim2.new(-0.00427257176, 0, -0.0510009751, 0)
-                Progress.Size = UDim2.new(0, 252, 0, 5)
-
-                UICorner_7.CornerRadius = UDim.new(0, 4)
-                UICorner_7.Parent = Progress
-
-                Circle.Name = "Circle"
-                Circle.Parent = Progress
-                Circle.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-                Circle.BorderColor3 = Color3.fromRGB(0, 0, 0)
-                Circle.BorderSizePixel = 0
-                Circle.Position = UDim2.new(0.964285731, 0, -0.600000024, 0)
-                Circle.Size = UDim2.new(0, 10, 0, 10)
-
-                UICorner_8.CornerRadius = UDim.new(1, 0)
-                UICorner_8.Parent = Circle
-
-                UIStroke.Name = "UIStroke"
-                UIStroke.Parent = Circle
-                UIStroke.Color = Leaf.MenuColorValue.Value
-                table.insert(Leaf.colorElements, {element = UIStroke, property = "Color"})
-                UIStroke.Thickness = 2
-
-                Number.Name = "Number"
-                Number.Parent = Slider
-                Number.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                Number.BackgroundTransparency = 1.000
-                Number.BorderColor3 = Color3.fromRGB(0, 0, 0)
-                Number.BorderSizePixel = 0
-                Number.Position = UDim2.new(0.889999986, 0, -7, 0)
-                Number.Size = UDim2.new(0, 50, 0, 29)
-                Number.Font = Enum.Font.GothamBold
-                Number.Text = tostring(default)
-                Number.TextColor3 = Color3.fromRGB(218, 237, 255)
-                Number.TextSize = 12.000
-
-                Pline.Name = "Pline"
-                Pline.Parent = ButtonPanel
-                Pline.BackgroundColor3 = Color3.fromRGB(183, 255, 128)
-                Pline.BorderColor3 = Color3.fromRGB(0, 0, 0)
-                Pline.BorderSizePixel = 0
-                Pline.Position = UDim2.new(0.0199999996, 0, 0.165000007, 0)
-                Pline.Size = UDim2.new(0, 288, 0, 2)
-
-                local currentValue = default
-                local dragging = false
-                
-                local function updateSlider(value)
-                    value = math.clamp(value, min, max)
-                    
-                    local steppedValue = min + math.round((value - min) / increment) * increment
-                    currentValue = steppedValue
-
-                    if currentValue > max then currentValue = max end
-                    if currentValue < min then currentValue = min end
-
-                    local percent = (currentValue - min) / (max - min)
-                    Progress.Size = UDim2.new(percent, 0, 1, 0)
-                    Circle.Position = UDim2.new(percent, 0, -0.600000024, 0)
-
-                    if decimalPlaces > 0 and math.abs(currentValue - math.round(currentValue)) > 1e-9 then
-                        Number.Text = string.format("%."..decimalPlaces.."f", currentValue)
-                    else
-                        Number.Text = tostring(math.round(currentValue))
-                    end
-                    
-                    if props.Callback then pcall(props.Callback, currentValue) end
-                end
-                
-                local function updateValueFromPosition(position)
-                    local sliderAbsolute = Slider.AbsolutePosition
-                    local sliderSize = Slider.AbsoluteSize
-                    local relativeX = math.clamp(position.X - sliderAbsolute.X, 0, sliderSize.X)
-                    local percent = relativeX / sliderSize.X
-                    local value = min + (max - min) * percent
-                    updateSlider(value)
-                end
-                
-                local function handleInput(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                        dragging = true
-                        updateValueFromPosition(input.Position)
-                    end
-                end
-                
-                local function endInput(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                        dragging = false
-                    end
-                end
-                
-                Slider.InputBegan:Connect(handleInput)
-                Slider.InputEnded:Connect(endInput)
-                
-                game:GetService("UserInputService").InputChanged:Connect(function(input)
-                    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-                        updateValueFromPosition(input.Position)
-                    end
-                end)
-                
-                updateSlider(default)
-                
-                local key = props.Id or props.Title
-                self.window.elements[key] = {
-                    GetValue = function() return currentValue end,
-                    SetValue = function(value)
-                        updateSlider(value)
-                    end
-                }
-            end
-
-            return subTab
-        end
-
-        return tab
-    end
-
-    local UserInputService = game:GetService("UserInputService")
-    
-    local draggingMain, dragStartMain, startPosMain
-    TopBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            draggingMain = true
-            dragStartMain = input.Position
-            startPosMain = MainFrame.Position
-        end
-    end)
-    
-    TopBar.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            draggingMain = false
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if draggingMain and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - dragStartMain
-            MainFrame.Position = UDim2.new(
-                startPosMain.X.Scale, 
-                startPosMain.X.Offset + delta.X,
-                startPosMain.Y.Scale,
-                startPosMain.Y.Offset + delta.Y
-            )
-        end
-    end)
-    
-    local miniMenuDragging, miniMenuDragStart, miniMenuStartPos
-    Bmenu.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            miniMenuDragging = true
-            miniMenuDragStart = input.Position
-            miniMenuStartPos = MiniMenuFrame.Position
-        end
-    end)
-    
-    Bmenu.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            miniMenuDragging = false
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if miniMenuDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - miniMenuDragStart
-            MiniMenuFrame.Position = UDim2.new(
-                miniMenuStartPos.X.Scale,
-                miniMenuStartPos.X.Offset + delta.X,
-                miniMenuStartPos.Y.Scale,
-                miniMenuStartPos.Y.Offset + delta.Y
-            )
-        end
-    end)
-    
-    Bmenu.MouseButton1Click:Connect(function()
-        LuckyLeaf30.Enabled = not LuckyLeaf30.Enabled
-    end)
-
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed then return end
-        if input.KeyCode == Enum.KeyCode.RightShift then
-            LuckyLeaf30.Enabled = not LuckyLeaf30.Enabled
-        end
-    end)
-
-    return window
-end
-
-return Leaf
+end)
+
+local mobileButton = Instance.new("ImageButton")
+mobileButton.Name = "MobileMenuButton"
+mobileButton.Parent = LuckyLeaf30
+mobileButton.BackgroundTransparency = 1
+mobileButton.Image = "rbxassetid://139375697107825"
+mobileButton.Position = UDim2.new(0, 10, 0, 10)
+mobileButton.Size = UDim2.new(0, 50, 0, 50)
+
+mobileButton.MouseButton1Click:Connect(ToggleMenu)
