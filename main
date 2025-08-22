@@ -166,7 +166,7 @@ function Leaf:CreateWindow(options)
         Parahraftab.TextColor3 = Color3.fromRGB(172, 172, 172)
         Parahraftab.TextSize = 14.000
 
-        paragraphYPosition = paragraphYPosition + 0.08
+        paragraphYPosition = paragraphYPosition + 0.06
 
         return {}
     end
@@ -185,7 +185,7 @@ function Leaf:CreateWindow(options)
         TabButton.BackgroundTransparency = isFirst and 0.550 or 1.000
         TabButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
         TabButton.BorderSizePixel = 0
-        TabButton.Position = UDim2.new(0.00625, 0, paragraphYPosition + (#tabs * 0.08), 0)
+        TabButton.Position = UDim2.new(0.00625, 0, paragraphYPosition + (#tabs * 0.06), 0)
         TabButton.Size = UDim2.new(0, 157, 0, 28)
 
         NameTab.Name = "NameTab"
@@ -194,7 +194,7 @@ function Leaf:CreateWindow(options)
         NameTab.BackgroundTransparency = 1.000
         NameTab.BorderColor3 = Color3.fromRGB(0, 0, 0)
         NameTab.BorderSizePixel = 0
-        NameTab.Position = UDim2.new(0.189, 0, 0.107, 0)
+        NameTab.Position = UDim2.new(0.14, 0, 0.107, 0)
         NameTab.Size = UDim2.new(0, 100, 0, 20)
         NameTab.Font = Enum.Font.GothamMedium
         NameTab.Text = tabOptions.Name or "Tab"
@@ -218,7 +218,7 @@ function Leaf:CreateWindow(options)
         ImageTab.BackgroundTransparency = 1.000
         ImageTab.BorderColor3 = Color3.fromRGB(0, 0, 0)
         ImageTab.BorderSizePixel = 0
-        ImageTab.Position = UDim2.new(0.0749999583, 0, 0.12728937, 0)
+        ImageTab.Position = UDim2.new(0.03, 0, 0.12728937, 0)
         ImageTab.Size = UDim2.new(0, 20, 0, 20)
         ImageTab.ZIndex = 2
         ImageTab.Image = tabOptions.Image or ""
@@ -273,7 +273,7 @@ function Leaf:CreateWindow(options)
             SubTabButton.BackgroundTransparency = 1.000
             SubTabButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
             SubTabButton.BorderSizePixel = 0
-            SubTabButton.Position = UDim2.new(0.0238303263 + (#Tab.SubTabs * 0.153), 0, 0, 0)
+            SubTabButton.Position = UDim2.new(0.0238303263 + (#Tab.SubTabs * 0.12), 0, 0, 0)
             SubTabButton.Size = UDim2.new(0, 93, 0, 50)
             SubTabButton.Font = Enum.Font.SourceSans
             SubTabButton.TextColor3 = Color3.fromRGB(0, 0, 0)
