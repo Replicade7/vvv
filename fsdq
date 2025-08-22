@@ -9,6 +9,7 @@ function Leaf:CreateWindow(options)
     local UICorner = Instance.new("UICorner")
     local Frame = Instance.new("Frame")
     local ScrollingFrame = Instance.new("ScrollingFrame")
+    local UIListLayout = Instance.new("UIListLayout")
     local TopBar = Instance.new("Frame")
     local UICorner_19 = Instance.new("UICorner")
     local Frame_2 = Instance.new("Frame")
@@ -53,6 +54,10 @@ function Leaf:CreateWindow(options)
     ScrollingFrame.Position = UDim2.new(0.00657016644, 0, 0, 0)
     ScrollingFrame.Size = UDim2.new(0, 644, 0, 379)
     ScrollingFrame.ScrollBarThickness = 5
+
+    UIListLayout.Parent = ScrollingFrame
+    UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    UIListLayout.Padding = UDim.new(0, 10)
 
     TopBar.Name = "TopBar"
     TopBar.Parent = MainFrame
@@ -322,7 +327,8 @@ function Leaf:CreateWindow(options)
             local SubTab = {
                 Button = SubTabButton,
                 NameLabel = NameSubTab,
-                Frame = Frame
+                Frame = Frame,
+                Elements = {}
             }
 
             table.insert(Tab.SubTabs, SubTab)
@@ -349,7 +355,239 @@ function Leaf:CreateWindow(options)
                 setActiveSubTab(tabIndex, subTabIndex)
             end
 
-            return {}
+            -- Методы для SubTab
+            function SubTab:Section(options)
+                local ButtonPanel = Instance.new("Frame")
+                local UICorner_2 = Instance.new("UICorner")
+                local NameButtonPanel = Instance.new("TextLabel")
+                local Pline = Instance.new("Frame")
+
+                ButtonPanel.Name = "ButtonPanel"
+                ButtonPanel.Parent = ScrollingFrame
+                ButtonPanel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+                ButtonPanel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+                ButtonPanel.BorderSizePixel = 0
+                ButtonPanel.Size = UDim2.new(0, 300, 0, 200)
+                ButtonPanel.ZIndex = 2
+                ButtonPanel.LayoutOrder = #self.Elements + 1
+
+                if options.Left then
+                    ButtonPanel.Position = UDim2.new(0, 10, 0, (#self.Elements * 210) + 10)
+                else
+                    ButtonPanel.Position = UDim2.new(0.5, -150, 0, (#self.Elements * 210) + 10)
+                end
+
+                UICorner_2.CornerRadius = UDim.new(0, 4)
+                UICorner_2.Parent = ButtonPanel
+
+                NameButtonPanel.Name = "NameButtonPanel"
+                NameButtonPanel.Parent = ButtonPanel
+                NameButtonPanel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                NameButtonPanel.BackgroundTransparency = 1.000
+                NameButtonPanel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+                NameButtonPanel.BorderSizePixel = 0
+                NameButtonPanel.Position = UDim2.new(-0.223333329, 0, -0.0399999991, 0)
+                NameButtonPanel.Size = UDim2.new(0, 200, 0, 50)
+                NameButtonPanel.Font = Enum.Font.ArialBold
+                NameButtonPanel.Text = options.Title or "Section"
+                NameButtonPanel.TextColor3 = Color3.fromRGB(50, 50, 50)
+                NameButtonPanel.TextSize = 15.000
+
+                Pline.Name = "Pline"
+                Pline.Parent = ButtonPanel
+                Pline.BackgroundColor3 = activeColor
+                Pline.BorderColor3 = Color3.fromRGB(0, 0, 0)
+                Pline.BorderSizePixel = 0
+                Pline.Position = UDim2.new(0.0199999996, 0, 0.165000007, 0)
+                Pline.Size = UDim2.new(0, 288, 0, 2)
+
+                table.insert(self.Elements, ButtonPanel)
+                return ButtonPanel
+            end
+
+            function SubTab:CheckBox(options, id)
+                local parent = self.Elements[#self.Elements] or ScrollingFrame
+                local CheckBoxEnabled = Instance.new("TextButton")
+                local UICorner_3 = Instance.new("UICorner")
+                local CheckBoxName = Instance.new("TextLabel")
+                local ImageLabel = Instance.new("ImageLabel")
+
+                CheckBoxEnabled.Name = "CheckBoxEnabled"
+                CheckBoxEnabled.Parent = parent
+                CheckBoxEnabled.BackgroundColor3 = options.Default and activeColor or Color3.fromRGB(50, 50, 50)
+                CheckBoxEnabled.BorderColor3 = Color3.fromRGB(0, 0, 0)
+                CheckBoxEnabled.BorderSizePixel = 0
+                CheckBoxEnabled.Position = UDim2.new(0.0366666652, 0, 0.344999999, 0)
+                CheckBoxEnabled.Size = UDim2.new(0, 18, 0, 18)
+                CheckBoxEnabled.Font = Enum.Font.SourceSans
+                CheckBoxEnabled.TextColor3 = Color3.fromRGB(0, 0, 0)
+                CheckBoxEnabled.TextSize = 14.000
+                CheckBoxEnabled.TextTransparency = 1.000
+
+                UICorner_3.CornerRadius = UDim.new(0, 4)
+                UICorner_3.Parent = CheckBoxEnabled
+
+                CheckBoxName.Name = "CheckBoxName"
+                CheckBoxName.Parent = CheckBoxEnabled
+                CheckBoxName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                CheckBoxName.BackgroundTransparency = 1.000
+                CheckBoxName.BorderColor3 = Color3.fromRGB(0, 0, 0)
+                CheckBoxName.BorderSizePixel = 0
+                CheckBoxName.Position = UDim2.new(1.10000002, 0, -0.365999997, 0)
+                CheckBoxName.Size = UDim2.new(0, 200, 0, 29)
+                CheckBoxName.Font = Enum.Font.GothamBold
+                CheckBoxName.Text = options.Title or "CheckBox"
+                CheckBoxName.TextColor3 = Color3.fromRGB(218, 237, 255)
+                CheckBoxName.TextSize = 12.000
+
+                ImageLabel.Parent = CheckBoxEnabled
+                ImageLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                ImageLabel.BackgroundTransparency = 1.000
+                ImageLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+                ImageLabel.BorderSizePixel = 0
+                ImageLabel.Position = UDim2.new(0.100000001, 0, 0.109999999, 0)
+                ImageLabel.Size = UDim2.new(0, 15, 0, 15)
+                ImageLabel.Image = "rbxassetid://117429211744366"
+                ImageLabel.ImageColor3 = Color3.fromRGB(0, 0, 0)
+                ImageLabel.Visible = options.Default
+
+                local state = options.Default or false
+
+                CheckBoxEnabled.MouseButton1Click:Connect(function()
+                    state = not state
+                    CheckBoxEnabled.BackgroundColor3 = state and activeColor or Color3.fromRGB(50, 50, 50)
+                    ImageLabel.Visible = state
+                    if options.Callback then
+                        options.Callback(state)
+                    end
+                end)
+
+                return CheckBoxEnabled
+            end
+
+            function SubTab:Slider(options)
+                local parent = self.Elements[#self.Elements] or ScrollingFrame
+                local Slider = Instance.new("Frame")
+                local SliderName = Instance.new("TextLabel")
+                local UICorner_6 = Instance.new("UICorner")
+                local Progress = Instance.new("Frame")
+                local UICorner_7 = Instance.new("UICorner")
+                local Circle = Instance.new("Frame")
+                local UICorner_8 = Instance.new("UICorner")
+                local UIStroke = Instance.new("UIStroke")
+                local Number = Instance.new("TextLabel")
+
+                Slider.Name = "Slider"
+                Slider.Parent = parent
+                Slider.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+                Slider.BorderColor3 = Color3.fromRGB(0, 0, 0)
+                Slider.BorderSizePixel = 0
+                Slider.Position = UDim2.new(0.0363334157, 0, 0.599000037, 0)
+                Slider.Size = UDim2.new(0, 275, 0, 5)
+
+                SliderName.Name = "SliderName"
+                SliderName.Parent = Slider
+                SliderName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                SliderName.BackgroundTransparency = 1.000
+                SliderName.BorderColor3 = Color3.fromRGB(0, 0, 0)
+                SliderName.BorderSizePixel = 0
+                SliderName.Position = UDim2.new(-0.00999999978, 0, -7, 0)
+                SliderName.Size = UDim2.new(0, 200, 0, 29)
+                SliderName.Font = Enum.Font.GothamBold
+                SliderName.Text = options.Title or "Slider"
+                SliderName.TextColor3 = Color3.fromRGB(218, 237, 255)
+                SliderName.TextSize = 12.000
+
+                UICorner_6.CornerRadius = UDim.new(0, 4)
+                UICorner_6.Parent = Slider
+
+                Progress.Name = "Progress"
+                Progress.Parent = Slider
+                Progress.BackgroundColor3 = activeColor
+                Progress.BorderColor3 = Color3.fromRGB(0, 0, 0)
+                Progress.BorderSizePixel = 0
+                Progress.Position = UDim2.new(-0.00427257176, 0, -0.0510009751, 0)
+                Progress.Size = UDim2.new(0, 0, 0, 5)
+
+                UICorner_7.CornerRadius = UDim.new(0, 4)
+                UICorner_7.Parent = Progress
+
+                Circle.Name = "Circle"
+                Circle.Parent = Progress
+                Circle.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+                Circle.BorderColor3 = Color3.fromRGB(0, 0, 0)
+                Circle.BorderSizePixel = 0
+                Circle.Position = UDim2.new(1, -5, -0.600000024, 0)
+                Circle.Size = UDim2.new(0, 10, 0, 10)
+
+                UICorner_8.CornerRadius = UDim.new(1, 0)
+                UICorner_8.Parent = Circle
+
+                UIStroke.Name = "UIStroke"
+                UIStroke.Parent = Circle
+                UIStroke.Color = activeColor
+                UIStroke.Thickness = 2
+
+                Number.Name = "Number"
+                Number.Parent = Slider
+                Number.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                Number.BackgroundTransparency = 1.000
+                Number.BorderColor3 = Color3.fromRGB(0, 0, 0)
+                Number.BorderSizePixel = 0
+                Number.Position = UDim2.new(0.889999986, 0, -7, 0)
+                Number.Size = UDim2.new(0, 50, 0, 29)
+                Number.Font = Enum.Font.GothamBold
+                Number.Text = tostring(options.Value.Default or 0)
+                Number.TextColor3 = Color3.fromRGB(218, 237, 255)
+                Number.TextSize = 12.000
+
+                local min = options.Value.Min or 0
+                local max = options.Value.Max or 100
+                local increment = options.Value.Increment or 1
+                local defaultValue = options.Value.Default or min
+                local currentValue = defaultValue
+
+                local function updateSlider(value)
+                    currentValue = math.clamp(value, min, max)
+                    local percentage = (currentValue - min) / (max - min)
+                    Progress.Size = UDim2.new(percentage, 0, 0, 5)
+                    Circle.Position = UDim2.new(percentage, -5, -0.600000024, 0)
+                    Number.Text = tostring(currentValue)
+                    
+                    if options.Callback then
+                        options.Callback(currentValue)
+                    end
+                end
+
+                updateSlider(defaultValue)
+
+                local dragging = false
+
+                Circle.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = true
+                    end
+                end)
+
+                Circle.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = false
+                    end
+                end)
+
+                game:GetService("UserInputService").InputChanged:Connect(function(input)
+                    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                        local pos = UDim2.fromScale(math.clamp((input.Position.X - Slider.AbsolutePosition.X) / Slider.AbsoluteSize.X, 0, 1), 0)
+                        local value = min + (pos.X.Scale * (max - min))
+                        value = math.floor(value / increment) * increment
+                        updateSlider(value)
+                    end
+                end)
+
+                return Slider
+            end
+
+            return SubTab
         end
 
         if shouldOpen then
