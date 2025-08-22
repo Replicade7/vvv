@@ -4,316 +4,388 @@ local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 
 function Leaf:CreateWindow(opts)
-	local opts = opts or {}
-	local name = (opts.Name and opts.Name[1]) or "Lucky Leaf"
-	local logo = opts.LogoID or "139375697107825"
-	local folder = opts.Folder or "LeafFolder"
-	local color = opts.Color or {182,255,128}
+    local opts = opts or {}
+    local name = opts.Name or "Lucky Leaf"
+    local logo = opts.LogoID or "139375697107825"
+    local color = opts.Color or {182, 255, 128}
 
-	local screenGui = Instance.new("ScreenGui")
-	screenGui.Name = name .. " 3.0"
-	screenGui.Parent = game:GetService("CoreGui")
-	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = name .. " 3.0"
+    screenGui.Parent = game:GetService("CoreGui")
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-	local mainFrame = Instance.new("Frame", screenGui)
-	mainFrame.Name = "MainFrame"
-	mainFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
-	mainFrame.BorderSizePixel = 0
-	mainFrame.Position = UDim2.new(0.5, -324, 0.5, -209)
-	mainFrame.Size = UDim2.new(0,649,0,419)
-	mainFrame.Visible = false
-	local mainUICorner = Instance.new("UICorner", mainFrame)
-	mainUICorner.CornerRadius = UDim.new(0,4)
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Position = UDim2.new(0.5, -324, 0.5, -209)
+    mainFrame.Size = UDim2.new(0, 649, 0, 419)
+    mainFrame.Visible = false
+    mainFrame.Parent = screenGui
+    
+    local mainUICorner = Instance.new("UICorner")
+    mainUICorner.CornerRadius = UDim.new(0, 4)
+    mainUICorner.Parent = mainFrame
 
-	local scrollingFrame = Instance.new("ScrollingFrame", mainFrame)
-	scrollingFrame.Active = true
-	scrollingFrame.BackgroundTransparency = 1
-	scrollingFrame.BorderSizePixel = 0
-	scrollingFrame.Position = UDim2.new(0.0065,0,0,0)
-	scrollingFrame.Size = UDim2.new(0,644,0,379)
-	scrollingFrame.ScrollBarThickness = 5
+    local scrollingFrame = Instance.new("ScrollingFrame")
+    scrollingFrame.Active = true
+    scrollingFrame.BackgroundTransparency = 1
+    scrollingFrame.BorderSizePixel = 0
+    scrollingFrame.Position = UDim2.new(0.0065, 0, 0, 0)
+    scrollingFrame.Size = UDim2.new(0, 644, 0, 379)
+    scrollingFrame.ScrollBarThickness = 5
+    scrollingFrame.Parent = mainFrame
 
-	local topBar = Instance.new("Frame", mainFrame)
-	topBar.Name = "TopBar"
-	topBar.BackgroundColor3 = Color3.fromRGB(44,44,44)
-	topBar.BorderSizePixel = 0
-	topBar.Position = UDim2.new(-0.00065,0,-0.115887,0)
-	topBar.Size = UDim2.new(0,649,0,49)
-	Instance.new("UICorner", topBar).CornerRadius = UDim.new(0,4)
+    local topBar = Instance.new("Frame")
+    topBar.Name = "TopBar"
+    topBar.BackgroundColor3 = Color3.fromRGB(44, 44, 44)
+    topBar.BorderSizePixel = 0
+    topBar.Position = UDim2.new(-0.00065, 0, -0.115887, 0)
+    topBar.Size = UDim2.new(0, 649, 0, 49)
+    topBar.Parent = mainFrame
+    
+    local topBarCorner = Instance.new("UICorner")
+    topBarCorner.CornerRadius = UDim.new(0, 4)
+    topBarCorner.Parent = topBar
 
-	local tabsFrame = Instance.new("Frame", mainFrame)
-	tabsFrame.Name = "TabFrame"
-	tabsFrame.BackgroundColor3 = Color3.fromRGB(44,44,44)
-	tabsFrame.BorderSizePixel = 0
-	tabsFrame.Position = UDim2.new(-0.245,0,-0.115999997,0)
-	tabsFrame.Size = UDim2.new(0,160,0,468)
-	Instance.new("UICorner", tabsFrame).CornerRadius = UDim.new(0,4)
+    local tabsFrame = Instance.new("Frame")
+    tabsFrame.Name = "TabFrame"
+    tabsFrame.BackgroundColor3 = Color3.fromRGB(44, 44, 44)
+    tabsFrame.BorderSizePixel = 0
+    tabsFrame.Position = UDim2.new(-0.245, 0, -0.115999997, 0)
+    tabsFrame.Size = UDim2.new(0, 160, 0, 468)
+    tabsFrame.Parent = mainFrame
+    
+    local tabsFrameCorner = Instance.new("UICorner")
+    tabsFrameCorner.CornerRadius = UDim.new(0, 4)
+    tabsFrameCorner.Parent = tabsFrame
 
-	local menuImage = Instance.new("ImageLabel", tabsFrame)
-	menuImage.Name = "MenuImage"
-	menuImage.BackgroundTransparency = 1
-	menuImage.Position = UDim2.new(0.075,0,0.030,0)
-	menuImage.Size = UDim2.new(0,40,0,40)
-	menuImage.Image = "rbxassetid://"..tostring(logo)
+    local menuImage = Instance.new("ImageLabel")
+    menuImage.Name = "MenuImage"
+    menuImage.BackgroundTransparency = 1
+    menuImage.Position = UDim2.new(0.075, 0, 0.030, 0)
+    menuImage.Size = UDim2.new(0, 40, 0, 40)
+    menuImage.Image = "rbxassetid://" .. tostring(logo)
+    menuImage.Parent = tabsFrame
 
-	local menuNameLabel = Instance.new("TextLabel", tabsFrame)
-	menuNameLabel.Name = "MenuName"
-	menuNameLabel.BackgroundTransparency = 1
-	menuNameLabel.Position = UDim2.new(0.22,0,0.019,0)
-	menuNameLabel.Size = UDim2.new(0,130,0,50)
-	menuNameLabel.Font = Enum.Font.SourceSansBold
-	menuNameLabel.Text = name
-	menuNameLabel.TextColor3 = Color3.fromRGB(255,255,255)
-	menuNameLabel.TextSize = 20
+    local menuNameLabel = Instance.new("TextLabel")
+    menuNameLabel.Name = "MenuName"
+    menuNameLabel.BackgroundTransparency = 1
+    menuNameLabel.Position = UDim2.new(0.22, 0, 0.019, 0)
+    menuNameLabel.Size = UDim2.new(0, 130, 0, 50)
+    menuNameLabel.Font = Enum.Font.SourceSansBold
+    menuNameLabel.Text = name
+    menuNameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    menuNameLabel.TextSize = 20
+    menuNameLabel.Parent = tabsFrame
 
-	local paragraphLabel = Instance.new("TextLabel", tabsFrame)
-	paragraphLabel.Name = "ParagraphLabel"
-	paragraphLabel.BackgroundTransparency = 1
-	paragraphLabel.Position = UDim2.new(-0.206,0,0.096,0)
-	paragraphLabel.Size = UDim2.new(0,130,0,50)
-	paragraphLabel.Font = Enum.Font.SourceSansBold
-	paragraphLabel.Text = ""
-	paragraphLabel.TextColor3 = Color3.fromRGB(172,172,172)
-	paragraphLabel.TextSize = 14
+    local paragraphLabel = Instance.new("TextLabel")
+    paragraphLabel.Name = "ParagraphLabel"
+    paragraphLabel.BackgroundTransparency = 1
+    paragraphLabel.Position = UDim2.new(-0.206, 0, 0.096, 0)
+    paragraphLabel.Size = UDim2.new(0, 130, 0, 50)
+    paragraphLabel.Font = Enum.Font.SourceSansBold
+    paragraphLabel.Text = ""
+    paragraphLabel.TextColor3 = Color3.fromRGB(172, 172, 172)
+    paragraphLabel.TextSize = 14
+    paragraphLabel.Parent = tabsFrame
 
-	local tabsContainer = Instance.new("Frame", tabsFrame)
-	tabsContainer.Name = "TabsContainer"
-	tabsContainer.BackgroundTransparency = 1
-	tabsContainer.Position = UDim2.new(0,0,0.16,0)
-	tabsContainer.Size = UDim2.new(1,0,0.84,0)
-	local uiList = Instance.new("UIListLayout", tabsContainer)
-	uiList.SortOrder = Enum.SortOrder.LayoutOrder
-	uiList.Padding = UDim.new(0,6)
+    local tabsContainer = Instance.new("Frame")
+    tabsContainer.Name = "TabsContainer"
+    tabsContainer.BackgroundTransparency = 1
+    tabsContainer.Position = UDim2.new(0, 0, 0.16, 0)
+    tabsContainer.Size = UDim2.new(1, 0, 0.84, 0)
+    tabsContainer.Parent = tabsFrame
+    
+    local uiList = Instance.new("UIListLayout")
+    uiList.SortOrder = Enum.SortOrder.LayoutOrder
+    uiList.Padding = UDim.new(0, 6)
+    uiList.Parent = tabsContainer
 
-	local leftLine = Instance.new("Frame", mainFrame)
-	leftLine.Name = "LeftLine"
-	leftLine.BackgroundColor3 = Color3.fromRGB(35,35,35)
-	leftLine.BorderSizePixel = 0
-	leftLine.Position = UDim2.new(0.004,0,-0.116,0)
-	leftLine.Size = UDim2.new(0,-4,0,468)
-	leftLine.ZIndex = 2
+    local leftLine = Instance.new("Frame")
+    leftLine.Name = "LeftLine"
+    leftLine.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    leftLine.BorderSizePixel = 0
+    leftLine.Position = UDim2.new(0.004, 0, -0.116, 0)
+    leftLine.Size = UDim2.new(0, -4, 0, 468)
+    leftLine.ZIndex = 2
+    leftLine.Parent = mainFrame
 
-	local topBarSubContainer = Instance.new("Frame", topBar)
-	topBarSubContainer.Name = "SubTabContainer"
-	topBarSubContainer.BackgroundTransparency = 1
-	topBarSubContainer.Position = UDim2.new(0.02,0,0,0)
-	topBarSubContainer.Size = UDim2.new(0.7,0,1,0)
-	local topList = Instance.new("UIListLayout", topBarSubContainer)
-	topList.FillDirection = Enum.FillDirection.Horizontal
-	topList.SortOrder = Enum.SortOrder.LayoutOrder
-	topList.Padding = UDim.new(0,8)
+    local topBarSubContainer = Instance.new("Frame")
+    topBarSubContainer.Name = "SubTabContainer"
+    topBarSubContainer.BackgroundTransparency = 1
+    topBarSubContainer.Position = UDim2.new(0.02, 0, 0, 0)
+    topBarSubContainer.Size = UDim2.new(0.7, 0, 1, 0)
+    topBarSubContainer.Parent = topBar
+    
+    local topList = Instance.new("UIListLayout")
+    topList.FillDirection = Enum.FillDirection.Horizontal
+    topList.SortOrder = Enum.SortOrder.LayoutOrder
+    topList.Padding = UDim.new(0, 8)
+    topList.Parent = topBarSubContainer
 
-	local searchBtn = Instance.new("ImageButton", topBar)
-	searchBtn.Name = "Search"
-	searchBtn.BackgroundTransparency = 1
-	searchBtn.Position = UDim2.new(0.862255394,0,0.285714298,0)
-	searchBtn.Size = UDim2.new(0,20,0,20)
-	searchBtn.Image = "rbxassetid://74838149107043"
-	searchBtn.ImageColor3 = Color3.fromRGB(172,172,172)
+    local searchBtn = Instance.new("ImageButton")
+    searchBtn.Name = "Search"
+    searchBtn.BackgroundTransparency = 1
+    searchBtn.Position = UDim2.new(0.862255394, 0, 0.285714298, 0)
+    searchBtn.Size = UDim2.new(0, 20, 0, 20)
+    searchBtn.Image = "rbxassetid://74838149107043"
+    searchBtn.ImageColor3 = Color3.fromRGB(172, 172, 172)
+    searchBtn.Parent = topBar
 
-	local manageBtn = Instance.new("ImageButton", topBar)
-	manageBtn.Name = "Manage"
-	manageBtn.BackgroundTransparency = 1
-	manageBtn.Position = UDim2.new(0.902317047,0,0.285714298,0)
-	manageBtn.Size = UDim2.new(0,20,0,20)
-	manageBtn.Image = "rbxassetid://94341423317036"
-	manageBtn.ImageColor3 = Color3.fromRGB(172,172,172)
+    local manageBtn = Instance.new("ImageButton")
+    manageBtn.Name = "Manage"
+    manageBtn.BackgroundTransparency = 1
+    manageBtn.Position = UDim2.new(0.902317047, 0, 0.285714298, 0)
+    manageBtn.Size = UDim2.new(0, 20, 0, 20)
+    manageBtn.Image = "rbxassetid://94341423317036"
+    manageBtn.ImageColor3 = Color3.fromRGB(172, 172, 172)
+    manageBtn.Parent = topBar
 
-	local settingsBtn = Instance.new("ImageButton", topBar)
-	settingsBtn.Name = "Settings"
-	settingsBtn.BackgroundTransparency = 1
-	settingsBtn.Position = UDim2.new(0.94083786,0,0.285714298,0)
-	settingsBtn.Size = UDim2.new(0,20,0,20)
-	settingsBtn.Image = "rbxassetid://74379261280917"
-	settingsBtn.ImageColor3 = Color3.fromRGB(172,172,172)
+    local settingsBtn = Instance.new("ImageButton")
+    settingsBtn.Name = "Settings"
+    settingsBtn.BackgroundTransparency = 1
+    settingsBtn.Position = UDim2.new(0.94083786, 0, 0.285714298, 0)
+    settingsBtn.Size = UDim2.new(0, 20, 0, 20)
+    settingsBtn.Image = "rbxassetid://74379261280917"
+    settingsBtn.ImageColor3 = Color3.fromRGB(172, 172, 172)
+    settingsBtn.Parent = topBar
 
-	local window = {}
-	window._gui = screenGui
-	window._mainFrame = mainFrame
-	window._scrolling = scrollingFrame
-	window._tabs = {}
-	window._subtabInstances = {}
-	window._tabsContainer = tabsContainer
-	window._paragraphLabel = paragraphLabel
-	window._topBar = topBar
-	window._topBarSubContainer = topBarSubContainer
+    local window = {}
+    window._gui = screenGui
+    window._mainFrame = mainFrame
+    window._scrolling = scrollingFrame
+    window._tabs = {}
+    window._subtabInstances = {}
+    window._tabsContainer = tabsContainer
+    window._paragraphLabel = paragraphLabel
+    window._topBar = topBar
+    window._topBarSubContainer = topBarSubContainer
 
-	function window:CreateParagraph(p)
-		local p = p or {}
-		local label = tostring(p.Name or "")
-		self._paragraphLabel.Text = label
-		return {Name = label}
-	end
+    function window:CreateParagraph(p)
+        local p = p or {}
+        local label = tostring(p.Name or "")
+        self._paragraphLabel.Text = label
+        return {Name = label}
+    end
 
-	local function setActiveTabInternal(index)
-		for i, t in ipairs(window._tabs) do
-			if i == index then
-				t.button.BackgroundTransparency = 0.55
-				t.nameLabel.TextColor3 = Color3.fromRGB(unpack(color))
-				t.imageLabel.ImageColor3 = Color3.fromRGB(unpack(color))
-				if t.content then t.content.Visible = true end
-				window._currentTab = t
-			else
-				t.button.BackgroundTransparency = 1
-				t.nameLabel.TextColor3 = Color3.fromRGB(172,172,172)
-				t.imageLabel.ImageColor3 = Color3.fromRGB(172,172,172)
-				if t.content then t.content.Visible = false end
-			end
-		end
-		for _, v in ipairs(window._topBarSubContainer:GetChildren()) do
-			if not v:IsA("UIListLayout") then v:Destroy() end
-		end
-		local active = window._currentTab
-		if active and active.subtabs then
-			for i, st in ipairs(active.subtabs) do
-				local stFrame = Instance.new("TextButton", window._topBarSubContainer)
-				stFrame.AutoButtonColor = false
-				stFrame.BackgroundTransparency = 1
-				stFrame.Size = UDim2.new(0,93,0,50)
-				stFrame.Font = Enum.Font.SourceSans
-				stFrame.TextTransparency = 1
-				local stLabel = Instance.new("TextLabel", stFrame)
-				stLabel.BackgroundTransparency = 1
-				stLabel.Position = UDim2.new(0.19,0,0.18,0)
-				stLabel.Size = UDim2.new(0,50,0,29)
-				stLabel.Font = Enum.Font.SourceSansBold
-				stLabel.Text = st.Name or ""
-				stLabel.TextColor3 = Color3.fromRGB(172,172,172)
-				stLabel.TextSize = 15
-				local underline = Instance.new("Frame", stFrame)
-				underline.BackgroundColor3 = Color3.fromRGB(unpack(color))
-				underline.Size = UDim2.new(0,88,0,2)
-				underline.Position = UDim2.new(-0.01,0,0.933,0)
-				underline.BackgroundTransparency = 1
-				table.insert(window._subtabInstances, {button = stFrame, label = stLabel, underline = underline})
-				stFrame.MouseButton1Click:Connect(function()
-					for _, inst in ipairs(window._subtabInstances) do
-						inst.underline.BackgroundTransparency = 1
-						inst.label.TextColor3 = Color3.fromRGB(172,172,172)
-					end
-					stLabel.TextColor3 = Color3.fromRGB(218,237,255)
-					underline.BackgroundTransparency = 0
-					if st.Callback then
-						pcall(st.Callback)
-					end
-				end)
-			end
-		end
-	end
+    local function setActiveTabInternal(index)
+        for i, t in ipairs(window._tabs) do
+            if i == index then
+                t.button.BackgroundTransparency = 0.55
+                t.nameLabel.TextColor3 = Color3.fromRGB(unpack(color))
+                t.imageLabel.ImageColor3 = Color3.fromRGB(unpack(color))
+                if t.content then 
+                    t.content.Visible = true 
+                end
+                window._currentTab = t
+            else
+                t.button.BackgroundTransparency = 1
+                t.nameLabel.TextColor3 = Color3.fromRGB(172, 172, 172)
+                t.imageLabel.ImageColor3 = Color3.fromRGB(172, 172, 172)
+                if t.content then 
+                    t.content.Visible = false 
+                end
+            end
+        end
+        
+        for _, v in ipairs(window._topBarSubContainer:GetChildren()) do
+            if not v:IsA("UIListLayout") then 
+                v:Destroy() 
+            end
+        end
+        
+        window._subtabInstances = {}
+        
+        local active = window._currentTab
+        if active and active.subtabs then
+            for i, st in ipairs(active.subtabs) do
+                local stFrame = Instance.new("TextButton")
+                stFrame.AutoButtonColor = false
+                stFrame.BackgroundTransparency = 1
+                stFrame.Size = UDim2.new(0, 93, 0, 50)
+                stFrame.Font = Enum.Font.SourceSans
+                stFrame.TextTransparency = 1
+                stFrame.Parent = window._topBarSubContainer
+                
+                local stLabel = Instance.new("TextLabel")
+                stLabel.BackgroundTransparency = 1
+                stLabel.Position = UDim2.new(0.19, 0, 0.18, 0)
+                stLabel.Size = UDim2.new(0, 50, 0, 29)
+                stLabel.Font = Enum.Font.SourceSansBold
+                stLabel.Text = st.Name or ""
+                stLabel.TextColor3 = Color3.fromRGB(172, 172, 172)
+                stLabel.TextSize = 15
+                stLabel.Parent = stFrame
+                
+                local underline = Instance.new("Frame")
+                underline.BackgroundColor3 = Color3.fromRGB(unpack(color))
+                underline.Size = UDim2.new(0, 88, 0, 2)
+                underline.Position = UDim2.new(-0.01, 0, 0.933, 0)
+                underline.BackgroundTransparency = 1
+                underline.Parent = stFrame
+                
+                table.insert(window._subtabInstances, {button = stFrame, label = stLabel, underline = underline})
+                
+                stFrame.MouseButton1Click:Connect(function()
+                    for _, inst in ipairs(window._subtabInstances) do
+                        inst.underline.BackgroundTransparency = 1
+                        inst.label.TextColor3 = Color3.fromRGB(172, 172, 172)
+                    end
+                    stLabel.TextColor3 = Color3.fromRGB(unpack(color))
+                    underline.BackgroundTransparency = 0
+                    if st.Callback then
+                        pcall(st.Callback)
+                    end
+                end)
+                
+                if st.Opened then
+                    stLabel.TextColor3 = Color3.fromRGB(unpack(color))
+                    underline.BackgroundTransparency = 0
+                    if st.Callback then
+                        pcall(st.Callback)
+                    end
+                end
+            end
+        end
+    end
 
-	function window:CreateTab(t)
-		local t = t or {}
-		local container = Instance.new("Frame", self._tabsContainer)
-		container.BackgroundTransparency = 1
-		container.Size = UDim2.new(1,0,0,28)
-		local bg = Instance.new("Frame", container)
-		bg.Name = "TabButton"
-		bg.BackgroundColor3 = Color3.fromRGB(unpack(color))
-		bg.BackgroundTransparency = 1
-		bg.BorderSizePixel = 0
-		bg.Size = UDim2.new(1,0,1,0)
-		local img = Instance.new("ImageLabel", bg)
-		img.Name = "ImageTab"
-		img.BackgroundTransparency = 1
-		img.Position = UDim2.new(0.075,0,0.127,0)
-		img.Size = UDim2.new(0,20,0,20)
-		img.Image = t.Image or ""
-		img.ImageColor3 = Color3.fromRGB(172,172,172)
-		local nameLabel = Instance.new("TextLabel", bg)
-		nameLabel.Name = "NameTab"
-		nameLabel.BackgroundTransparency = 1
-		nameLabel.Position = UDim2.new(0.002,0,-0.404,0)
-		nameLabel.Size = UDim2.new(0,130,0,50)
-		nameLabel.Font = Enum.Font.GothamMedium
-		nameLabel.Text = t.Name or "Tab"
-		nameLabel.TextColor3 = Color3.fromRGB(172,172,172)
-		nameLabel.TextSize = 14
-		local btn = Instance.new("TextButton", bg)
-		btn.BackgroundTransparency = 1
-		btn.Size = UDim2.new(1,0,1,0)
-		btn.Text = ""
-		btn.AutoButtonColor = false
+    function window:CreateTab(t)
+        local t = t or {}
+        local container = Instance.new("Frame")
+        container.BackgroundTransparency = 1
+        container.Size = UDim2.new(1, 0, 0, 28)
+        container.Parent = self._tabsContainer
+        
+        local bg = Instance.new("Frame")
+        bg.Name = "TabButton"
+        bg.BackgroundColor3 = Color3.fromRGB(unpack(color))
+        bg.BackgroundTransparency = 1
+        bg.BorderSizePixel = 0
+        bg.Size = UDim2.new(1, 0, 1, 0)
+        bg.Parent = container
+        
+        local img = Instance.new("ImageLabel")
+        img.Name = "ImageTab"
+        img.BackgroundTransparency = 1
+        img.Position = UDim2.new(0.075, 0, 0.127, 0)
+        img.Size = UDim2.new(0, 20, 0, 20)
+        img.Image = t.Image or ""
+        img.ImageColor3 = Color3.fromRGB(172, 172, 172)
+        img.Parent = bg
+        
+        local nameLabel = Instance.new("TextLabel")
+        nameLabel.Name = "NameTab"
+        nameLabel.BackgroundTransparency = 1
+        nameLabel.Position = UDim2.new(0.002, 0, -0.404, 0)
+        nameLabel.Size = UDim2.new(0, 130, 0, 50)
+        nameLabel.Font = Enum.Font.GothamMedium
+        nameLabel.Text = t.Name or "Tab"
+        nameLabel.TextColor3 = Color3.fromRGB(172, 172, 172)
+        nameLabel.TextSize = 14
+        nameLabel.Parent = bg
+        
+        local btn = Instance.new("TextButton")
+        btn.BackgroundTransparency = 1
+        btn.Size = UDim2.new(1, 0, 1, 0)
+        btn.Text = ""
+        btn.AutoButtonColor = false
+        btn.Parent = bg
 
-		local content = Instance.new("Frame", self._scrolling)
-		content.BackgroundTransparency = 1
-		content.Size = UDim2.new(1,0,1,0)
-		content.Visible = false
+        local content = Instance.new("Frame")
+        content.BackgroundTransparency = 1
+        content.Size = UDim2.new(1, 0, 1, 0)
+        content.Visible = false
+        content.Parent = self._scrolling
 
-		local tabObj = {button = bg, nameLabel = nameLabel, imageLabel = img, content = content, subtabs = {}, Name = t.Name or "Tab"}
-		table.insert(self._tabs, tabObj)
-		local index = #self._tabs
+        local tabObj = {
+            button = bg, 
+            nameLabel = nameLabel, 
+            imageLabel = img, 
+            content = content, 
+            subtabs = {}, 
+            Name = t.Name or "Tab"
+        }
+        table.insert(self._tabs, tabObj)
+        local index = #self._tabs
 
-		btn.MouseButton1Click:Connect(function()
-			setActiveTabInternal(index)
-		end)
+        btn.MouseButton1Click:Connect(function()
+            setActiveTabInternal(index)
+        end)
 
-		if t.Opened then
-			setActiveTabInternal(index)
-		end
+        if #self._tabs == 1 or t.Opened then
+            setActiveTabInternal(index)
+        end
 
-		function tabObj:CreateSubTab(s)
-			local s = s or {}
-			table.insert(self.subtabs, {Name = s.Name or "Sub", Opened = s.Opened, Callback = s.Callback})
-			return {Name = s.Name or "Sub"}
-		end
+        function tabObj:CreateSubTab(s)
+            local s = s or {}
+            local subtab = {Name = s.Name or "Sub", Opened = s.Opened, Callback = s.Callback}
+            table.insert(self.subtabs, subtab)
+            return subtab
+        end
 
-		return tabObj
-	end
+        return tabObj
+    end
 
-	local dragging, dragInput, dragStart, startPos
+    local dragging, dragInput, dragStart, startPos
 
-	local function update(input)
-		local delta = input.Position - dragStart
-		mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-	end
+    local function update(input)
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(
+            startPos.X.Scale, 
+            startPos.X.Offset + delta.X, 
+            startPos.Y.Scale, 
+            startPos.Y.Offset + delta.Y
+        )
+    end
 
-	topBar.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			dragging = true
-			dragStart = input.Position
-			startPos = mainFrame.Position
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragging = false
-				end
-			end)
-		end
-	end)
+    topBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = mainFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
 
-	topBar.InputChanged:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement then
-			dragInput = input
-		end
-	end)
+    topBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
 
-	UserInputService.InputChanged:Connect(function(input)
-		if input == dragInput and dragging then
-			update(input)
-		end
-	end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
 
-	UserInputService.InputBegan:Connect(function(input)
-		if input.KeyCode == Enum.KeyCode.RightShift then
-			mainFrame.Visible = not mainFrame.Visible
-		end
-	end)
+    UserInputService.InputBegan:Connect(function(input)
+        if input.KeyCode == Enum.KeyCode.RightShift then
+            mainFrame.Visible = not mainFrame.Visible
+        end
+    end)
 
-	window:SetName = function(newName)
-		menuNameLabel.Text = tostring(newName or "")
-	end
+    function window:SetName(newName)
+        menuNameLabel.Text = tostring(newName or "")
+    end
 
-	window:SetLogo = function(assetId)
-		menuImage.Image = "rbxassetid://"..tostring(assetId)
-	end
+    function window:SetLogo(assetId)
+        menuImage.Image = "rbxassetid://" .. tostring(assetId)
+    end
 
-	window:SetColor = function(rgb)
-		color = rgb or color
-	end
+    function window:SetColor(rgb)
+        color = rgb or color
+    end
 
-	window._screenGui = screenGui
-	window._mainFrame = mainFrame
+    window._screenGui = screenGui
+    window._mainFrame = mainFrame
 
-	return window
+    return window
 end
 
 return Leaf
