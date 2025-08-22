@@ -345,6 +345,10 @@ function Leaf:CreateWindow(options)
                 setActiveSubTab(tabIndex, subTabIndex)
             end)
 
+            if shouldOpenSub then
+                setActiveSubTab(tabIndex, subTabIndex)
+            end
+
             return {}
         end
 
