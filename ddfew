@@ -150,25 +150,26 @@ function Leaf:CreateWindow(options)
     local subTabs = {}
     local currentTabIndex = 1
     local currentYPosition = 0.096
-    local tabLeft = 0.00625
-    local paragraphIndent = tabLeft + 0.03
 
     function Window:CreateParagraph(paragraphOptions)
         local Parahraftab = Instance.new("TextLabel")
+        
         Parahraftab.Name = "Parahraf tab"
         Parahraftab.Parent = TabFrame
         Parahraftab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         Parahraftab.BackgroundTransparency = 1.000
         Parahraftab.BorderColor3 = Color3.fromRGB(0, 0, 0)
         Parahraftab.BorderSizePixel = 0
-        Parahraftab.Position = UDim2.new(paragraphIndent, 0, currentYPosition, 0)
+        Parahraftab.Position = UDim2.new(0.05, 0, currentYPosition, 0)
         Parahraftab.Size = UDim2.new(0, 130, 0, 50)
         Parahraftab.Font = Enum.Font.SourceSansBold
         Parahraftab.Text = paragraphOptions.Name or "Paragraph"
         Parahraftab.TextColor3 = Color3.fromRGB(172, 172, 172)
         Parahraftab.TextSize = 14.000
         Parahraftab.TextXAlignment = Enum.TextXAlignment.Left
-        currentYPosition = currentYPosition + 0.08
+
+        currentYPosition = currentYPosition + 0.06
+
         return {}
     end
 
@@ -177,16 +178,20 @@ function Leaf:CreateWindow(options)
         local NameTab = Instance.new("TextLabel")
         local TextButton = Instance.new("TextButton")
         local ImageTab = Instance.new("ImageLabel")
+
         local isFirst = #tabs == 0
+
         TabButton.Name = isFirst and "TabButton Enabled" or "TabButton Disabled"
         TabButton.Parent = TabFrame
         TabButton.BackgroundColor3 = Color3.fromRGB(183, 255, 128)
         TabButton.BackgroundTransparency = isFirst and 0.550 or 1.000
         TabButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
         TabButton.BorderSizePixel = 0
-        TabButton.Position = UDim2.new(tabLeft, 0, currentYPosition, 0)
+        TabButton.Position = UDim2.new(0.00625, 0, currentYPosition, 0)
         TabButton.Size = UDim2.new(0, 157, 0, 28)
+
         currentYPosition = currentYPosition + 0.06
+
         NameTab.Name = "NameTab"
         NameTab.Parent = TabButton
         NameTab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -200,6 +205,7 @@ function Leaf:CreateWindow(options)
         NameTab.TextColor3 = isFirst and Color3.fromRGB(183, 255, 128) or Color3.fromRGB(172, 172, 172)
         NameTab.TextSize = 14.000
         NameTab.TextXAlignment = Enum.TextXAlignment.Left
+
         TextButton.Parent = TabButton
         TextButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         TextButton.BackgroundTransparency = 1.000
@@ -210,6 +216,7 @@ function Leaf:CreateWindow(options)
         TextButton.TextColor3 = Color3.fromRGB(0, 0, 0)
         TextButton.TextSize = 14.000
         TextButton.TextTransparency = 1.000
+
         ImageTab.Name = "ImageTab"
         ImageTab.Parent = TabButton
         ImageTab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -221,14 +228,17 @@ function Leaf:CreateWindow(options)
         ImageTab.ZIndex = 2
         ImageTab.Image = tabOptions.Image or ""
         ImageTab.ImageColor3 = isFirst and Color3.fromRGB(183, 255, 128) or Color3.fromRGB(172, 172, 172)
+
         local Tab = {
             Button = TabButton,
             NameLabel = NameTab,
             ImageLabel = ImageTab,
             SubTabs = {}
         }
+
         table.insert(tabs, Tab)
         local tabIndex = #tabs
+
         local function setActiveTab(index)
             currentTabIndex = index
             for i, tab in ipairs(tabs) do
@@ -249,15 +259,19 @@ function Leaf:CreateWindow(options)
                 end
             end
         end
+
         TextButton.MouseButton1Click:Connect(function()
             setActiveTab(tabIndex)
         end)
+
         function Tab:CreateSubTab(subTabOptions)
             local SubTabButton = Instance.new("TextButton")
             local NameSubTab = Instance.new("TextLabel")
             local Frame = Instance.new("Frame")
             local UICorner = Instance.new("UICorner")
+
             local isFirstInTab = #Tab.SubTabs == 0
+
             SubTabButton.Name = isFirstInTab and "SubTab Enabled" or "SubTab Disabled"
             SubTabButton.Parent = TopBar
             SubTabButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -271,6 +285,7 @@ function Leaf:CreateWindow(options)
             SubTabButton.TextSize = 14.000
             SubTabButton.TextTransparency = 1.000
             SubTabButton.Visible = (tabIndex == currentTabIndex)
+
             NameSubTab.Name = "NameSubTab"
             NameSubTab.Parent = SubTabButton
             NameSubTab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -283,6 +298,7 @@ function Leaf:CreateWindow(options)
             NameSubTab.Text = subTabOptions.Name or "SubTab"
             NameSubTab.TextColor3 = isFirstInTab and (tabIndex == currentTabIndex) and Color3.fromRGB(218, 237, 255) or Color3.fromRGB(172, 172, 172)
             NameSubTab.TextSize = 15.000
+
             Frame.Parent = SubTabButton
             Frame.BackgroundColor3 = Color3.fromRGB(183, 255, 128)
             Frame.BackgroundTransparency = isFirstInTab and (tabIndex == currentTabIndex) and 0 or 1.000
@@ -290,16 +306,20 @@ function Leaf:CreateWindow(options)
             Frame.BorderSizePixel = 0
             Frame.Position = UDim2.new(-0.0107097011, 0, 0.932999551, 0)
             Frame.Size = UDim2.new(0, 88, 0, 2)
+
             UICorner.CornerRadius = UDim.new(0, 4)
             UICorner.Parent = Frame
+
             local SubTab = {
                 Button = SubTabButton,
                 NameLabel = NameSubTab,
                 Frame = Frame
             }
+
             table.insert(Tab.SubTabs, SubTab)
             table.insert(subTabs, SubTab)
             local subTabIndex = #Tab.SubTabs
+
             local function setActiveSubTab(pTabIndex, sTabIndex)
                 for i, subTab in ipairs(tabs[pTabIndex].SubTabs) do
                     if i == sTabIndex then
@@ -311,11 +331,14 @@ function Leaf:CreateWindow(options)
                     end
                 end
             end
+
             SubTabButton.MouseButton1Click:Connect(function()
                 setActiveSubTab(tabIndex, subTabIndex)
             end)
+
             return {}
         end
+
         return Tab
     end
 
@@ -335,6 +358,7 @@ function Leaf:CreateWindow(options)
             dragging = true
             dragStart = input.Position
             startPos = MainFrame.Position
+            
             input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
                     dragging = false
