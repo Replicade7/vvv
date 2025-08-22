@@ -149,7 +149,7 @@ function Leaf:CreateWindow(options)
     local tabs = {}
     local subTabs = {}
     local currentTabIndex = 1
-    local currentYPosition = 0.096
+    local currentYPosition = 0.07
 
     function Window:CreateParagraph(paragraphOptions)
         local Parahraftab = Instance.new("TextLabel")
@@ -168,7 +168,7 @@ function Leaf:CreateWindow(options)
         Parahraftab.TextSize = 14.000
         Parahraftab.TextXAlignment = Enum.TextXAlignment.Left
 
-        currentYPosition = currentYPosition + 0.114
+        currentYPosition = currentYPosition + 0.08
 
         return {}
     end
@@ -190,7 +190,7 @@ function Leaf:CreateWindow(options)
         TabButton.Position = UDim2.new(0.00625, 0, currentYPosition, 0)
         TabButton.Size = UDim2.new(0, 157, 0, 28)
 
-        currentYPosition = currentYPosition + 0.06
+        currentYPosition = currentYPosition + 0.05
 
         NameTab.Name = "NameTab"
         NameTab.Parent = TabButton
