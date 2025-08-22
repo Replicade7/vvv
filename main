@@ -1,6 +1,10 @@
 local Leaf = {}
-
 function Leaf:CreateWindow(options)
+    local winName = options and options.Name and (type(options.Name) == "table" and options.Name[1] or options.Name) or "Leaf"
+    local logoId = options and options.LogoID and tostring(options.LogoID) or ""
+    local folderName = options and options.Folder or "LeafFolder"
+    local col = options and options.Color or {182, 255, 128}
+
     local LuckyLeaf30 = Instance.new("ScreenGui")
     local MainFrame = Instance.new("Frame")
     local UICorner = Instance.new("UICorner")
@@ -12,13 +16,15 @@ function Leaf:CreateWindow(options)
     local Search = Instance.new("ImageButton")
     local Manage = Instance.new("ImageButton")
     local Settings_3 = Instance.new("ImageButton")
+    local SubTabContainer = Instance.new("Frame")
     local LeftLine = Instance.new("Frame")
     local TabFrame = Instance.new("Frame")
     local UICorner_23 = Instance.new("UICorner")
     local MenuName = Instance.new("TextLabel")
     local MenuImage = Instance.new("ImageLabel")
+    local ParagraphsHolder = Instance.new("Frame")
 
-    LuckyLeaf30.Name = "Lucky Leaf 3.0"
+    LuckyLeaf30.Name = winName .. " GUI"
     LuckyLeaf30.Parent = game:GetService("CoreGui")
     LuckyLeaf30.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
@@ -29,7 +35,7 @@ function Leaf:CreateWindow(options)
     MainFrame.BorderSizePixel = 0
     MainFrame.Position = UDim2.new(0.5, -324, 0.5, -209)
     MainFrame.Size = UDim2.new(0, 649, 0, 419)
-    MainFrame.Visible = true
+    MainFrame.Visible = false
 
     UICorner.CornerRadius = UDim.new(0, 4)
     UICorner.Parent = MainFrame
@@ -102,6 +108,12 @@ function Leaf:CreateWindow(options)
     Settings_3.Image = "rbxassetid://74379261280917"
     Settings_3.ImageColor3 = Color3.fromRGB(172, 172, 172)
 
+    SubTabContainer.Name = "SubTabContainer"
+    SubTabContainer.Parent = TopBar
+    SubTabContainer.BackgroundTransparency = 1
+    SubTabContainer.Position = UDim2.new(0.02, 0, 0, 0)
+    SubTabContainer.Size = UDim2.new(0.5, 0, 1, 0)
+
     LeftLine.Name = "LeftLine"
     LeftLine.Parent = MainFrame
     LeftLine.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
@@ -131,7 +143,7 @@ function Leaf:CreateWindow(options)
     MenuName.Position = UDim2.new(0.219999999, 0, 0.0189999994, 0)
     MenuName.Size = UDim2.new(0, 130, 0, 50)
     MenuName.Font = Enum.Font.SourceSansBold
-    MenuName.Text = options.Name[1]
+    MenuName.Text = winName
     MenuName.TextColor3 = Color3.fromRGB(255, 255, 255)
     MenuName.TextSize = 20.000
 
@@ -143,16 +155,217 @@ function Leaf:CreateWindow(options)
     MenuImage.BorderSizePixel = 0
     MenuImage.Position = UDim2.new(0.075000003, 0, 0.0300154723, 0)
     MenuImage.Size = UDim2.new(0, 40, 0, 40)
-    MenuImage.Image = "rbxassetid://" .. options.LogoID
+    MenuImage.Image = logoId ~= "" and ("rbxassetid://" .. logoId) or ""
+    MenuImage.ImageColor3 = Color3.fromRGB(255,255,255)
 
-    if options.Color then
-        MainFrame.BackgroundColor3 = Color3.fromRGB(options.Color[1], options.Color[2], options.Color[3])
+    ParagraphsHolder.Name = "ParagraphsHolder"
+    ParagraphsHolder.Parent = TabFrame
+    ParagraphsHolder.BackgroundTransparency = 1
+    ParagraphsHolder.Position = UDim2.new(0, 0, 0.09, 0)
+    ParagraphsHolder.Size = UDim2.new(1, 0, 0.9, 0)
+    ParagraphsHolder.ClipsDescendants = true
+
+    local paragraphs = {}
+    local tabs = {}
+    local subTabs = {}
+    local activeTabIndex = nil
+
+    local function updateTabsVisual()
+        for i, t in ipairs(tabs) do
+            if i == activeTabIndex then
+                t.container.BackgroundTransparency = 0.55
+                t.label.TextColor3 = Color3.fromRGB(unpack(col))
+                if t.image then
+                    t.image.ImageColor3 = Color3.fromRGB(unpack(col))
+                end
+            else
+                t.container.BackgroundTransparency = 1
+                t.label.TextColor3 = Color3.fromRGB(172,172,172)
+                if t.image then
+                    t.image.ImageColor3 = Color3.fromRGB(172,172,172)
+                end
+            end
+        end
+    end
+
+    local function setActiveTab(index)
+        activeTabIndex = index
+        updateTabsVisual()
+    end
+
+    local function createTabButton(parent, nameText, imageId)
+        local container = Instance.new("Frame")
+        container.Parent = parent
+        container.BackgroundColor3 = Color3.fromRGB(unpack(col))
+        container.BackgroundTransparency = 1.000
+        container.BorderSizePixel = 0
+        container.Size = UDim2.new(0, 157, 0, 28)
+
+        local img = Instance.new("ImageLabel")
+        img.Parent = container
+        img.BackgroundTransparency = 1
+        img.Position = UDim2.new(0.075, 0, 0.127, 0)
+        img.Size = UDim2.new(0, 20, 0, 20)
+        img.Image = imageId or ""
+        img.ImageColor3 = Color3.fromRGB(172,172,172)
+
+        local label = Instance.new("TextLabel")
+        label.Parent = container
+        label.BackgroundTransparency = 1
+        label.Size = UDim2.new(1, -10, 1, 0)
+        label.Position = UDim2.new(0.0, 0, -0.4038, 0)
+        label.Font = Enum.Font.GothamMedium
+        label.Text = nameText or ""
+        label.TextColor3 = Color3.fromRGB(172,172,172)
+        label.TextSize = 14
+
+        local btn = Instance.new("TextButton")
+        btn.Parent = container
+        btn.BackgroundTransparency = 1
+        btn.Size = UDim2.new(1,0,1,0)
+        btn.Text = ""
+        btn.AutoButtonColor = false
+
+        return {container = container, image = img, label = label, button = btn}
+    end
+
+    local paragraphCount = 0
+    function MainFrame:SetVisible(v)
+        MainFrame.Visible = v and true or false
+    end
+
+    local Window = {}
+    Window._root = MainFrame
+    Window._tabParent = ParagraphsHolder
+    Window._topBar = TopBar
+    Window._tabsList = tabs
+    Window._subTabsList = subTabs
+    Window._paragraphs = paragraphs
+    Window._color = col
+
+    function Window:CreateParagraph(args)
+        local name = args and args.Name or "Paragraph"
+        paragraphCount = paragraphCount + 1
+        local yOffset = 0.096 + (paragraphCount-1) * 0.113
+        local Para = Instance.new("TextLabel")
+        Para.Name = "Parahraf tab"
+        Para.Parent = ParagraphsHolder
+        Para.BackgroundTransparency = 1
+        Para.Position = UDim2.new(-0.206249997, 0, yOffset, 0)
+        Para.Size = UDim2.new(0, 130, 0, 50)
+        Para.Font = Enum.Font.SourceSansBold
+        Para.Text = name
+        Para.TextColor3 = Color3.fromRGB(172,172,172)
+        Para.TextSize = 14
+        table.insert(paragraphs, Para)
+        return Para
+    end
+
+    function Window:CreateTab(args)
+        local image = args and args.Image or ""
+        local name = args and args.Name or "Tab"
+        local opened = args and args.Opened and true or false
+        local parentParagraph = args and args.Paragraph or nil
+
+        local holder = Instance.new("Frame")
+        holder.Parent = ParagraphsHolder
+        holder.BackgroundTransparency = 1
+        holder.Size = UDim2.new(1,0,0,60)
+
+        local tabButtonWrapper = createTabButton(holder, name, image)
+        tabButtonWrapper.container.Position = UDim2.new(0.253846169, 0, 0.72, 0)
+        tabButtonWrapper.container.AnchorPoint = Vector2.new(0,0)
+        tabButtonWrapper.container.Name = "TabButton"
+
+        tabButtonWrapper.label.Text = name
+        if image ~= "" then
+            tabButtonWrapper.image.Image = image
+        end
+
+        local tabIndex = #tabs + 1
+        tabs[tabIndex] = tabButtonWrapper
+
+        tabButtonWrapper.button.MouseButton1Click:Connect(function()
+            setActiveTab(tabIndex)
+        end)
+
+        if opened then
+            setActiveTab(tabIndex)
+        end
+
+        local TabObj = {}
+        TabObj._index = tabIndex
+        TabObj._name = name
+        TabObj._image = image
+        TabObj._subtabButtons = {}
+        function TabObj:CreateSubTab(sargs)
+            local sname = sargs and sargs.Name or "Sub"
+            local sopened = sargs and sargs.Opened and true or false
+            local sIndex = #subTabs + 1
+
+            local subBtn = Instance.new("TextButton")
+            subBtn.Parent = SubTabContainer
+            subBtn.BackgroundTransparency = 1
+            subBtn.BorderSizePixel = 0
+            subBtn.Size = UDim2.new(0,93,0,50)
+            subBtn.Position = UDim2.new(0.02 + (sIndex-1)*0.155, 0, 0, 0)
+            subBtn.Font = Enum.Font.SourceSans
+            subBtn.Text = ""
+            subBtn.TextTransparency = 1
+
+            local sLabel = Instance.new("TextLabel")
+            sLabel.Parent = subBtn
+            sLabel.BackgroundTransparency = 1
+            sLabel.Position = UDim2.new(0.19,0,0.18,0)
+            sLabel.Size = UDim2.new(0,50,0,29)
+            sLabel.Font = Enum.Font.SourceSansBold
+            sLabel.Text = sname
+            sLabel.TextColor3 = Color3.fromRGB(172,172,172)
+            sLabel.TextSize = 15
+
+            local sFrame = Instance.new("Frame")
+            sFrame.Parent = subBtn
+            sFrame.BackgroundColor3 = Color3.fromRGB(unpack(col))
+            sFrame.BorderSizePixel = 0
+            sFrame.Size = UDim2.new(0,88,0,2)
+            sFrame.Position = UDim2.new(-0.01,0,0.933,0)
+            sFrame.BackgroundTransparency = 1
+
+            local sObj = {button = subBtn, label = sLabel, indicator = sFrame}
+            table.insert(subTabs, sObj)
+            table.insert(TabObj._subtabButtons, sObj)
+
+            local function setActiveSub(i)
+                for ii, st in ipairs(subTabs) do
+                    if ii == i then
+                        st.indicator.BackgroundTransparency = 0
+                        st.label.TextColor3 = Color3.fromRGB(218,237,255)
+                    else
+                        st.indicator.BackgroundTransparency = 1
+                        st.label.TextColor3 = Color3.fromRGB(172,172,172)
+                    end
+                end
+            end
+
+            local sid = #subTabs
+            subBtn.MouseButton1Click:Connect(function()
+                setActiveSub(sid)
+            end)
+
+            if sopened then
+                setActiveSub(sid)
+            end
+
+            return sObj
+        end
+
+        return TabObj
     end
 
     local UIS = game:GetService('UserInputService')
-    local dragging
-    local dragInput
-    local dragStart
+    local dragging = false
+    local dragInput = nil
+    local dragStart = nil
     local startPos
 
     local function update(input)
@@ -165,7 +378,6 @@ function Leaf:CreateWindow(options)
             dragging = true
             dragStart = input.Position
             startPos = MainFrame.Position
-
             input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
                     dragging = false
@@ -191,142 +403,6 @@ function Leaf:CreateWindow(options)
             MainFrame.Visible = not MainFrame.Visible
         end
     end)
-
-    local Window = {}
-    local paragraphYOffset = 0.0961538479
-    local tabYOffset = 0.15
-
-    function Window:CreateParagraph(paragraphOptions)
-        local Parahraftab = Instance.new("TextLabel")
-        Parahraftab.Name = "Parahraf tab"
-        Parahraftab.Parent = TabFrame
-        Parahraftab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        Parahraftab.BackgroundTransparency = 1.000
-        Parahraftab.BorderColor3 = Color3.fromRGB(0, 0, 0)
-        Parahraftab.BorderSizePixel = 0
-        Parahraftab.Position = UDim2.new(-0.206249997, 0, paragraphYOffset, 0)
-        Parahraftab.Size = UDim2.new(0, 130, 0, 50)
-        Parahraftab.Font = Enum.Font.SourceSansBold
-        Parahraftab.Text = paragraphOptions.Name
-        Parahraftab.TextColor3 = Color3.fromRGB(172, 172, 172)
-        Parahraftab.TextSize = 14.000
-        paragraphYOffset = paragraphYOffset + 0.05
-        tabYOffset = paragraphYOffset + 0.05
-    end
-
-    function Window:CreateTab(tabOptions)
-        local TabButton = Instance.new("Frame")
-        local ImageTab = Instance.new("ImageLabel")
-        local NameTab = Instance.new("TextLabel")
-        local TextButton = Instance.new("TextButton")
-
-        TabButton.Name = "TabButton"
-        TabButton.Parent = TabFrame
-        TabButton.BackgroundColor3 = Color3.fromRGB(183, 255, 128)
-        TabButton.BackgroundTransparency = 1
-        TabButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
-        TabButton.BorderSizePixel = 0
-        TabButton.Position = UDim2.new(0.253846169, 0, tabYOffset, 0)
-        TabButton.Size = UDim2.new(0, 157, 0, 28)
-
-        ImageTab.Name = "ImageTab"
-        ImageTab.Parent = TabButton
-        ImageTab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        ImageTab.BackgroundTransparency = 1.000
-        ImageTab.BorderColor3 = Color3.fromRGB(0, 0, 0)
-        ImageTab.BorderSizePixel = 0
-        ImageTab.Position = UDim2.new(0.0749999583, 0, 0.12728937, 0)
-        ImageTab.Size = UDim2.new(0, 20, 0, 20)
-        ImageTab.ZIndex = 2
-        ImageTab.Image = tabOptions.Image
-        ImageTab.ImageColor3 = Color3.fromRGB(172, 172, 172)
-
-        NameTab.Name = "NameTab"
-        NameTab.Parent = TabButton
-        NameTab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        NameTab.BackgroundTransparency = 1.000
-        NameTab.BorderColor3 = Color3.fromRGB(0, 0, 0)
-        NameTab.BorderSizePixel = 0
-        NameTab.Position = UDim2.new(0.002, 0, -0.403846204, 0)
-        NameTab.Size = UDim2.new(0, 130, 0, 50)
-        NameTab.Font = Enum.Font.GothamMedium
-        NameTab.Text = tabOptions.Name
-        NameTab.TextColor3 = Color3.fromRGB(172, 172, 172)
-        NameTab.TextSize = 14.000
-
-        TextButton.Parent = TabButton
-        TextButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        TextButton.BackgroundTransparency = 1.000
-        TextButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
-        TextButton.BorderSizePixel = 0
-        TextButton.Size = UDim2.new(0, 157, 0, 28)
-        TextButton.Font = Enum.Font.SourceSans
-        TextButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-        TextButton.TextSize = 14.000
-        TextButton.TextTransparency = 1.000
-
-        if tabOptions.Opened then
-            TabButton.BackgroundTransparency = 0.55
-            NameTab.TextColor3 = Color3.fromRGB(183, 255, 128)
-            ImageTab.ImageColor3 = Color3.fromRGB(183, 255, 128)
-        end
-
-        local subTabYOffset = 0
-
-        local Tab = {}
-        function Tab:CreateSubTab(subTabOptions)
-            local SubTab = Instance.new("TextButton")
-            local NameSubTAb = Instance.new("TextLabel")
-            local Frame = Instance.new("Frame")
-            local UICorner = Instance.new("UICorner")
-
-            SubTab.Name = "SubTab"
-            SubTab.Parent = TopBar
-            SubTab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            SubTab.BackgroundTransparency = 1.000
-            SubTab.BorderColor3 = Color3.fromRGB(0, 0, 0)
-            SubTab.BorderSizePixel = 0
-            SubTab.Position = UDim2.new(0.0238303263 + subTabYOffset, 0, 0, 0)
-            SubTab.Size = UDim2.new(0, 93, 0, 50)
-            SubTab.Font = Enum.Font.SourceSans
-            SubTab.TextColor3 = Color3.fromRGB(0, 0, 0)
-            SubTab.TextSize = 14.000
-            SubTab.TextTransparency = 1.000
-
-            NameSubTAb.Name = "NameSubTAb"
-            NameSubTAb.Parent = SubTab
-            NameSubTAb.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            NameSubTAb.BackgroundTransparency = 1.000
-            NameSubTAb.BorderColor3 = Color3.fromRGB(0, 0, 0)
-            NameSubTAb.BorderSizePixel = 0
-            NameSubTAb.Position = UDim2.new(0.189884633, 0, 0.181632698, 0)
-            NameSubTAb.Size = UDim2.new(0, 50, 0, 29)
-            NameSubTAb.Font = Enum.Font.SourceSansBold
-            NameSubTAb.Text = subTabOptions.Name
-            NameSubTAb.TextColor3 = Color3.fromRGB(172, 172, 172)
-            NameSubTAb.TextSize = 15.000
-
-            Frame.Parent = SubTab
-            Frame.BackgroundColor3 = Color3.fromRGB(183, 255, 128)
-            Frame.BackgroundTransparency = 1
-            Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-            Frame.BorderSizePixel = 0
-            Frame.Position = UDim2.new(-0.0107097011, 0, 0.932999551, 0)
-            Frame.Size = UDim2.new(0, 88, 0, 2)
-
-            UICorner.CornerRadius = UDim.new(0, 4)
-            UICorner.Parent = Frame
-
-            if subTabOptions.Opened then
-                Frame.BackgroundTransparency = 0
-                NameSubTAb.TextColor3 = Color3.fromRGB(218, 237, 255)
-            end
-
-            subTabYOffset = subTabYOffset + 0.15
-        end
-        tabYOffset = tabYOffset + 0.05
-        return Tab
-    end
 
     return Window
 end
