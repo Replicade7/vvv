@@ -166,7 +166,7 @@ function Leaf:CreateWindow(options)
         Parahraftab.TextColor3 = Color3.fromRGB(172, 172, 172)
         Parahraftab.TextSize = 14.000
         Parahraftab.TextXAlignment = Enum.TextXAlignment.Left
-        currentYPosition = currentYPosition + 0.06
+        currentYPosition = currentYPosition + 1
         return {}
     end
 
