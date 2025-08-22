@@ -29,7 +29,7 @@ function Leaf:CreateWindow(options)
     MainFrame.BorderSizePixel = 0
     MainFrame.Position = UDim2.new(0.5, -324, 0.5, -209)
     MainFrame.Size = UDim2.new(0, 649, 0, 419)
-    MainFrame.Visible = false
+    MainFrame.Visible = true
 
     UICorner.CornerRadius = UDim.new(0, 4)
     UICorner.Parent = MainFrame
@@ -166,7 +166,7 @@ function Leaf:CreateWindow(options)
         Parahraftab.TextColor3 = Color3.fromRGB(172, 172, 172)
         Parahraftab.TextSize = 14.000
 
-        paragraphYPosition = paragraphYPosition + 0.12
+        paragraphYPosition = paragraphYPosition + 0.08
 
         return {}
     end
@@ -185,7 +185,7 @@ function Leaf:CreateWindow(options)
         TabButton.BackgroundTransparency = isFirst and 0.550 or 1.000
         TabButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
         TabButton.BorderSizePixel = 0
-        TabButton.Position = UDim2.new(0.00625, 0, paragraphYPosition + (#tabs * 0.12), 0)
+        TabButton.Position = UDim2.new(0.00625, 0, paragraphYPosition + (#tabs * 0.08), 0)
         TabButton.Size = UDim2.new(0, 157, 0, 28)
 
         NameTab.Name = "NameTab"
@@ -232,25 +232,22 @@ function Leaf:CreateWindow(options)
         }
 
         table.insert(tabs, Tab)
+        local tabIndex = #tabs
 
         local function setActiveTab(index)
+            currentTabIndex = index
             for i, tab in ipairs(tabs) do
                 if i == index then
                     tab.Button.BackgroundTransparency = 0.55
                     tab.NameLabel.TextColor3 = Color3.fromRGB(183, 255, 128)
                     tab.ImageLabel.ImageColor3 = Color3.fromRGB(183, 255, 128)
+                    for _, subTab in ipairs(tab.SubTabs) do
+                        subTab.Button.Visible = true
+                    end
                 else
                     tab.Button.BackgroundTransparency = 1
                     tab.NameLabel.TextColor3 = Color3.fromRGB(172, 172, 172)
                     tab.ImageLabel.ImageColor3 = Color3.fromRGB(172, 172, 172)
-                end
-            end
-            currentTabIndex = index
-            for _, subTab in ipairs(tabs[index].SubTabs) do
-                subTab.Button.Visible = true
-            end
-            for i, tab in ipairs(tabs) do
-                if i ~= index then
                     for _, subTab in ipairs(tab.SubTabs) do
                         subTab.Button.Visible = false
                     end
@@ -259,7 +256,7 @@ function Leaf:CreateWindow(options)
         end
 
         TextButton.MouseButton1Click:Connect(function()
-            setActiveTab(#tabs)
+            setActiveTab(tabIndex)
         end)
 
         function Tab:CreateSubTab(subTabOptions)
@@ -268,10 +265,9 @@ function Leaf:CreateWindow(options)
             local Frame = Instance.new("Frame")
             local UICorner = Instance.new("UICorner")
 
-            local isFirst = #Tab.SubTabs == 0
-            local subTabIndex = #subTabs + 1
+            local isFirstInTab = #Tab.SubTabs == 0
 
-            SubTabButton.Name = isFirst and "SubTab Enabled" or "SubTab Disabled"
+            SubTabButton.Name = isFirstInTab and "SubTab Enabled" or "SubTab Disabled"
             SubTabButton.Parent = TopBar
             SubTabButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             SubTabButton.BackgroundTransparency = 1.000
@@ -283,7 +279,7 @@ function Leaf:CreateWindow(options)
             SubTabButton.TextColor3 = Color3.fromRGB(0, 0, 0)
             SubTabButton.TextSize = 14.000
             SubTabButton.TextTransparency = 1.000
-            SubTabButton.Visible = #tabs == 1
+            SubTabButton.Visible = (tabIndex == currentTabIndex)
 
             NameSubTab.Name = "NameSubTab"
             NameSubTab.Parent = SubTabButton
@@ -295,12 +291,12 @@ function Leaf:CreateWindow(options)
             NameSubTab.Size = UDim2.new(0, 50, 0, 29)
             NameSubTab.Font = Enum.Font.SourceSansBold
             NameSubTab.Text = subTabOptions.Name or "SubTab"
-            NameSubTab.TextColor3 = isFirst and Color3.fromRGB(218, 237, 255) or Color3.fromRGB(172, 172, 172)
+            NameSubTab.TextColor3 = isFirstInTab and (tabIndex == currentTabIndex) and Color3.fromRGB(218, 237, 255) or Color3.fromRGB(172, 172, 172)
             NameSubTab.TextSize = 15.000
 
             Frame.Parent = SubTabButton
             Frame.BackgroundColor3 = Color3.fromRGB(183, 255, 128)
-            Frame.BackgroundTransparency = isFirst and 0 or 1.000
+            Frame.BackgroundTransparency = isFirstInTab and (tabIndex == currentTabIndex) and 0 or 1.000
             Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
             Frame.BorderSizePixel = 0
             Frame.Position = UDim2.new(-0.0107097011, 0, 0.932999551, 0)
@@ -317,10 +313,11 @@ function Leaf:CreateWindow(options)
 
             table.insert(Tab.SubTabs, SubTab)
             table.insert(subTabs, SubTab)
+            local subTabIndex = #Tab.SubTabs
 
-            local function setActiveSubTab(tabIndex, subTabIndex)
-                for i, subTab in ipairs(tabs[tabIndex].SubTabs) do
-                    if i == subTabIndex then
+            local function setActiveSubTab(pTabIndex, sTabIndex)
+                for i, subTab in ipairs(tabs[pTabIndex].SubTabs) do
+                    if i == sTabIndex then
                         subTab.Frame.BackgroundTransparency = 0
                         subTab.NameLabel.TextColor3 = Color3.fromRGB(218, 237, 255)
                     else
@@ -331,7 +328,7 @@ function Leaf:CreateWindow(options)
             end
 
             SubTabButton.MouseButton1Click:Connect(function()
-                setActiveSubTab(#tabs, #Tab.SubTabs)
+                setActiveSubTab(tabIndex, subTabIndex)
             end)
 
             return {}
