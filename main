@@ -149,23 +149,28 @@ function Leaf:CreateWindow(options)
     local tabs = {}
     local subTabs = {}
     local currentTabIndex = 1
-    local paragraphYPosition = 0.0961538479
-    local tabYPosition = 0.0961538479
+    local currentYPosition = 0.15 
 
     function Window:CreateParagraph(paragraphOptions)
         local Parahraftab = Instance.new("TextLabel")
+        
+        currentYPosition = currentYPosition + 0.03
+
         Parahraftab.Name = "Parahraf tab"
         Parahraftab.Parent = TabFrame
         Parahraftab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         Parahraftab.BackgroundTransparency = 1.000
         Parahraftab.BorderColor3 = Color3.fromRGB(0, 0, 0)
         Parahraftab.BorderSizePixel = 0
-        Parahraftab.Position = UDim2.new(-0.206249997, 0, tabYPosition + 0.12 + (#tabs * 0.06), 0)
-        Parahraftab.Size = UDim2.new(0, 130, 0, 50)
+        Parahraftab.Position = UDim2.new(0.05, 0, currentYPosition, 0)
+        Parahraftab.Size = UDim2.new(0, 130, 0, 20)
         Parahraftab.Font = Enum.Font.SourceSansBold
         Parahraftab.Text = paragraphOptions.Name or "Paragraph"
         Parahraftab.TextColor3 = Color3.fromRGB(172, 172, 172)
         Parahraftab.TextSize = 14.000
+        Parahraftab.TextXAlignment = Enum.TextXAlignment.Left
+
+        currentYPosition = currentYPosition + 0.04
 
         return {}
     end
@@ -184,8 +189,10 @@ function Leaf:CreateWindow(options)
         TabButton.BackgroundTransparency = isFirst and 0.550 or 1.000
         TabButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
         TabButton.BorderSizePixel = 0
-        TabButton.Position = UDim2.new(0.00625, 0, tabYPosition + (#tabs * 0.06), 0)
+        TabButton.Position = UDim2.new(0.00625, 0, currentYPosition, 0)
         TabButton.Size = UDim2.new(0, 157, 0, 28)
+
+        currentYPosition = currentYPosition + 0.06
 
         NameTab.Name = "NameTab"
         NameTab.Parent = TabButton
@@ -193,12 +200,13 @@ function Leaf:CreateWindow(options)
         NameTab.BackgroundTransparency = 1.000
         NameTab.BorderColor3 = Color3.fromRGB(0, 0, 0)
         NameTab.BorderSizePixel = 0
-        NameTab.Position = UDim2.new(0.08, 0, 0.107, 0)
+        NameTab.Position = UDim2.new(0, 32, 0, 4)
         NameTab.Size = UDim2.new(0, 100, 0, 20)
         NameTab.Font = Enum.Font.GothamMedium
         NameTab.Text = tabOptions.Name or "Tab"
         NameTab.TextColor3 = isFirst and Color3.fromRGB(183, 255, 128) or Color3.fromRGB(172, 172, 172)
         NameTab.TextSize = 14.000
+        NameTab.TextXAlignment = Enum.TextXAlignment.Left
 
         TextButton.Parent = TabButton
         TextButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -217,7 +225,7 @@ function Leaf:CreateWindow(options)
         ImageTab.BackgroundTransparency = 1.000
         ImageTab.BorderColor3 = Color3.fromRGB(0, 0, 0)
         ImageTab.BorderSizePixel = 0
-        ImageTab.Position = UDim2.new(0.03, 0, 0.12728937, 0)
+        ImageTab.Position = UDim2.new(0, 8, 0, 4)
         ImageTab.Size = UDim2.new(0, 20, 0, 20)
         ImageTab.ZIndex = 2
         ImageTab.Image = tabOptions.Image or ""
