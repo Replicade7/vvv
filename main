@@ -150,7 +150,6 @@ function Leaf:CreateWindow(options)
     local subTabs = {}
     local currentTabIndex = 1
     local paragraphYPosition = 0.0961538479
-    local tabYOffset = 0
 
     function Window:CreateParagraph(paragraphOptions)
         local Parahraftab = Instance.new("TextLabel")
@@ -167,8 +166,7 @@ function Leaf:CreateWindow(options)
         Parahraftab.TextColor3 = Color3.fromRGB(172, 172, 172)
         Parahraftab.TextSize = 14.000
 
-        paragraphYPosition = paragraphYPosition + 0.1
-        tabYOffset = tabYOffset + 0.02
+        paragraphYPosition = paragraphYPosition + 0.08
 
         return {}
     end
@@ -187,7 +185,7 @@ function Leaf:CreateWindow(options)
         TabButton.BackgroundTransparency = isFirst and 0.550 or 1.000
         TabButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
         TabButton.BorderSizePixel = 0
-        TabButton.Position = UDim2.new(0.00625, 0, paragraphYPosition + tabYOffset + (#tabs * 0.08), 0)
+        TabButton.Position = UDim2.new(0.00625, 0, paragraphYPosition + (#tabs * 0.06), 0)
         TabButton.Size = UDim2.new(0, 157, 0, 28)
 
         NameTab.Name = "NameTab"
