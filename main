@@ -145,12 +145,11 @@ function Leaf:CreateWindow(options)
     MenuImage.Size = UDim2.new(0, 40, 0, 40)
     MenuImage.Image = "rbxassetid://" .. options.LogoID
 
+    local Window = {}
     local tabs = {}
     local subTabs = {}
-    local currentTab = nil
-    local currentSubTab = nil
-
-    local Window = {}
+    local currentTabIndex = 1
+    local paragraphYPosition = 0.0961538479
 
     function Window:CreateParagraph(paragraphOptions)
         local Parahraftab = Instance.new("TextLabel")
@@ -160,12 +159,14 @@ function Leaf:CreateWindow(options)
         Parahraftab.BackgroundTransparency = 1.000
         Parahraftab.BorderColor3 = Color3.fromRGB(0, 0, 0)
         Parahraftab.BorderSizePixel = 0
-        Parahraftab.Position = UDim2.new(-0.206249997, 0, 0.0961538479, 0)
+        Parahraftab.Position = UDim2.new(-0.206249997, 0, paragraphYPosition, 0)
         Parahraftab.Size = UDim2.new(0, 130, 0, 50)
         Parahraftab.Font = Enum.Font.SourceSansBold
         Parahraftab.Text = paragraphOptions.Name or "Paragraph"
         Parahraftab.TextColor3 = Color3.fromRGB(172, 172, 172)
         Parahraftab.TextSize = 14.000
+
+        paragraphYPosition = paragraphYPosition + 0.12
 
         return {}
     end
@@ -176,13 +177,15 @@ function Leaf:CreateWindow(options)
         local TextButton = Instance.new("TextButton")
         local ImageTab = Instance.new("ImageLabel")
 
-        TabButton.Name = "TabButton Disabled"
+        local isFirst = #tabs == 0
+
+        TabButton.Name = isFirst and "TabButton Enabled" or "TabButton Disabled"
         TabButton.Parent = TabFrame
         TabButton.BackgroundColor3 = Color3.fromRGB(183, 255, 128)
-        TabButton.BackgroundTransparency = 1.000
+        TabButton.BackgroundTransparency = isFirst and 0.550 or 1.000
         TabButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
         TabButton.BorderSizePixel = 0
-        TabButton.Position = UDim2.new(0.253846169, 0, 0.721624136, 0)
+        TabButton.Position = UDim2.new(0.00625, 0, paragraphYPosition + (#tabs * 0.12), 0)
         TabButton.Size = UDim2.new(0, 157, 0, 28)
 
         NameTab.Name = "NameTab"
@@ -191,11 +194,11 @@ function Leaf:CreateWindow(options)
         NameTab.BackgroundTransparency = 1.000
         NameTab.BorderColor3 = Color3.fromRGB(0, 0, 0)
         NameTab.BorderSizePixel = 0
-        NameTab.Position = UDim2.new(0.002, 0, -0.403846204, 0)
-        NameTab.Size = UDim2.new(0, 130, 0, 50)
+        NameTab.Position = UDim2.new(0.189, 0, 0.107, 0)
+        NameTab.Size = UDim2.new(0, 100, 0, 20)
         NameTab.Font = Enum.Font.GothamMedium
         NameTab.Text = tabOptions.Name or "Tab"
-        NameTab.TextColor3 = Color3.fromRGB(172, 172, 172)
+        NameTab.TextColor3 = isFirst and Color3.fromRGB(183, 255, 128) or Color3.fromRGB(172, 172, 172)
         NameTab.TextSize = 14.000
 
         TextButton.Parent = TabButton
@@ -219,47 +222,85 @@ function Leaf:CreateWindow(options)
         ImageTab.Size = UDim2.new(0, 20, 0, 20)
         ImageTab.ZIndex = 2
         ImageTab.Image = tabOptions.Image or ""
-        ImageTab.ImageColor3 = Color3.fromRGB(172, 172, 172)
+        ImageTab.ImageColor3 = isFirst and Color3.fromRGB(183, 255, 128) or Color3.fromRGB(172, 172, 172)
 
-        table.insert(tabs, {Frame = TabButton, Label = NameTab, Image = ImageTab})
+        local Tab = {
+            Button = TabButton,
+            NameLabel = NameTab,
+            ImageLabel = ImageTab,
+            SubTabs = {}
+        }
 
-        local Tab = {}
+        table.insert(tabs, Tab)
+
+        local function setActiveTab(index)
+            for i, tab in ipairs(tabs) do
+                if i == index then
+                    tab.Button.BackgroundTransparency = 0.55
+                    tab.NameLabel.TextColor3 = Color3.fromRGB(183, 255, 128)
+                    tab.ImageLabel.ImageColor3 = Color3.fromRGB(183, 255, 128)
+                else
+                    tab.Button.BackgroundTransparency = 1
+                    tab.NameLabel.TextColor3 = Color3.fromRGB(172, 172, 172)
+                    tab.ImageLabel.ImageColor3 = Color3.fromRGB(172, 172, 172)
+                end
+            end
+            currentTabIndex = index
+            for _, subTab in ipairs(tabs[index].SubTabs) do
+                subTab.Button.Visible = true
+            end
+            for i, tab in ipairs(tabs) do
+                if i ~= index then
+                    for _, subTab in ipairs(tab.SubTabs) do
+                        subTab.Button.Visible = false
+                    end
+                end
+            end
+        end
+
+        TextButton.MouseButton1Click:Connect(function()
+            setActiveTab(#tabs)
+        end)
 
         function Tab:CreateSubTab(subTabOptions)
-            local SubTab = Instance.new("TextButton")
-            local NameSubTAb = Instance.new("TextLabel")
+            local SubTabButton = Instance.new("TextButton")
+            local NameSubTab = Instance.new("TextLabel")
             local Frame = Instance.new("Frame")
             local UICorner = Instance.new("UICorner")
 
-            SubTab.Name = "SubTab Disabled"
-            SubTab.Parent = TopBar
-            SubTab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            SubTab.BackgroundTransparency = 1.000
-            SubTab.BorderColor3 = Color3.fromRGB(0, 0, 0)
-            SubTab.BorderSizePixel = 0
-            SubTab.Position = UDim2.new(0.17704159 + (#subTabs * 0.15), 0, 0, 0)
-            SubTab.Size = UDim2.new(0, 93, 0, 50)
-            SubTab.Font = Enum.Font.SourceSans
-            SubTab.TextColor3 = Color3.fromRGB(0, 0, 0)
-            SubTab.TextSize = 14.000
-            SubTab.TextTransparency = 1.000
+            local isFirst = #Tab.SubTabs == 0
+            local subTabIndex = #subTabs + 1
 
-            NameSubTAb.Name = "NameSubTAb"
-            NameSubTAb.Parent = SubTab
-            NameSubTAb.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            NameSubTAb.BackgroundTransparency = 1.000
-            NameSubTAb.BorderColor3 = Color3.fromRGB(0, 0, 0)
-            NameSubTAb.BorderSizePixel = 0
-            NameSubTAb.Position = UDim2.new(0.189884633, 0, 0.181632698, 0)
-            NameSubTAb.Size = UDim2.new(0, 50, 0, 29)
-            NameSubTAb.Font = Enum.Font.SourceSansBold
-            NameSubTAb.Text = subTabOptions.Name or "SubTab"
-            NameSubTAb.TextColor3 = Color3.fromRGB(172, 172, 172)
-            NameSubTAb.TextSize = 15.000
+            SubTabButton.Name = isFirst and "SubTab Enabled" or "SubTab Disabled"
+            SubTabButton.Parent = TopBar
+            SubTabButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            SubTabButton.BackgroundTransparency = 1.000
+            SubTabButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+            SubTabButton.BorderSizePixel = 0
+            SubTabButton.Position = UDim2.new(0.0238303263 + (#Tab.SubTabs * 0.153), 0, 0, 0)
+            SubTabButton.Size = UDim2.new(0, 93, 0, 50)
+            SubTabButton.Font = Enum.Font.SourceSans
+            SubTabButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+            SubTabButton.TextSize = 14.000
+            SubTabButton.TextTransparency = 1.000
+            SubTabButton.Visible = #tabs == 1
 
-            Frame.Parent = SubTab
+            NameSubTab.Name = "NameSubTab"
+            NameSubTab.Parent = SubTabButton
+            NameSubTab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            NameSubTab.BackgroundTransparency = 1.000
+            NameSubTab.BorderColor3 = Color3.fromRGB(0, 0, 0)
+            NameSubTab.BorderSizePixel = 0
+            NameSubTab.Position = UDim2.new(0.189884633, 0, 0.181632698, 0)
+            NameSubTab.Size = UDim2.new(0, 50, 0, 29)
+            NameSubTab.Font = Enum.Font.SourceSansBold
+            NameSubTab.Text = subTabOptions.Name or "SubTab"
+            NameSubTab.TextColor3 = isFirst and Color3.fromRGB(218, 237, 255) or Color3.fromRGB(172, 172, 172)
+            NameSubTab.TextSize = 15.000
+
+            Frame.Parent = SubTabButton
             Frame.BackgroundColor3 = Color3.fromRGB(183, 255, 128)
-            Frame.BackgroundTransparency = 1.000
+            Frame.BackgroundTransparency = isFirst and 0 or 1.000
             Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
             Frame.BorderSizePixel = 0
             Frame.Position = UDim2.new(-0.0107097011, 0, 0.932999551, 0)
@@ -268,24 +309,33 @@ function Leaf:CreateWindow(options)
             UICorner.CornerRadius = UDim.new(0, 4)
             UICorner.Parent = Frame
 
-            table.insert(subTabs, {Button = SubTab, Label = NameSubTAb, Frame = Frame})
+            local SubTab = {
+                Button = SubTabButton,
+                NameLabel = NameSubTab,
+                Frame = Frame
+            }
+
+            table.insert(Tab.SubTabs, SubTab)
+            table.insert(subTabs, SubTab)
+
+            local function setActiveSubTab(tabIndex, subTabIndex)
+                for i, subTab in ipairs(tabs[tabIndex].SubTabs) do
+                    if i == subTabIndex then
+                        subTab.Frame.BackgroundTransparency = 0
+                        subTab.NameLabel.TextColor3 = Color3.fromRGB(218, 237, 255)
+                    else
+                        subTab.Frame.BackgroundTransparency = 1
+                        subTab.NameLabel.TextColor3 = Color3.fromRGB(172, 172, 172)
+                    end
+                end
+            end
+
+            SubTabButton.MouseButton1Click:Connect(function()
+                setActiveSubTab(#tabs, #Tab.SubTabs)
+            end)
 
             return {}
         end
-
-        TextButton.MouseButton1Click:Connect(function()
-            if currentTab then
-                currentTab.Frame.BackgroundTransparency = 1.000
-                currentTab.Label.TextColor3 = Color3.fromRGB(172, 172, 172)
-                currentTab.Image.ImageColor3 = Color3.fromRGB(172, 172, 172)
-            end
-            
-            TabButton.BackgroundTransparency = 0.550
-            NameTab.TextColor3 = Color3.fromRGB(183, 255, 128)
-            ImageTab.ImageColor3 = Color3.fromRGB(183, 255, 128)
-            
-            currentTab = {Frame = TabButton, Label = NameTab, Image = ImageTab}
-        end)
 
         return Tab
     end
