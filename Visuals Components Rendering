@@ -89,7 +89,9 @@ getgenv().SimpleESP = {
         Enabled = false,
         Transparency = 0.5
     },
-    NPCColor = Color3fromRGB(255, 255, 255),
+    NPC = {
+        Color = Color3fromRGB(255, 255, 255)
+    },
     WrappedObjects = {},
     NPCs = {}
 }
@@ -128,24 +130,24 @@ local CoreFunctions = {
         return position, size, true
     end,
     GetTeamColor = function(player)
-        if player.IsNPC then
-            return Environment.NPCColor
-        end
         if Environment.Settings.TeamColorEnabled and player and player.Team then return player.Team.TeamColor.Color end
+        if not Players:GetPlayerFromCharacter(player.Character) then
+            return Environment.NPC.Color
+        end
         return Environment.Box.Color
     end,
     GetTracerColor = function(player)
-        if player.IsNPC then
-            return Environment.NPCColor
-        end
         if Environment.Settings.TeamColorEnabled and player and player.Team then return player.Team.TeamColor.Color end
+        if not Players:GetPlayerFromCharacter(player.Character) then
+            return Environment.NPC.Color
+        end
         return Environment.Tracer.Color
     end,
     GetSkeletonColor = function(player)
-        if player.IsNPC then
-            return Environment.NPCColor
-        end
         if Environment.Settings.TeamColorEnabled and player and player.Team then return player.Team.TeamColor.Color end
+        if not Players:GetPlayerFromCharacter(player.Character) then
+            return Environment.NPC.Color
+        end
         return Environment.Skeleton.Color
     end
 }
@@ -225,10 +227,10 @@ local function UpdateArrow(plr)
                 arrowOutline.PointB = center + baseR
                 arrowOutline.PointC = center + tip
                 local espColor = Environment.Arrows.Color
-                if plr.IsNPC then
-                    espColor = Environment.NPCColor
-                elseif Environment.Settings.TeamColorEnabled and plr.TeamColor then
+                if Environment.Settings.TeamColorEnabled and plr.TeamColor then
                     espColor = plr.TeamColor.Color
+                elseif not Players:GetPlayerFromCharacter(plr.Character) then
+                    espColor = Environment.NPC.Color
                 end
                 arrowFill.Color = espColor
                 arrowFill.Transparency = 1 - Environment.Arrows.Transparency
@@ -654,7 +656,13 @@ local function UpdateVisuals(entry)
         name.Visible = espEnabled and visible
         name.Text = player.Name
         name.Position = Vector2new(position.X + size.X / 2, position.Y - 15)
-        name.Color = (Environment.Settings.TeamColorEnabled and player.Team and player.Team.TeamColor.Color) or Environment.Pname.Color
+        local nameColor = Environment.Pname.Color
+        if Environment.Settings.TeamColorEnabled and player.Team then
+            nameColor = player.Team.TeamColor.Color
+        elseif not Players:GetPlayerFromCharacter(player.Character) then
+            nameColor = Environment.NPC.Color
+        end
+        name.Color = nameColor
     else
         name.Visible = false
     end
@@ -664,7 +672,13 @@ local function UpdateVisuals(entry)
         distance_obj.Visible = espEnabled and visible
         distance_obj.Text = string.format("[%dm]", math.floor(dist))
         distance_obj.Position = Vector2new(position.X + size.X / 2, position.Y + size.Y + 5)
-        distance_obj.Color = (Environment.Settings.TeamColorEnabled and player.Team and player.Team.TeamColor.Color) or Environment.Pdistance.Color
+        local distanceColor = Environment.Pdistance.Color
+        if Environment.Settings.TeamColorEnabled and player.Team then
+            distanceColor = player.Team.TeamColor.Color
+        elseif not Players:GetPlayerFromCharacter(player.Character) then
+            distanceColor = Environment.NPC.Color
+        end
+        distance_obj.Color = distanceColor
     else
         distance_obj.Visible = false
     end
@@ -719,10 +733,13 @@ local bodyConnections = {
     }
 }
 function SkeletonESP:getPlayerColor(plr)
-    if plr.IsNPC then
-        return Environment.NPCColor
+    if Environment.Settings.TeamColorEnabled and plr.TeamColor then
+        return plr.TeamColor.Color
     end
-    return Environment.Settings.TeamColorEnabled and plr.TeamColor and plr.TeamColor.Color or Environment.Skeleton.Color
+    if not Players:GetPlayerFromCharacter(plr.Character) then
+        return Environment.NPC.Color
+    end
+    return Environment.Skeleton.Color
 end
 function SkeletonESP:updateComponents(components, character, plr)
     if Environment.Settings.HideTeam and plr.Team == LocalPlayer.Team then
@@ -907,8 +924,7 @@ local function UpdateNPCs()
                 local fakePlayer = {
                     Name = npc.Name,
                     Team = nil,
-                    Character = npc,
-                    IsNPC = true
+                    Character = npc
                 }
                 local entry = {Visuals = CreateVisuals(fakePlayer), Player = fakePlayer, IsNPC = true}
                 Environment.NPCs[npc] = entry
@@ -982,7 +998,12 @@ RunService.RenderStepped:Connect(function()
                     h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
                     h.OutlineTransparency = 0
                 end
-                local color = (Environment.Settings.TeamColorEnabled and plr.TeamColor and plr.TeamColor.Color) or Environment.Box.Color
+                local color = Environment.Box.Color
+                if Environment.Settings.TeamColorEnabled and plr.TeamColor then
+                    color = plr.TeamColor.Color
+                elseif not Players:GetPlayerFromCharacter(plr.Character) then
+                    color = Environment.NPC.Color
+                end
                 h.FillColor = color
                 h.OutlineColor = color
                 h.FillTransparency = Environment.Chams.Transparency
@@ -1021,8 +1042,8 @@ _G_SetArrowsTransparency = function(transparency) Environment.Arrows.Transparenc
 _G_PnameEnabled = function(state) Environment.Pname.Enabled = state end
 _G_PdistanceEnabled = function(state) Environment.Pdistance.Enabled = state end
 _G_WorksforNPCesp = function(state) Environment.Settings.WorksForNPC = state end
-_G_SetNPCespColor = function(color) Environment.NPCColor = color end
 _G_ChamsEnabled = function(state) Environment.Chams.Enabled = state end
 _G_SetChamsTransparency = function(transparency) Environment.Chams.Transparency = transparency end
 _G_SetChamsColor = function(color) Environment.Box.Color = color end
+_G_SetNPCespColor = function(color) Environment.NPC.Color = color end
 return Environment
