@@ -87,6 +87,7 @@ getgenv().SimpleESP = {
     },
     Chams = {
         Enabled = false,
+        Color = Color3fromRGB(255, 255, 255),
         Transparency = 0.5
     },
     NPC = {
@@ -312,6 +313,15 @@ local function CreateVisuals(player)
     distance.Center = true
     distance.Size = Environment.Pdistance.Size
     distance.Visible = false
+    
+    box.ZIndex = 2
+    boxOutline.ZIndex = 1
+    healthBar.ZIndex = 2
+    healthOutline.ZIndex = 1
+    tracer.ZIndex = 2
+    tracerOutline1.ZIndex = 1
+    tracerOutline2.ZIndex = 1
+    
     local box3d = {}
     for i = 1, 12 do
         box3d["box_line" .. i] = Drawingnew("Line")
@@ -978,6 +988,13 @@ RunService.RenderStepped:Connect(function()
                 plr.Character.PlayerHighlight:Destroy()
             end
         end
+        if Environment.Settings.WorksForNPC then
+            for npc, _ in pairs(Environment.NPCs) do
+                if npc.Character and npc.Character:FindFirstChild("PlayerHighlight") then
+                    npc.Character.PlayerHighlight:Destroy()
+                end
+            end
+        end
         return
     end
     for _, plr in ipairs(GetPlayers()) do
@@ -998,7 +1015,7 @@ RunService.RenderStepped:Connect(function()
                     h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
                     h.OutlineTransparency = 0
                 end
-                local color = Environment.Box.Color
+                local color = Environment.Chams.Color
                 if Environment.Settings.TeamColorEnabled and plr.TeamColor then
                     color = plr.TeamColor.Color
                 elseif not Players:GetPlayerFromCharacter(plr.Character) then
@@ -1006,6 +1023,31 @@ RunService.RenderStepped:Connect(function()
                 end
                 h.FillColor = color
                 h.OutlineColor = color
+                h.FillTransparency = Environment.Chams.Transparency
+            else
+                if h then
+                    h:Destroy()
+                end
+            end
+        end
+    end
+    if Environment.Settings.WorksForNPC then
+        for npc, _ in pairs(Environment.NPCs) do
+            local character = npc.Character
+            local h = character and character:FindFirstChild("PlayerHighlight")
+            local humanoid = character and character:FindFirstChild("Humanoid")
+            local shouldHighlight = humanoid and humanoid.Health > 0
+            if shouldHighlight then
+                if not h then
+                    h = Instance.new("Highlight")
+                    h.Name = "PlayerHighlight"
+                    h.Adornee = character
+                    h.Parent = character
+                    h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                    h.OutlineTransparency = 0
+                end
+                h.FillColor = Environment.NPC.Color
+                h.OutlineColor = Environment.NPC.Color
                 h.FillTransparency = Environment.Chams.Transparency
             else
                 if h then
@@ -1042,8 +1084,25 @@ _G_SetArrowsTransparency = function(transparency) Environment.Arrows.Transparenc
 _G_PnameEnabled = function(state) Environment.Pname.Enabled = state end
 _G_PdistanceEnabled = function(state) Environment.Pdistance.Enabled = state end
 _G_WorksforNPCesp = function(state) Environment.Settings.WorksForNPC = state end
+_G_WorksforNPCskeleton = function(state)
+    if state then
+        for _, npc in pairs(Workspace:GetChildren()) do
+            if npc:FindFirstChild("Humanoid") and npc:FindFirstChild("HumanoidRootPart") and not Players:GetPlayerFromCharacter(npc) then
+                local fakePlayer = {
+                    Name = npc.Name,
+                    Team = nil,
+                    Character = npc
+                }
+                coroutine.wrap(SkeletonESPFunction)(fakePlayer)
+            end
+        end
+    end
+end
+_G_WorksforNPCchams = function(state)
+    Environment.Settings.WorksForNPC = state
+end
 _G_ChamsEnabled = function(state) Environment.Chams.Enabled = state end
 _G_SetChamsTransparency = function(transparency) Environment.Chams.Transparency = transparency end
-_G_SetChamsColor = function(color) Environment.Box.Color = color end
+_G_SetChamsColor = function(color) Environment.Chams.Color = color end
 _G_SetNPCespColor = function(color) Environment.NPC.Color = color end
 return Environment
