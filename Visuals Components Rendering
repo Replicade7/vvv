@@ -1,1 +1,1011 @@
-
+local game = game
+local Vector2new = Vector2.new
+local Drawingnew = Drawing.new
+local Color3fromRGB = Color3.fromRGB
+local mathfloor, mathabs, mathclamp, mathrad, mathhuge, mathtan = math.floor, math.abs, math.clamp, math.rad, math.huge, math.tan
+local wait, spawn = task.wait, task.spawn
+local getgenv, cloneref = getgenv, cloneref or function(v) return v end
+local GameMetatable = getrawmetatable and getrawmetatable(game) or {}
+local __index = GameMetatable.__index or function(self, idx) return self[idx] end
+local __newindex = GameMetatable.__newindex or function(self, idx, val) self[idx] = val end
+local setrenderproperty = setrenderproperty or __newindex
+local Workspace = cloneref(game:GetService("Workspace"))
+local Players = cloneref(game:GetService("Players"))
+local RunService = cloneref(game:GetService("RunService"))
+local TweenService = cloneref(game:GetService("TweenService"))
+local CurrentCamera = __index(Workspace, "CurrentCamera")
+local LocalPlayer = __index(Players, "LocalPlayer")
+local WorldToViewportPoint = function(...) return CurrentCamera.WorldToViewportPoint(CurrentCamera, ...) end
+local GetPlayers = function() return Players:GetPlayers() end
+local GetPlayerFromCharacter = function(...) return Players:GetPlayerFromCharacter(...) end
+local IsDescendantOf = function(self, parent) return self:IsDescendantOf(parent) end
+getgenv().SimpleESP = {
+    Settings = {
+        Enabled = false,
+        HideTeam = false,
+        TeamColorEnabled = false,
+        AliveCheck = true,
+        WorksForNPC = false
+    },
+    Box = {
+        Enabled = false,
+        ViewBox = "2D",
+        Color = Color3fromRGB(255, 255, 255),
+        Transparency = 1,
+        Thickness = 1,
+        OutlineColor = Color3fromRGB(0, 0, 0),
+        Outline = false,
+        FillEnabled = false,
+        FillTransparency = 0.5,
+        CornerLineWidth = 0.25,
+        CornerLineHeight = 0.2,
+        CornerLineOffset = 0.001
+    },
+    HealthBar = {
+        Enabled = false,
+        Offset = 4,
+        Blue = 100,
+        Thickness = 1,
+        Transparency = 1,
+        OutlineColor = Color3fromRGB(0, 0, 0),
+        Outline = true
+    },
+    Tracer = {
+        Enabled = false,
+        Color = Color3fromRGB(255, 255, 255),
+        Thickness = 1,
+        Origin = "Bottom",
+        FollowMouse = false,
+        OutlineColor = Color3fromRGB(0, 0, 0),
+        Outline = false,
+        OutlineTransparency = 0.5
+    },
+    Skeleton = {
+        Enabled = false,
+        Color = Color3fromRGB(255, 255, 255),
+        Thickness = 1
+    },
+    Arrows = {
+        Enabled = false,
+        Color = Color3fromRGB(255, 255, 255),
+        Transparency = 0,
+        Outline = true
+    },
+    Pname = {
+        Enabled = false,
+        Color = Color3fromRGB(255, 255, 255),
+        Outline = true,
+        Font = 2,
+        Size = 13
+    },
+    Pdistance = {
+        Enabled = false,
+        Color = Color3fromRGB(255, 255, 255),
+        Outline = true,
+        Font = 2,
+        Size = 12
+    },
+    Chams = {
+        Enabled = false,
+        Transparency = 0.5
+    },
+    WrappedObjects = {},
+    NPCs = {}
+}
+local Environment = getgenv().SimpleESP
+local mouse = LocalPlayer:GetMouse()
+local CoreFunctions = {
+    GetColorFromHealth = function(health, max)
+        return Color3fromRGB(255 - mathfloor(health / max * 255), mathfloor(health / max * 255), Environment.HealthBar.Blue)
+    end,
+    CalculateBox = function(character)
+        local root = character:FindFirstChild("HumanoidRootPart") or character.PrimaryPart
+        if not root then return nil, nil, false end
+        local rigType = character:FindFirstChild("Torso") and "R6" or "R15"
+        local cameraUpVector = CurrentCamera.CFrame.UpVector
+        local rootUpVector = root.CFrame.UpVector
+        local topOffset, bottomOffset
+        if rigType == "R6" then
+            topOffset = rootUpVector * 0.5 + cameraUpVector
+            bottomOffset = rootUpVector * -4 - cameraUpVector
+        else
+            topOffset = rootUpVector * 1.8 + cameraUpVector
+            bottomOffset = rootUpVector * -2.5 - cameraUpVector
+        end
+        local top = root.Position + topOffset
+        local bottom = root.Position + bottomOffset
+        local topScreen, topVisible = WorldToViewportPoint(top)
+        local bottomScreen, bottomVisible = WorldToViewportPoint(bottom)
+        if not (topVisible and bottomVisible) then return nil, nil, false end
+        local width = mathfloor(math.abs(topScreen.X - bottomScreen.X))
+        local height = mathfloor(math.max(math.abs(bottomScreen.Y - topScreen.Y), width / 2))
+        width = math.max(width, 3)
+        height = math.max(height, 3)
+        local boxWidth = mathfloor(math.max(height / 1.5, width))
+        local size = Vector2new(boxWidth, height)
+        local position = Vector2.new(mathfloor((topScreen.X + bottomScreen.X) / 2 - boxWidth / 2), mathfloor(math.min(topScreen.Y, bottomScreen.Y)))
+        return position, size, true
+    end,
+    GetTeamColor = function(player)
+        if Environment.Settings.TeamColorEnabled and player and player.Team then return player.Team.TeamColor.Color end
+        return Environment.Box.Color
+    end,
+    GetTracerColor = function(player)
+        if Environment.Settings.TeamColorEnabled and player and player.Team then return player.Team.TeamColor.Color end
+        return Environment.Tracer.Color
+    end,
+    GetSkeletonColor = function(player)
+        if Environment.Settings.TeamColorEnabled and player and player.Team then return player.Team.TeamColor.Color end
+        return Environment.Skeleton.Color
+    end
+}
+local DistFromCenter = 80
+local TriangleHeight = 16
+local TriangleWidth = 16
+local TriangleFilled = true
+local TriangleThickness = 1
+local TriangleOutlineThickness = 2
+local TriangleOutlineColor = Color3fromRGB(0, 0, 0)
+local ArrowDrawings = {}
+local function GetRelative(pos, char)
+    if not char then return Vector2.new(0, 0) end
+    local rootP = char.PrimaryPart.Position
+    local camP = CurrentCamera.CFrame.Position
+    local relative = CFrame.new(Vector3.new(rootP.X, camP.Y, rootP.Z), camP):PointToObjectSpace(pos)
+    return Vector2.new(relative.X, relative.Z)
+end
+local function RotateVect(v, a)
+    a = math.rad(a)
+    local x = v.X * math.cos(a) - v.Y * math.sin(a)
+    local y = v.X * math.sin(a) + v.Y * math.cos(a)
+    return Vector2.new(x, y)
+end
+local function UpdateArrow(plr)
+    if not ArrowDrawings[plr] then
+        local arrowFill = Drawingnew("Triangle")
+        arrowFill.Visible = false
+        arrowFill.Filled = TriangleFilled
+        arrowFill.Thickness = TriangleThickness
+        arrowFill.Transparency = 1 - Environment.Arrows.Transparency
+        arrowFill.Color = Environment.Arrows.Color
+        arrowFill.ZIndex = 2
+        local arrowOutline = Drawingnew("Triangle")
+        arrowOutline.Visible = false
+        arrowOutline.Filled = false
+        arrowOutline.Thickness = TriangleOutlineThickness
+        arrowOutline.Transparency = 1
+        arrowOutline.Color = TriangleOutlineColor
+        arrowOutline.ZIndex = 1
+        ArrowDrawings[plr] = {
+            Fill = arrowFill,
+            Outline = arrowOutline
+        }
+    end
+    local arrowData = ArrowDrawings[plr]
+    local arrowFill = arrowData.Fill
+    local arrowOutline = arrowData.Outline
+    if not Environment.Settings.Enabled then
+        arrowFill.Visible = false
+        arrowOutline.Visible = false
+        return
+    end
+    local char = plr.Character
+    if char and char:FindFirstChild("HumanoidRootPart") and char:FindFirstChild("Humanoid") and char.Humanoid.Health > 0 then
+        local rootPart = char.HumanoidRootPart
+        local _, onScreen = CurrentCamera:WorldToViewportPoint(rootPart.Position)
+        if not onScreen then
+            if Environment.Settings.HideTeam and plr.Team == LocalPlayer.Team then
+                arrowFill.Visible = false
+                arrowOutline.Visible = false
+                return
+            end
+            local rel = GetRelative(rootPart.Position, LocalPlayer.Character)
+            if rel.Magnitude > 0.1 then
+                local direction = rel.unit
+                local base = direction * DistFromCenter
+                local sideLength = TriangleWidth / 2
+                local baseL = base + RotateVect(direction, 90) * sideLength
+                local baseR = base + RotateVect(direction, -90) * sideLength
+                local tip = direction * (DistFromCenter + TriangleHeight)
+                local center = CurrentCamera.ViewportSize / 2
+                arrowFill.PointA = center + baseL
+                arrowFill.PointB = center + baseR
+                arrowFill.PointC = center + tip
+                arrowOutline.PointA = center + baseL
+                arrowOutline.PointB = center + baseR
+                arrowOutline.PointC = center + tip
+                local espColor = Environment.Arrows.Color
+                if Environment.Settings.TeamColorEnabled and plr.TeamColor then
+                    espColor = plr.TeamColor.Color
+                end
+                arrowFill.Color = espColor
+                arrowFill.Transparency = 1 - Environment.Arrows.Transparency
+                arrowFill.Visible = Environment.Arrows.Enabled
+                arrowOutline.Visible = Environment.Arrows.Enabled and Environment.Arrows.Outline
+            else
+                 arrowFill.Visible = false
+                 arrowOutline.Visible = false
+            end
+        else
+            arrowFill.Visible = false
+            arrowOutline.Visible = false
+        end
+    else
+        arrowFill.Visible = false
+        arrowOutline.Visible = false
+    end
+end
+local function RemoveArrow(plr)
+    if ArrowDrawings[plr] then
+        ArrowDrawings[plr].Fill:Remove()
+        ArrowDrawings[plr].Outline:Remove()
+        ArrowDrawings[plr] = nil
+    end
+end
+RunService.RenderStepped:Connect(function()
+    pcall(function()
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer then
+                UpdateArrow(plr)
+            end
+        end
+        if Environment.Settings.WorksForNPC then
+            for npc, _ in pairs(Environment.NPCs) do
+                UpdateArrow(npc)
+            end
+        end
+    end)
+end)
+Players.PlayerAdded:Connect(function(newPlr)
+    if newPlr ~= LocalPlayer then
+    end
+end)
+Players.PlayerRemoving:Connect(function(plr)
+    RemoveArrow(plr)
+end)
+for _, plr in pairs(Players:GetPlayers()) do
+    if plr ~= LocalPlayer then
+    end
+end
+local function CreateVisuals(player)
+    local fillBox = Drawingnew("Square")
+    local boxOutline = Drawingnew("Square")
+    local box = Drawingnew("Square")
+    local healthOutline = Drawingnew("Line")
+    local healthBar = Drawingnew("Line")
+    local tracerOutline1 = Drawingnew("Line")
+    local tracerOutline2 = Drawingnew("Line")
+    local tracer = Drawingnew("Line")
+    local name = Drawingnew("Text")
+    local distance = Drawingnew("Text")
+    box.Visible = false
+    boxOutline.Visible = false
+    fillBox.Visible = false
+    healthBar.Visible = false
+    healthOutline.Visible = false
+    tracer.Visible = false
+    tracerOutline1.Visible = false
+    tracerOutline2.Visible = false
+    name.Font = Environment.Pname.Font
+    name.Color = Environment.Pname.Color
+    name.Outline = Environment.Pname.Outline
+    name.Center = true
+    name.Size = Environment.Pname.Size
+    name.Visible = false
+    distance.Font = Environment.Pdistance.Font
+    distance.Color = Environment.Pdistance.Color
+    distance.Outline = Environment.Pdistance.Outline
+    distance.Center = true
+    distance.Size = Environment.Pdistance.Size
+    distance.Visible = false
+    local box3d = {}
+    for i = 1, 12 do
+        box3d["box_line" .. i] = Drawingnew("Line")
+        box3d["box_line" .. i].ZIndex = 2
+        box3d["box_line_black" .. i] = Drawingnew("Line")
+        box3d["box_line_black" .. i].ZIndex = 1
+    end
+    for i = 1, 6 do
+        box3d["box_quad" .. i] = Drawingnew("Quad")
+    end
+    local cornerBox = {
+        fillBox = Drawingnew("Square"),
+        boxLines = {}
+    }
+    cornerBox.fillBox.Visible = false
+    cornerBox.fillBox.Filled = true
+    cornerBox.fillBox.Thickness = 1
+    cornerBox.fillBox.ZIndex = 0
+    for i = 1, 16 do
+        cornerBox.boxLines[i] = Drawingnew("Line")
+        cornerBox.boxLines[i].Thickness = Environment.Box.Thickness
+        cornerBox.boxLines[i].ZIndex = i <= 8 and 1 or 2
+    end
+    return {Box = {box, boxOutline, fillBox}, HealthBar = {healthBar, healthOutline}, Tracer = {tracer, tracerOutline1, tracerOutline2}, Name = name, Distance = distance, Player = player, Box3D = box3d, CornerBox = cornerBox}
+end
+local function UpdateVisuals(entry)
+    local visuals = entry.Visuals
+    local player = entry.Player
+    local character = player.Character
+    local humanoid = character and character:FindFirstChild("Humanoid")
+    if Environment.Settings.HideTeam and player.Team == LocalPlayer.Team then
+        for _, obj in pairs(visuals.Box) do obj.Visible = false end
+        for _, obj in pairs(visuals.HealthBar) do obj.Visible = false end
+        for _, obj in pairs(visuals.Tracer) do obj.Visible = false end
+        for _, obj in pairs(visuals.Box3D) do obj.Visible = false end
+        for _, obj in pairs(visuals.CornerBox.boxLines) do obj.Visible = false end
+        visuals.CornerBox.fillBox.Visible = false
+        visuals.Name.Visible = false
+        visuals.Distance.Visible = false
+        return
+    end
+    if not character or not humanoid or (Environment.Settings.AliveCheck and humanoid.Health <= 0 and not entry.IsNPC) then
+        for _, obj in pairs(visuals.Box) do obj.Visible = false end
+        for _, obj in pairs(visuals.HealthBar) do obj.Visible = false end
+        for _, obj in pairs(visuals.Tracer) do obj.Visible = false end
+        for _, obj in pairs(visuals.Box3D) do obj.Visible = false end
+        for _, obj in pairs(visuals.CornerBox.boxLines) do obj.Visible = false end
+        visuals.CornerBox.fillBox.Visible = false
+        visuals.Name.Visible = false
+        visuals.Distance.Visible = false
+        return
+    end
+    local position, size, visible = CoreFunctions.CalculateBox(character)
+    if not visible then
+        for _, obj in pairs(visuals.Box) do obj.Visible = false end
+        for _, obj in pairs(visuals.HealthBar) do obj.Visible = false end
+        for _, obj in pairs(visuals.Tracer) do obj.Visible = false end
+        for _, obj in pairs(visuals.Box3D) do obj.Visible = false end
+        for _, obj in pairs(visuals.CornerBox.boxLines) do obj.Visible = false end
+        visuals.CornerBox.fillBox.Visible = false
+        visuals.Name.Visible = false
+        visuals.Distance.Visible = false
+        return
+    end
+    local box, boxOutline, fillBox = unpack(visuals.Box)
+    local healthBar, healthOutline = unpack(visuals.HealthBar)
+    local tracer, tracerOutline1, tracerOutline2 = unpack(visuals.Tracer)
+    local name, distance_obj = visuals.Name, visuals.Distance
+    local cornerBox = visuals.CornerBox
+    local espEnabled = Environment.Settings.Enabled
+    local boxEnabled = Environment.Box.Enabled
+    if Environment.Box.ViewBox == "3D" then
+        for _, obj in pairs(visuals.Box) do obj.Visible = false end
+        for _, obj in pairs(cornerBox.boxLines) do obj.Visible = false end
+        cornerBox.fillBox.Visible = false
+        local hrp = character.HumanoidRootPart
+        local hrpPos, onScreen = CurrentCamera:WorldToViewportPoint(hrp.Position)
+        if onScreen and boxEnabled and espEnabled then
+            local Size = Vector3.new(2, 3, 2)
+            local Top1 = CurrentCamera:WorldToViewportPoint((hrp.CFrame * CFrame.new(-Size.X, Size.Y, -Size.Z)).p)
+            local Top2 = CurrentCamera:WorldToViewportPoint((hrp.CFrame * CFrame.new(-Size.X, Size.Y, Size.Z)).p)
+            local Top3 = CurrentCamera:WorldToViewportPoint((hrp.CFrame * CFrame.new(Size.X, Size.Y, Size.Z)).p)
+            local Top4 = CurrentCamera:WorldToViewportPoint((hrp.CFrame * CFrame.new(Size.X, Size.Y, -Size.Z)).p)
+            local Bottom1 = CurrentCamera:WorldToViewportPoint((hrp.CFrame * CFrame.new(-Size.X, -Size.Y, -Size.Z)).p)
+            local Bottom2 = CurrentCamera:WorldToViewportPoint((hrp.CFrame * CFrame.new(-Size.X, -Size.Y, Size.Z)).p)
+            local Bottom3 = CurrentCamera:WorldToViewportPoint((hrp.CFrame * CFrame.new(Size.X, -Size.Y, Size.Z)).p)
+            local Bottom4 = CurrentCamera:WorldToViewportPoint((hrp.CFrame * CFrame.new(Size.X, -Size.Y, -Size.Z)).p)
+            local box3d = visuals.Box3D
+            box3d.box_line1.From = Vector2.new(Top1.X, Top1.Y)
+            box3d.box_line1.To = Vector2.new(Top2.X, Top2.Y)
+            box3d.box_line2.From = Vector2.new(Top2.X, Top2.Y)
+            box3d.box_line2.To = Vector2.new(Top3.X, Top3.Y)
+            box3d.box_line3.From = Vector2.new(Top3.X, Top3.Y)
+            box3d.box_line3.To = Vector2.new(Top4.X, Top4.Y)
+            box3d.box_line4.From = Vector2.new(Top4.X, Top4.Y)
+            box3d.box_line4.To = Vector2.new(Top1.X, Top1.Y)
+            box3d.box_line5.From = Vector2.new(Bottom1.X, Bottom1.Y)
+            box3d.box_line5.To = Vector2.new(Bottom2.X, Bottom2.Y)
+            box3d.box_line6.From = Vector2.new(Bottom2.X, Bottom2.Y)
+            box3d.box_line6.To = Vector2.new(Bottom3.X, Bottom3.Y)
+            box3d.box_line7.From = Vector2.new(Bottom3.X, Bottom3.Y)
+            box3d.box_line7.To = Vector2.new(Bottom4.X, Bottom4.Y)
+            box3d.box_line8.From = Vector2.new(Bottom4.X, Bottom4.Y)
+            box3d.box_line8.To = Vector2.new(Bottom1.X, Bottom1.Y)
+            box3d.box_line9.From = Vector2.new(Bottom1.X, Bottom1.Y)
+            box3d.box_line9.To = Vector2.new(Top1.X, Top1.Y)
+            box3d.box_line10.From = Vector2.new(Bottom2.X, Bottom2.Y)
+            box3d.box_line10.To = Vector2.new(Top2.X, Top2.Y)
+            box3d.box_line11.From = Vector2.new(Bottom3.X, Bottom3.Y)
+            box3d.box_line11.To = Vector2.new(Top3.X, Top3.Y)
+            box3d.box_line12.From = Vector2.new(Bottom4.X, Bottom4.Y)
+            box3d.box_line12.To = Vector2.new(Top4.X, Top4.Y)
+            box3d.box_line_black1.From = Vector2.new(Top1.X, Top1.Y)
+            box3d.box_line_black1.To = Vector2.new(Top2.X, Top2.Y)
+            box3d.box_line_black2.From = Vector2.new(Top2.X, Top2.Y)
+            box3d.box_line_black2.To = Vector2.new(Top3.X, Top3.Y)
+            box3d.box_line_black3.From = Vector2.new(Top3.X, Top3.Y)
+            box3d.box_line_black3.To = Vector2.new(Top4.X, Top4.Y)
+            box3d.box_line_black4.From = Vector2.new(Top4.X, Top4.Y)
+            box3d.box_line_black4.To = Vector2.new(Top1.X, Top1.Y)
+            box3d.box_line_black5.From = Vector2.new(Bottom1.X, Bottom1.Y)
+            box3d.box_line_black5.To = Vector2.new(Bottom2.X, Bottom2.Y)
+            box3d.box_line_black6.From = Vector2.new(Bottom2.X, Bottom2.Y)
+            box3d.box_line_black6.To = Vector2.new(Bottom3.X, Bottom3.Y)
+            box3d.box_line_black7.From = Vector2.new(Bottom3.X, Bottom3.Y)
+            box3d.box_line_black7.To = Vector2.new(Bottom4.X, Bottom4.Y)
+            box3d.box_line_black8.From = Vector2.new(Bottom4.X, Bottom4.Y)
+            box3d.box_line_black8.To = Vector2.new(Bottom1.X, Bottom1.Y)
+            box3d.box_line_black9.From = Vector2.new(Bottom1.X, Bottom1.Y)
+            box3d.box_line_black9.To = Vector2.new(Top1.X, Top1.Y)
+            box3d.box_line_black10.From = Vector2.new(Bottom2.X, Bottom2.Y)
+            box3d.box_line_black10.To = Vector2.new(Top2.X, Top2.Y)
+            box3d.box_line_black11.From = Vector2.new(Bottom3.X, Bottom3.Y)
+            box3d.box_line_black11.To = Vector2.new(Top3.X, Top3.Y)
+            box3d.box_line_black12.From = Vector2.new(Bottom4.X, Bottom4.Y)
+            box3d.box_line_black12.To = Vector2.new(Top4.X, Top4.Y)
+            if Environment.Box.FillEnabled then
+                box3d.box_quad1.PointA = Vector2.new(Bottom1.X, Bottom1.Y)
+                box3d.box_quad1.PointB = Vector2.new(Bottom2.X, Bottom2.Y)
+                box3d.box_quad1.PointC = Vector2.new(Bottom3.X, Bottom3.Y)
+                box3d.box_quad1.PointD = Vector2.new(Bottom4.X, Bottom4.Y)
+                box3d.box_quad2.PointA = Vector2.new(Top1.X, Top1.Y)
+                box3d.box_quad2.PointB = Vector2.new(Top2.X, Top2.Y)
+                box3d.box_quad2.PointC = Vector2.new(Top3.X, Top3.Y)
+                box3d.box_quad2.PointD = Vector2.new(Top4.X, Top4.Y)
+                box3d.box_quad3.PointA = Vector2.new(Bottom1.X, Bottom1.Y)
+                box3d.box_quad3.PointB = Vector2.new(Top1.X, Top1.Y)
+                box3d.box_quad3.PointC = Vector2.new(Top4.X, Top4.Y)
+                box3d.box_quad3.PointD = Vector2.new(Bottom4.X, Bottom4.Y)
+                box3d.box_quad4.PointA = Vector2.new(Bottom2.X, Bottom2.Y)
+                box3d.box_quad4.PointB = Vector2.new(Top2.X, Top2.Y)
+                box3d.box_quad4.PointC = Vector2.new(Top3.X, Top3.Y)
+                box3d.box_quad4.PointD = Vector2.new(Bottom3.X, Bottom3.Y)
+                box3d.box_quad5.PointA = Vector2.new(Bottom1.X, Bottom1.Y)
+                box3d.box_quad5.PointB = Vector2.new(Top1.X, Top1.Y)
+                box3d.box_quad5.PointC = Vector2.new(Top2.X, Top2.Y)
+                box3d.box_quad5.PointD = Vector2.new(Bottom2.X, Bottom2.Y)
+                box3d.box_quad6.PointA = Vector2.new(Bottom3.X, Bottom3.Y)
+                box3d.box_quad6.PointB = Vector2.new(Top3.X, Top3.Y)
+                box3d.box_quad6.PointC = Vector2.new(Top4.X, Top4.Y)
+                box3d.box_quad6.PointD = Vector2.new(Bottom4.X, Bottom4.Y)
+            end
+            for i = 1, 12 do
+                box3d["box_line" .. i].Visible = true
+                box3d["box_line" .. i].Color = CoreFunctions.GetTeamColor(player)
+                box3d["box_line" .. i].Thickness = Environment.Box.Thickness
+                box3d["box_line_black" .. i].Visible = Environment.Box.Outline
+                box3d["box_line_black" .. i].Color = Environment.Box.OutlineColor
+                box3d["box_line_black" .. i].Thickness = Environment.Box.Thickness + 1
+            end
+            for i = 1, 6 do
+                box3d["box_quad" .. i].Visible = Environment.Box.FillEnabled
+                box3d["box_quad" .. i].Color = CoreFunctions.GetTeamColor(player)
+                box3d["box_quad" .. i].Transparency = Environment.Box.FillTransparency
+                box3d["box_quad" .. i].Filled = true
+            end
+        else
+            for _, obj in pairs(visuals.Box3D) do obj.Visible = false end
+        end
+    elseif Environment.Box.ViewBox == "Corner" then
+        for _, obj in pairs(visuals.Box) do obj.Visible = false end
+        for _, obj in pairs(visuals.Box3D) do obj.Visible = false end
+        local color = CoreFunctions.GetTeamColor(player)
+        cornerBox.fillBox.Position = position
+        cornerBox.fillBox.Size = size
+        cornerBox.fillBox.Color = color
+        cornerBox.fillBox.Transparency = Environment.Box.FillTransparency
+        cornerBox.fillBox.Visible = Environment.Box.FillEnabled and espEnabled and boxEnabled
+        local lineW = size.X * Environment.Box.CornerLineWidth
+        local lineH = size.Y * Environment.Box.CornerLineHeight
+        local vertOffset = size.Y * Environment.Box.CornerLineOffset
+        local lines = cornerBox.boxLines
+        lines[1].From = Vector2.new(position.X, position.Y)
+        lines[1].To = Vector2.new(position.X + lineW, position.Y)
+        lines[2].From = Vector2.new(position.X, position.Y - vertOffset)
+        lines[2].To = Vector2.new(position.X, position.Y - vertOffset + lineH)
+        lines[3].From = Vector2.new(position.X + size.X - lineW, position.Y)
+        lines[3].To = Vector2.new(position.X + size.X, position.Y)
+        lines[4].From = Vector2.new(position.X + size.X, position.Y - vertOffset)
+        lines[4].To = Vector2.new(position.X + size.X, position.Y - vertOffset + lineH)
+        lines[5].From = Vector2.new(position.X, position.Y + size.Y - lineH - vertOffset)
+        lines[5].To = Vector2.new(position.X, position.Y + size.Y - vertOffset)
+        lines[6].From = Vector2.new(position.X, position.Y + size.Y)
+        lines[6].To = Vector2.new(position.X + lineW, position.Y + size.Y)
+        lines[7].From = Vector2.new(position.X + size.X - lineW, position.Y + size.Y)
+        lines[7].To = Vector2.new(position.X + size.X, position.Y + size.Y)
+        lines[8].From = Vector2.new(position.X + size.X, position.Y + size.Y - lineH - vertOffset)
+        lines[8].To = Vector2.new(position.X + size.X, position.Y + size.Y - vertOffset)
+        for i = 9, 16 do
+            lines[i].From = lines[i-8].From
+            lines[i].To = lines[i-8].To
+        end
+        for i = 1, 8 do
+            lines[i].Color = Color3.new(0, 0, 0)
+            lines[i].Thickness = Environment.Box.Thickness + 1
+            lines[i].Transparency = 0.5
+            lines[i].Visible = Environment.Box.Outline
+        end
+        for i = 9, 16 do
+            lines[i].Color = color
+            lines[i].Thickness = Environment.Box.Thickness
+            lines[i].Transparency = Environment.Box.Transparency
+            lines[i].Visible = espEnabled and boxEnabled
+        end
+    else
+        for _, obj in pairs(cornerBox.boxLines) do obj.Visible = false end
+        cornerBox.fillBox.Visible = false
+        for _, obj in pairs(visuals.Box3D) do obj.Visible = false end
+        box.Position = position
+        box.Size = size
+        box.Color = CoreFunctions.GetTeamColor(player)
+        box.Transparency = Environment.Box.Transparency
+        box.Filled = false
+        box.Thickness = Environment.Box.Thickness
+        box.Visible = espEnabled and boxEnabled and visible
+        if Environment.Box.FillEnabled then
+            fillBox.Position = position
+            fillBox.Size = size
+            fillBox.Color = CoreFunctions.GetTeamColor(player)
+            fillBox.Transparency = Environment.Box.FillTransparency
+            fillBox.Filled = true
+            fillBox.Visible = espEnabled and boxEnabled and visible
+        else
+            fillBox.Visible = false
+        end
+        if Environment.Box.Outline then
+            boxOutline.Position = position
+            boxOutline.Size = size
+            boxOutline.Color = Environment.Box.OutlineColor
+            boxOutline.Thickness = Environment.Box.Thickness + 1
+            boxOutline.Transparency = Environment.Box.Transparency
+            boxOutline.Visible = espEnabled and boxEnabled and visible
+        else
+            boxOutline.Visible = false
+        end
+    end
+    if Environment.HealthBar.Enabled then
+        local health = math.clamp(humanoid.Health, 0, humanoid.MaxHealth)
+        local ratio = health / humanoid.MaxHealth
+        local offset = Environment.HealthBar.Offset
+        local barHeight = size.Y
+        local barWidth = Environment.HealthBar.Thickness
+        local barX = position.X - offset
+        healthBar.From = Vector2new(barX, position.Y + barHeight)
+        healthBar.To = Vector2new(barX, position.Y + barHeight - ratio * barHeight)
+        healthBar.Color = CoreFunctions.GetColorFromHealth(health, humanoid.MaxHealth)
+        healthBar.Thickness = barWidth
+        healthBar.Transparency = Environment.HealthBar.Transparency
+        healthBar.Visible = espEnabled and visible
+        if Environment.HealthBar.Outline then
+            healthOutline.From = Vector2new(barX, position.Y + barHeight + 1)
+            healthOutline.To = Vector2new(barX, position.Y - 1)
+            healthOutline.Color = Environment.HealthBar.OutlineColor
+            healthOutline.Thickness = barWidth + 1
+            healthOutline.Transparency = Environment.HealthBar.Transparency
+            healthOutline.Visible = espEnabled and visible
+        else
+            healthOutline.Visible = false
+        end
+    else
+        healthBar.Visible = false
+        healthOutline.Visible = false
+    end
+    if Environment.Tracer.Enabled then
+        local fromPos
+        if Environment.Tracer.Origin == "Center" then
+            fromPos = CurrentCamera.ViewportSize * 0.5
+        elseif Environment.Tracer.Origin == "Top" then
+            fromPos = Vector2new(CurrentCamera.ViewportSize.X * 0.5, 0)
+        elseif Environment.Tracer.Origin == "Bottom" then
+            fromPos = Vector2new(CurrentCamera.ViewportSize.X * 0.5, CurrentCamera.ViewportSize.Y)
+        end
+        if Environment.Tracer.FollowMouse then
+            fromPos = Vector2new(mouse.X, mouse.Y + 36)
+        end
+        local toPos
+        if Environment.Box.Enabled then
+            if Environment.Tracer.Origin == "Top" then
+                toPos = Vector2new(position.X + size.X / 2, position.Y)
+            else
+                toPos = Vector2new(position.X + size.X / 2, position.Y + size.Y)
+            end
+        else
+            local HumPos = WorldToViewportPoint(character.HumanoidRootPart.Position)
+            local head = WorldToViewportPoint(character.Head.Position)
+            local DistanceY = math.clamp((Vector2new(head.X, head.Y) - Vector2new(HumPos.X, HumPos.Y)).magnitude, 2, math.huge)
+            if Environment.Tracer.Origin == "Top" then
+                toPos = Vector2new(head.X, head.Y - DistanceY)
+            else
+                toPos = Vector2new(HumPos.X, HumPos.Y + DistanceY * 2)
+            end
+        end
+        tracer.From = fromPos
+        tracer.To = toPos
+        tracer.Color = CoreFunctions.GetTracerColor(player)
+        tracer.Thickness = Environment.Tracer.Thickness
+        tracer.Transparency = 1
+        tracer.Visible = espEnabled and visible
+        if Environment.Tracer.Outline then
+            tracerOutline1.From = fromPos
+            tracerOutline1.To = Vector2new(toPos.X - Environment.Tracer.Thickness, toPos.Y)
+            tracerOutline1.Color = Environment.Tracer.OutlineColor
+            tracerOutline1.Thickness = Environment.Tracer.Thickness * 2
+            tracerOutline1.Transparency = Environment.Tracer.OutlineTransparency
+            tracerOutline1.Visible = espEnabled and visible
+            tracerOutline2.From = fromPos
+            tracerOutline2.To = Vector2new(toPos.X + Environment.Tracer.Thickness, toPos.Y)
+            tracerOutline2.Color = Environment.Tracer.OutlineColor
+            tracerOutline2.Thickness = Environment.Tracer.Thickness * 2
+            tracerOutline2.Transparency = Environment.Tracer.OutlineTransparency
+            tracerOutline2.Visible = espEnabled and visible
+        else
+            tracerOutline1.Visible = false
+            tracerOutline2.Visible = false
+        end
+    else
+        tracer.Visible = false
+        tracerOutline1.Visible = false
+        tracerOutline2.Visible = false
+    end
+    if Environment.Pname.Enabled then
+        name.Visible = espEnabled and visible
+        name.Text = player.Name
+        name.Position = Vector2new(position.X + size.X / 2, position.Y - 15)
+        name.Color = (Environment.Settings.TeamColorEnabled and player.Team and player.Team.TeamColor.Color) or Environment.Pname.Color
+    else
+        name.Visible = false
+    end
+    if Environment.Pdistance.Enabled then
+        local rootPart = character.HumanoidRootPart
+        local dist = (CurrentCamera.CFrame.Position - rootPart.Position).Magnitude
+        distance_obj.Visible = espEnabled and visible
+        distance_obj.Text = string.format("[%dm]", math.floor(dist))
+        distance_obj.Position = Vector2new(position.X + size.X / 2, position.Y + size.Y + 5)
+        distance_obj.Color = (Environment.Settings.TeamColorEnabled and player.Team and player.Team.TeamColor.Color) or Environment.Pdistance.Color
+    else
+        distance_obj.Visible = false
+    end
+end
+local SkeletonESP = {}
+SkeletonESP.__index = SkeletonESP
+function SkeletonESP.new()
+    local self = setmetatable({}, SkeletonESP)
+    self.espCache = {}
+    return self
+end
+function SkeletonESP:createDrawing(type, properties)
+    local drawing = Drawingnew(type)
+    for prop, val in pairs(properties) do
+        drawing[prop] = val
+    end
+    return drawing
+end
+function SkeletonESP:createComponents()
+    return {
+        SkeletonLines = {},
+        HeadCircle = self:createDrawing("Circle", {
+            Thickness = Environment.Skeleton.Thickness,
+            Color = Environment.Skeleton.Color,
+            Filled = false
+        })
+    }
+end
+local bodyConnections = {
+    R15 = {
+        {"Head", "UpperTorso"},
+        {"UpperTorso", "LowerTorso"},
+        {"LowerTorso", "LeftUpperLeg"},
+        {"LowerTorso", "RightUpperLeg"},
+        {"LeftUpperLeg", "LeftLowerLeg"},
+        {"LeftLowerLeg", "LeftFoot"},
+        {"RightUpperLeg", "RightLowerLeg"},
+        {"RightLowerLeg", "RightFoot"},
+        {"UpperTorso", "LeftUpperArm"},
+        {"UpperTorso", "RightUpperArm"},
+        {"LeftUpperArm", "LeftLowerArm"},
+        {"LeftLowerArm", "LeftHand"},
+        {"RightUpperArm", "RightLowerArm"},
+        {"RightUpperArm", "RightHand"}
+    },
+    R6 = {
+        {"Head", "Torso"},
+        {"Torso", "Left Arm"},
+        {"Torso", "Right Arm"},
+        {"Torso", "Left Leg"},
+        {"Torso", "Right Leg"}
+    }
+}
+function SkeletonESP:getPlayerColor(plr)
+    return Environment.Settings.TeamColorEnabled and plr.TeamColor and plr.TeamColor.Color or Environment.Skeleton.Color
+end
+function SkeletonESP:updateComponents(components, character, plr)
+    if Environment.Settings.HideTeam and plr.Team == LocalPlayer.Team then
+        self:hideComponents(components)
+        return
+    end
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    local humanoid = character:FindFirstChild("Humanoid")
+    if hrp and humanoid then
+        local hrpPosition, onScreen = CurrentCamera:WorldToViewportPoint(hrp.Position)
+        if onScreen then
+            if Environment.Skeleton.Enabled and Environment.Settings.Enabled then
+                local head = character:FindFirstChild("Head")
+                if head then
+                    local headPos = CurrentCamera:WorldToViewportPoint(head.Position)
+                    if headPos.Z > 0 then
+                        local headSize = head.Size.X
+                        local distance = headPos.Z
+                        local fov = mathrad(CurrentCamera.FieldOfView / 2)
+                        local scale = CurrentCamera.ViewportSize.Y / (2 * mathtan(fov) * distance)
+                        local radius = headSize * scale * 0.5
+                        local fixedRadius = (headSize * 0.5) * (1000 / (distance + 50))
+                        components.HeadCircle.Radius = (radius + fixedRadius) / 2
+                        components.HeadCircle.Position = Vector2.new(headPos.X, headPos.Y)
+                        components.HeadCircle.Visible = distance < 298
+                        components.HeadCircle.Color = self:getPlayerColor(plr)
+                        components.HeadCircle.Thickness = Environment.Skeleton.Thickness
+                        local connections = bodyConnections[humanoid.RigType.Name] or {}
+                        for _, connection in ipairs(connections) do
+                            local partA = character:FindFirstChild(connection[1])
+                            local partB = character:FindFirstChild(connection[2])
+                            if partA and partB then
+                                local line = components.SkeletonLines[connection[1].."-"..connection[2]] or self:createDrawing("Line", {
+                                    Thickness = Environment.Skeleton.Thickness,
+                                    Color = self:getPlayerColor(plr)
+                                })
+                                local posA = CurrentCamera:WorldToViewportPoint(partA.Position)
+                                local posB = CurrentCamera:WorldToViewportPoint(partB.Position)
+                                if partA.Name == "Head" then
+                                    local direction = (Vector2.new(posB.X, posB.Y) - Vector2.new(posA.X, posA.Y)).Unit
+                                    posA = Vector2.new(posA.X, posA.Y) + direction * components.HeadCircle.Radius
+                                elseif partB.Name == "Head" then
+                                    local direction = (Vector2.new(posA.X, posA.Y) - Vector2.new(posB.X, posB.Y)).Unit
+                                    posB = Vector2.new(posB.X, posB.Y) + direction * components.HeadCircle.Radius
+                                end
+                                line.From = Vector2.new(posA.X, posA.Y)
+                                line.To = Vector2.new(posB.X, posB.Y)
+                                line.Visible = true
+                                line.Color = self:getPlayerColor(plr)
+                                line.Thickness = Environment.Skeleton.Thickness
+                                components.SkeletonLines[connection[1].."-"..connection[2]] = line
+                            end
+                        end
+                    else
+                        components.HeadCircle.Visible = false
+                    end
+                else
+                    components.HeadCircle.Visible = false
+                end
+            else
+                self:hideComponents(components)
+            end
+        else
+            self:hideComponents(components)
+        end
+    else
+        self:hideComponents(components)
+    end
+end
+function SkeletonESP:hideComponents(components)
+    for _, line in pairs(components.SkeletonLines) do
+        line.Visible = false
+    end
+    components.HeadCircle.Visible = false
+end
+function SkeletonESP:removeEsp(plr)
+    local components = self.espCache[plr]
+    if components then
+        for _, line in pairs(components.SkeletonLines) do
+            line:Remove()
+        end
+        components.HeadCircle:Remove()
+        self.espCache[plr] = nil
+    end
+end
+local skeletonInstance = SkeletonESP.new()
+local function SkeletonESPFunction(plr)
+    local function Updater()
+        local renderConnection
+        local characterConnection
+        local function UpdateESP()
+            if renderConnection then
+                renderConnection:Disconnect()
+            end
+            renderConnection = RunService.RenderStepped:Connect(function()
+                pcall(function()
+                    if not Players:FindFirstChild(plr.Name) then
+                        renderConnection:Disconnect()
+                        if characterConnection then
+                            characterConnection:Disconnect()
+                        end
+                        skeletonInstance:removeEsp(plr)
+                        return
+                    end
+                    if not Environment.Settings.Enabled then
+                        skeletonInstance:hideComponents(skeletonInstance.espCache[plr] or {})
+                        return
+                    end
+                    if plr.Character and plr.Character:FindFirstChild("Humanoid") and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character.Humanoid.Health > 0 and plr.Character:FindFirstChild("Head") then
+                        local HumPos, OnScreen = CurrentCamera:WorldToViewportPoint(plr.Character.HumanoidRootPart.Position)
+                        if OnScreen then
+                            if not skeletonInstance.espCache[plr] then
+                                skeletonInstance.espCache[plr] = skeletonInstance:createComponents()
+                            end
+                            skeletonInstance:updateComponents(skeletonInstance.espCache[plr], plr.Character, plr)
+                        else
+                            skeletonInstance:hideComponents(skeletonInstance.espCache[plr] or {})
+                        end
+                    else
+                        skeletonInstance:hideComponents(skeletonInstance.espCache[plr] or {})
+                    end
+                end)
+            end)
+        end
+        characterConnection = plr.CharacterAdded:Connect(function()
+            UpdateESP()
+        end)
+        UpdateESP()
+    end
+    coroutine.wrap(Updater)()
+end
+local function InitESP()
+    for _, player in ipairs(GetPlayers()) do
+        if player ~= LocalPlayer then
+            local entry = {Visuals = CreateVisuals(player), Player = player}
+            Environment.WrappedObjects[player] = entry
+            local connection
+            connection = RunService.RenderStepped:Connect(function()
+                if not Environment.WrappedObjects[player] then
+                    connection:Disconnect()
+                    return
+                end
+                UpdateVisuals(entry)
+            end)
+        end
+    end
+    Players.PlayerAdded:Connect(function(newPlayer)
+        if newPlayer == LocalPlayer then return end
+        local entry = {Visuals = CreateVisuals(newPlayer), Player = newPlayer}
+        Environment.WrappedObjects[newPlayer] = entry
+        local connection
+        connection = RunService.RenderStepped:Connect(function()
+            if not Environment.WrappedObjects[newPlayer] then
+                connection:Disconnect()
+                return
+            end
+            UpdateVisuals(entry)
+        end)
+    end)
+    Players.PlayerRemoving:Connect(function(leftPlayer)
+        local entry = Environment.WrappedObjects[leftPlayer]
+        if entry then
+            for _, obj in pairs(entry.Visuals.Box) do obj:Remove() end
+            for _, obj in pairs(entry.Visuals.HealthBar) do obj:Remove() end
+            for _, obj in pairs(entry.Visuals.Tracer) do obj:Remove() end
+            for _, obj in pairs(entry.Visuals.Box3D) do obj:Remove() end
+            for _, obj in pairs(entry.Visuals.CornerBox.boxLines) do obj:Remove() end
+            entry.Visuals.CornerBox.fillBox:Remove()
+            entry.Visuals.Name:Remove()
+            entry.Visuals.Distance:Remove()
+            Environment.WrappedObjects[leftPlayer] = nil
+        end
+    end)
+end
+InitESP()
+local function UpdateNPCs()
+    if not Environment.Settings.WorksForNPC then return end
+    
+    for _, npc in pairs(Workspace:GetChildren()) do
+        if npc:FindFirstChild("Humanoid") and npc:FindFirstChild("HumanoidRootPart") and not Players:GetPlayerFromCharacter(npc) then
+            if not Environment.NPCs[npc] then
+                local fakePlayer = {
+                    Name = npc.Name,
+                    Team = nil,
+                    Character = npc
+                }
+                local entry = {Visuals = CreateVisuals(fakePlayer), Player = fakePlayer, IsNPC = true}
+                Environment.NPCs[npc] = entry
+                local connection
+                connection = RunService.RenderStepped:Connect(function()
+                    if not Environment.NPCs[npc] then
+                        connection:Disconnect()
+                        return
+                    end
+                    UpdateVisuals(entry)
+                end)
+            end
+        end
+    end
+    
+    for npc, entry in pairs(Environment.NPCs) do
+        if not npc or not npc.Parent or not npc:FindFirstChild("Humanoid") or not npc:FindFirstChild("HumanoidRootPart") then
+            for _, obj in pairs(entry.Visuals.Box) do obj:Remove() end
+            for _, obj in pairs(entry.Visuals.HealthBar) do obj:Remove() end
+            for _, obj in pairs(entry.Visuals.Tracer) do obj:Remove() end
+            for _, obj in pairs(entry.Visuals.Box3D) do obj:Remove() end
+            for _, obj in pairs(entry.Visuals.CornerBox.boxLines) do obj:Remove() end
+            entry.Visuals.CornerBox.fillBox:Remove()
+            entry.Visuals.Name:Remove()
+            entry.Visuals.Distance:Remove()
+            Environment.NPCs[npc] = nil
+        end
+    end
+end
+RunService.RenderStepped:Connect(UpdateNPCs)
+for _, v in pairs(Players:GetPlayers()) do
+    if v.Name ~= LocalPlayer.Name then
+        coroutine.wrap(SkeletonESPFunction)(v)
+    end
+end
+Players.PlayerAdded:Connect(function(newplr)
+    if newplr.Name ~= LocalPlayer.Name then
+        coroutine.wrap(SkeletonESPFunction)(newplr)
+    end
+end)
+Players.PlayerRemoving:Connect(function(plr)
+    skeletonInstance:removeEsp(plr)
+    if plr.Character and plr.Character:FindFirstChild("PlayerHighlight") then
+        plr.Character.PlayerHighlight:Destroy()
+    end
+end)
+RunService.RenderStepped:Connect(function()
+    if not Environment.Settings.Enabled or not Environment.Chams.Enabled then
+        for _, plr in ipairs(GetPlayers()) do
+            if plr.Character and plr.Character:FindFirstChild("PlayerHighlight") then
+                plr.Character.PlayerHighlight:Destroy()
+            end
+        end
+        return
+    end
+    for _, plr in ipairs(GetPlayers()) do
+        if plr ~= LocalPlayer then
+            local character = plr.Character
+            local h = character and character:FindFirstChild("PlayerHighlight")
+            local humanoid = character and character:FindFirstChild("Humanoid")
+            local shouldHighlight = humanoid and humanoid.Health > 0
+            if Environment.Settings.HideTeam and plr.Team == LocalPlayer.Team then
+                shouldHighlight = false
+            end
+            if shouldHighlight then
+                if not h then
+                    h = Instance.new("Highlight")
+                    h.Name = "PlayerHighlight"
+                    h.Adornee = character
+                    h.Parent = character
+                    h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                    h.OutlineTransparency = 0
+                end
+                local color = (Environment.Settings.TeamColorEnabled and plr.TeamColor and plr.TeamColor.Color) or Environment.Box.Color
+                h.FillColor = color
+                h.OutlineColor = color
+                h.FillTransparency = Environment.Chams.Transparency
+            else
+                if h then
+                    h:Destroy()
+                end
+            end
+        end
+    end
+end)
+_G_ESPEnabled = function(state) Environment.Settings.Enabled = state end
+_G_BoxEnabled = function(state) Environment.Box.Enabled = state end
+_G_SetViewBox = function(state) Environment.Box.ViewBox = state end
+_G_OutlineEnabled = function(state) Environment.Box.Outline = state end
+_G_FillBoxEnabled = function(state) Environment.Box.FillEnabled = state end
+_G_HealthBarEnabled = function(state) Environment.HealthBar.Enabled = state end
+_G_TeamColorEnabled = function(state) Environment.Settings.TeamColorEnabled = state end
+_G_HideTeam = function(state) Environment.Settings.HideTeam = state end
+_G_SetESPColor = function(color) 
+    Environment.Box.Color = color
+    Environment.Tracer.Color = color
+    Environment.Skeleton.Color = color
+    Environment.Arrows.Color = color
+    Environment.Pname.Color = color
+    Environment.Pdistance.Color = color
+end
+_G_TracerEnabled = function(state) Environment.Tracer.Enabled = state end
+_G_TracerOutlineEnabled = function(state) Environment.Tracer.Outline = state end
+_G_SetTracerOrigin = function(origin) Environment.Tracer.Origin = origin end
+_G_SetTracerOutlineTransparency = function(transparency) Environment.Tracer.OutlineTransparency = transparency end
+_G_SkeletonEnabled = function(state) Environment.Skeleton.Enabled = state end
+_G_SetSkeletonThickness = function(thickness) Environment.Skeleton.Thickness = thickness end
+_G_ArrowsEnabled = function(state) Environment.Arrows.Enabled = state end
+_G_SetArrowsTransparency = function(transparency) Environment.Arrows.Transparency = transparency end
+_G_PnameEnabled = function(state) Environment.Pname.Enabled = state end
+_G_PdistanceEnabled = function(state) Environment.Pdistance.Enabled = state end
+_G_WorksforNPCesp = function(state) Environment.Settings.WorksForNPC = state end
+_G_ChamsEnabled = function(state) Environment.Chams.Enabled = state end
+_G_SetChamsTransparency = function(transparency) Environment.Chams.Transparency = transparency end
+_G_SetChamsColor = function(color) Environment.Box.Color = color end
+return Environment
