@@ -94,7 +94,8 @@ getgenv().SimpleESP = {
         Color = Color3fromRGB(255, 255, 255)
     },
     WrappedObjects = {},
-    NPCs = {}
+    NPCs = {},
+    NPCConnections = {}
 }
 local Environment = getgenv().SimpleESP
 local mouse = LocalPlayer:GetMouse()
@@ -274,6 +275,12 @@ RunService.RenderStepped:Connect(function()
         if Environment.Settings.WorksForNPC then
             for npc, _ in pairs(Environment.NPCs) do
                 UpdateArrow(npc)
+            end
+        else
+            for npc, _ in pairs(ArrowDrawings) do
+                if not Players:GetPlayerFromCharacter(npc) then
+                    RemoveArrow(npc)
+                end
             end
         end
     end)
@@ -938,6 +945,25 @@ local function InitESP()
 end
 InitESP()
 local function UpdateNPCs()
+    if not Environment.Settings.WorksForNPC then
+        for npc, entry in pairs(Environment.NPCs) do
+            if Environment.NPCConnections[npc] then
+                Environment.NPCConnections[npc]:Disconnect()
+                Environment.NPCConnections[npc] = nil
+            end
+            for _, obj in pairs(entry.Visuals.Box) do obj:Remove() end
+            for _, obj in pairs(entry.Visuals.HealthBar) do obj:Remove() end
+            for _, obj in pairs(entry.Visuals.Tracer) do obj:Remove() end
+            for _, obj in pairs(entry.Visuals.Box3D) do obj:Remove() end
+            for _, obj in pairs(entry.Visuals.CornerBox.boxLines) do obj:Remove() end
+            entry.Visuals.CornerBox.fillBox:Remove()
+            entry.Visuals.Name:Remove()
+            entry.Visuals.Distance:Remove()
+            Environment.NPCs[npc] = nil
+        end
+        return
+    end
+    
     for _, npc in pairs(Workspace:GetChildren()) do
         if npc:FindFirstChild("Humanoid") and npc:FindFirstChild("HumanoidRootPart") and not Players:GetPlayerFromCharacter(npc) then
             if not Environment.NPCs[npc] then
@@ -956,31 +982,17 @@ local function UpdateNPCs()
                     end
                     UpdateVisuals(entry)
                 end)
-                if Environment.Settings.WorksForNPC then
-                    local skeletonUpdater
-                    skeletonUpdater = RunService.RenderStepped:Connect(function()
-                        if not Environment.NPCs[npc] then
-                            skeletonUpdater:Disconnect()
-                            return
-                        end
-                        if Environment.Skeleton.Enabled and Environment.Settings.Enabled then
-                            if not skeletonInstance.npcCache[npc] then
-                                skeletonInstance.npcCache[npc] = skeletonInstance:createComponents()
-                            end
-                            skeletonInstance:updateComponents(skeletonInstance.npcCache[npc], npc, fakePlayer)
-                        else
-                            if skeletonInstance.npcCache[npc] then
-                                skeletonInstance:hideComponents(skeletonInstance.npcCache[npc])
-                            end
-                        end
-                    end)
-                end
+                Environment.NPCConnections[npc] = connection
             end
         end
     end
     
     for npc, entry in pairs(Environment.NPCs) do
         if not npc or not npc.Parent or not npc:FindFirstChild("Humanoid") or not npc:FindFirstChild("HumanoidRootPart") then
+            if Environment.NPCConnections[npc] then
+                Environment.NPCConnections[npc]:Disconnect()
+                Environment.NPCConnections[npc] = nil
+            end
             for _, obj in pairs(entry.Visuals.Box) do obj:Remove() end
             for _, obj in pairs(entry.Visuals.HealthBar) do obj:Remove() end
             for _, obj in pairs(entry.Visuals.Tracer) do obj:Remove() end
@@ -990,14 +1002,6 @@ local function UpdateNPCs()
             entry.Visuals.Name:Remove()
             entry.Visuals.Distance:Remove()
             Environment.NPCs[npc] = nil
-            if skeletonInstance.npcCache[npc] then
-                skeletonInstance:hideComponents(skeletonInstance.npcCache[npc])
-                for _, line in pairs(skeletonInstance.npcCache[npc].SkeletonLines) do
-                    line:Remove()
-                end
-                skeletonInstance.npcCache[npc].HeadCircle:Remove()
-                skeletonInstance.npcCache[npc] = nil
-            end
         end
     end
 end
@@ -1124,18 +1128,33 @@ _G_PdistanceEnabled = function(state) Environment.Pdistance.Enabled = state end
 _G_WorksforNPCesp = function(state) 
     Environment.Settings.WorksForNPC = state 
     if not state then
+        for npc, entry in pairs(Environment.NPCs) do
+            if Environment.NPCConnections[npc] then
+                Environment.NPCConnections[npc]:Disconnect()
+                Environment.NPCConnections[npc] = nil
+            end
+            for _, obj in pairs(entry.Visuals.Box) do obj:Remove() end
+            for _, obj in pairs(entry.Visuals.HealthBar) do obj:Remove() end
+            for _, obj in pairs(entry.Visuals.Tracer) do obj:Remove() end
+            for _, obj in pairs(entry.Visuals.Box3D) do obj:Remove() end
+            for _, obj in pairs(entry.Visuals.CornerBox.boxLines) do obj:Remove() end
+            entry.Visuals.CornerBox.fillBox:Remove()
+            entry.Visuals.Name:Remove()
+            entry.Visuals.Distance:Remove()
+        end
+        Environment.NPCs = {}
+        for npc, _ in pairs(ArrowDrawings) do
+            if not Players:GetPlayerFromCharacter(npc) then
+                RemoveArrow(npc)
+            end
+        end
         for npc, components in pairs(skeletonInstance.npcCache) do
             skeletonInstance:hideComponents(components)
             for _, line in pairs(components.SkeletonLines) do
                 line:Remove()
             end
             components.HeadCircle:Remove()
-        end
-        skeletonInstance.npcCache = {}
-        for npc, _ in pairs(Environment.NPCs) do
-            if npc and npc:FindFirstChild("PlayerHighlight") then
-                npc.PlayerHighlight:Destroy()
-            end
+            skeletonInstance.npcCache[npc] = nil
         end
     end
 end
