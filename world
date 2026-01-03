@@ -2,284 +2,291 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 
-local LocalPlayer = Players.LocalPlayer
-local BeautifulGraphicsEnabled = false
-local CustomSkyBoxEnabled = false
-local currentSkyBox = "Grey"
-local LightEnabled = false
-local IntensityValue = 5
-local SQRTEnabled = false
-local SQRTMode = "Quality"
-
-local originalGraphicsSettings = {
-    Bloom = nil,
-    SunRays = nil,
-    ColorCorrection = nil,
-    Blur = nil,
-    Sky = Lighting:FindFirstChildWhichIsA("Sky"),
-    Lighting = {
-        ExposureCompensation = Lighting.ExposureCompensation,
-        ShadowSoftness = Lighting.ShadowSoftness,
-        EnvironmentDiffuseScale = Lighting.EnvironmentDiffuseScale,
-        EnvironmentSpecularScale = Lighting.EnvironmentSpecularScale,
-        Brightness = Lighting.Brightness,
-        ColorShift_Top = Lighting.ColorShift_Top,
+_G.WorldFunctions = {
+    Players = Players,
+    RunService = RunService,
+    Lighting = Lighting,
+    LocalPlayer = Players.LocalPlayer,
+    BeautifulGraphicsEnabled = false,
+    CustomSkyBoxEnabled = false,
+    currentSkyBox = "Grey",
+    LightEnabled = false,
+    IntensityValue = 5,
+    SQRTEnabled = false,
+    SQRTMode = "Quality",
+    
+    originalGraphicsSettings = {
+        Bloom = nil,
+        SunRays = nil,
+        ColorCorrection = nil,
+        Blur = nil,
+        Sky = Lighting:FindFirstChildWhichIsA("Sky"),
+        Lighting = {
+            ExposureCompensation = Lighting.ExposureCompensation,
+            ShadowSoftness = Lighting.ShadowSoftness,
+            EnvironmentDiffuseScale = Lighting.EnvironmentDiffuseScale,
+            EnvironmentSpecularScale = Lighting.EnvironmentSpecularScale,
+            Brightness = Lighting.Brightness,
+            ColorShift_Top = Lighting.ColorShift_Top,
+            OutdoorAmbient = Lighting.OutdoorAmbient,
+            GeographicLatitude = Lighting.GeographicLatitude,
+            Ambient = Lighting.Ambient
+        }
+    },
+    
+    originalLightingState = {
+        GlobalShadows = Lighting.GlobalShadows,
+        ShadowSoftness = Lighting.ShadowSoftness
+    },
+    
+    originalTerrainState = {
+        WaterWaveSize = workspace.Terrain.WaterWaveSize,
+        WaterWaveSpeed = workspace.Terrain.WaterWaveSpeed,
+        WaterReflectance = workspace.Terrain.WaterReflectance
+    },
+    
+    originalRenderingQuality = settings().Rendering.QualityLevel,
+    originalValues = {
+        Ambient = Lighting.Ambient,
         OutdoorAmbient = Lighting.OutdoorAmbient,
-        GeographicLatitude = Lighting.GeographicLatitude,
-        Ambient = Lighting.Ambient
-    }
+        ClockTime = Lighting.ClockTime,
+        Brightness = Lighting.Brightness
+    },
+    
+    beautifulGraphicsSettings = {
+        Bloom = {Intensity = 0.5, Size = 22, Threshold = 1.5},
+        SunRays = {Intensity = 0.117, Spread = 1},
+        ColorCorrection = {Contrast = 0.3, Saturation = 0.2, TintColor = Color3.fromRGB(255, 252, 224)},
+        Blur = {Size = 2},
+        Lighting = {
+            ExposureCompensation = 0.34,
+            ShadowSoftness = 1,
+            EnvironmentDiffuseScale = 0.343,
+            EnvironmentSpecularScale = 1,
+            Brightness = 2,
+            ColorShift_Top = Color3.fromRGB(118, 117, 108),
+            OutdoorAmbient = Color3.fromRGB(141, 141, 141),
+            GeographicLatitude = 100,
+            Ambient = Color3.fromRGB(112, 112, 112)
+        }
+    },
+    
+    skyboxPresets = {
+        ["Grey"] = {
+            Up = 15876639348,
+            Down = 15876592775,
+            Front = 15876640231,
+            Back = 15876597103,
+            Left = 15876638420,
+            Right = 15876595486
+        },
+        ["Grey V2"] = {
+            Up = 4495867486,
+            Down = 4495864887,
+            Front = 4495865458,
+            Back = 4495864450,
+            Left = 4495866035,
+            Right = 4495866584
+        },
+        ["Grey V3"] = {
+            Up = 185544404,
+            Down = 185544298,
+            Front = 185544329,
+            Back = 185544271,
+            Left = 185544349,
+            Right = 185544367
+        },
+        ["Blue"] = {
+            Up = 12064131,
+            Down = 12064152,
+            Front = 12064121,
+            Back = 12064107,
+            Left = 12063984,
+            Right = 12064115
+        },
+        ["Green"] = {
+            Up = 566611218,
+            Down = 566613198,
+            Front = 566611142,
+            Back = 566611187,
+            Left = 566611266,
+            Right = 566611300
+        },
+        ["Gold"] = {
+            Up = 150939082,
+            Down = 150939038,
+            Front = 150939047,
+            Back = 150939022,
+            Left = 150939056,
+            Right = 150939063
+        },
+        ["Red"] = {
+            Up = 401664936,
+            Down = 401664862,
+            Front = 401664960,
+            Back = 401664839,
+            Left = 401664881,
+            Right = 401664901
+        },
+        ["Red V2"] = {
+            Up = 570555929,
+            Down = 570555964,
+            Front = 570555800,
+            Back = 570555736,
+            Left = 570555840,
+            Right = 570555882 
+        },
+        ["Violet"] = {
+            Up = 17279864507,
+            Down = 17279856318,
+            Front = 17279858447,
+            Back = 17279854976,
+            Left = 17279860360,
+            Right = 17279862234
+        },
+        ["Dark"] = {
+            Up = 149680199,
+            Down = 149681979,
+            Front = 149679690,
+            Back = 149679669,
+            Left = 149679709,
+            Right = 149679722
+        },
+        ["Stones"] = {
+            Up = 16262366016,
+            Down = 16262358026,
+            Front = 16262360469,
+            Back = 16262356578,
+            Left = 16262362003,
+            Right = 16262363873
+        },
+        ["Atmosphere"] = {
+            Up = 151165227,
+            Down = 151165197,
+            Front = 151165224,
+            Back = 151165214,
+            Left = 151165191,
+            Right = 151165206
+        },
+        ["Atmosphere V2"] = {
+            Up = 15470318949,
+            Down = 15470308646,
+            Front = 15470306877,
+            Back = 15470310980,
+            Left = 15470312884,
+            Right = 15470316058
+        },
+        ["Atmosphere V3"] = {
+            Up = 600835177,
+            Down = 600831635,
+            Front = 600832720,
+            Back = 600830446,
+            Left = 600886090,
+            Right = 600833862
+        },
+        ["Space"] = {
+            Up = 15983964246,
+            Down = 15983966825,
+            Front = 15983965025,
+            Back = 15983968922,
+            Left = 15983967420,
+            Right = 15983966246
+        },
+        ["Pink"] = {
+            Up = 271077958,
+            Down = 271077243,
+            Front = 271042556,
+            Back = 271042516,
+            Left = 271042310,
+            Right = 271042467
+        },
+        ["Pink V2"] = {
+            Up = 12635316856,
+            Down = 12635311686,
+            Front = 12635312870,
+            Back = 12635309703,
+            Left = 12635313718,
+            Right = 12635315817 
+        },
+        ["Obby Sky"] = {
+            Up = 1194119030,
+            Down = 724361046,
+            Front = 1194117232,
+            Back = 1194117595,
+            Left = 1194117595,
+            Right = 1194117232
+        },
+    },
+    
+    Settings = {
+        Players = {
+            ["Ignore Me"] = true,
+            ["Ignore Others"] = true,
+            ["Ignore Tools"] = true
+        },
+        Meshes = {
+            NoMesh = false,
+            NoTexture = false,
+            Destroy = false
+        },
+        Images = {
+            Invisible = false,
+            Destroy = false
+        },
+        Explosions = {
+            Smaller = true,
+            Invisible = false,
+            Destroy = false
+        },
+        Particles = {
+            Invisible = true,
+            Destroy = false
+        },
+        TextLabels = {
+            LowerQuality = false,
+            Invisible = false,
+            Destroy = false
+        },
+        MeshParts = {
+            LowerQuality = true,
+            Invisible = false,
+            NoTexture = false,
+            NoMesh = false,
+            Destroy = false
+        },
+        Other = {
+            ["FPS Cap"] = 240,
+            ["No Camera Effects"] = true,
+            ["No Clothes"] = false,
+            ["Low Water Graphics"] = true,
+            ["No Shadows"] = true,
+            ["Low Rendering"] = true,
+            ["Low Quality Parts"] = true,
+            ["Low Quality Models"] = true,
+            ["Reset Materials"] = true,
+            ["Lower Quality MeshParts"] = true
+        }
+    },
+    
+    SendNotifications = false,
+    ConsoleLogs = false,
+    
+    MaterialService = game:GetService("MaterialService"),
+    ME = Players.LocalPlayer,
+    CanBeEnabled = {"ParticleEmitter", "Trail", "Smoke", "Fire", "Sparkles"},
+    descendantAddedConnection = nil,
+    originalStates = {},
+    graphicsConnection = nil,
+    skyboxConnection = nil,
+    heartbeatConnection = nil,
+    lastGraphicsState = {},
+    lastSkyboxPreset = nil,
+    connectionSQRT = nil,
+    trackedInstances = {},
+    originalSettings = nil,
+    TARGET_MODEL_NAME = "ДомнойМоиюйПодомной",
+    targetModel = game.Workspace:FindFirstChild("ДомнойМоиюйПодомной")
 }
-
-local originalLightingState = {
-    GlobalShadows = Lighting.GlobalShadows,
-    ShadowSoftness = Lighting.ShadowSoftness
-}
-
-local originalTerrainState = {
-    WaterWaveSize = workspace.Terrain.WaterWaveSize,
-    WaterWaveSpeed = workspace.Terrain.WaterWaveSpeed,
-    WaterReflectance = workspace.Terrain.WaterReflectance
-}
-
-local originalRenderingQuality = settings().Rendering.QualityLevel
-local originalValues = {
-    Ambient = Lighting.Ambient,
-    OutdoorAmbient = Lighting.OutdoorAmbient,
-    ClockTime = Lighting.ClockTime,
-    Brightness = Lighting.Brightness
-}
-
-local beautifulGraphicsSettings = {
-    Bloom = {Intensity = 0.5, Size = 22, Threshold = 1.5},
-    SunRays = {Intensity = 0.117, Spread = 1},
-    ColorCorrection = {Contrast = 0.3, Saturation = 0.2, TintColor = Color3.fromRGB(255, 252, 224)},
-    Blur = {Size = 2},
-    Lighting = {
-        ExposureCompensation = 0.34,
-        ShadowSoftness = 1,
-        EnvironmentDiffuseScale = 0.343,
-        EnvironmentSpecularScale = 1,
-        Brightness = 2,
-        ColorShift_Top = Color3.fromRGB(118, 117, 108),
-        OutdoorAmbient = Color3.fromRGB(141, 141, 141),
-        GeographicLatitude = 100,
-        Ambient = Color3.fromRGB(112, 112, 112)
-    }
-}
-
-local skyboxPresets = {
-    ["Grey"] = {
-        Up = 15876639348,
-        Down = 15876592775,
-        Front = 15876640231,
-        Back = 15876597103,
-        Left = 15876638420,
-        Right = 15876595486
-    },
-    ["Grey V2"] = {
-        Up = 4495867486,
-        Down = 4495864887,
-        Front = 4495865458,
-        Back = 4495864450,
-        Left = 4495866035,
-        Right = 4495866584
-    },
-    ["Grey V3"] = {
-        Up = 185544404,
-        Down = 185544298,
-        Front = 185544329,
-        Back = 185544271,
-        Left = 185544349,
-        Right = 185544367
-    },
-    ["Blue"] = {
-        Up = 12064131,
-        Down = 12064152,
-        Front = 12064121,
-        Back = 12064107,
-        Left = 12063984,
-        Right = 12064115
-    },
-    ["Green"] = {
-        Up = 566611218,
-        Down = 566613198,
-        Front = 566611142,
-        Back = 566611187,
-        Left = 566611266,
-        Right = 566611300
-    },
-    ["Gold"] = {
-        Up = 150939082,
-        Down = 150939038,
-        Front = 150939047,
-        Back = 150939022,
-        Left = 150939056,
-        Right = 150939063
-    },
-    ["Red"] = {
-        Up = 401664936,
-        Down = 401664862,
-        Front = 401664960,
-        Back = 401664839,
-        Left = 401664881,
-        Right = 401664901
-    },
-    ["Red V2"] = {
-        Up = 570555929,
-        Down = 570555964,
-        Front = 570555800,
-        Back = 570555736,
-        Left = 570555840,
-        Right = 570555882 
-    },
-    ["Violet"] = {
-        Up = 17279864507,
-        Down = 17279856318,
-        Front = 17279858447,
-        Back = 17279854976,
-        Left = 17279860360,
-        Right = 17279862234
-    },
-    ["Dark"] = {
-        Up = 149680199,
-        Down = 149681979,
-        Front = 149679690,
-        Back = 149679669,
-        Left = 149679709,
-        Right = 149679722
-    },
-    ["Stones"] = {
-        Up = 16262366016,
-        Down = 16262358026,
-        Front = 16262360469,
-        Back = 16262356578,
-        Left = 16262362003,
-        Right = 16262363873
-    },
-    ["Atmosphere"] = {
-        Up = 151165227,
-        Down = 151165197,
-        Front = 151165224,
-        Back = 151165214,
-        Left = 151165191,
-        Right = 151165206
-    },
-    ["Atmosphere V2"] = {
-        Up = 15470318949,
-        Down = 15470308646,
-        Front = 15470306877,
-        Back = 15470310980,
-        Left = 15470312884,
-        Right = 15470316058
-    },
-    ["Atmosphere V3"] = {
-        Up = 600835177,
-        Down = 600831635,
-        Front = 600832720,
-        Back = 600830446,
-        Left = 600886090,
-        Right = 600833862
-    },
-    ["Space"] = {
-        Up = 15983964246,
-        Down = 15983966825,
-        Front = 15983965025,
-        Back = 15983968922,
-        Left = 15983967420,
-        Right = 15983966246
-    },
-    ["Pink"] = {
-        Up = 271077958,
-        Down = 271077243,
-        Front = 271042556,
-        Back = 271042516,
-        Left = 271042310,
-        Right = 271042467
-    },
-    ["Pink V2"] = {
-        Up = 12635316856,
-        Down = 12635311686,
-        Front = 12635312870,
-        Back = 12635309703,
-        Left = 12635313718,
-        Right = 12635315817 
-    },
-    ["Obby Sky"] = {
-        Up = 1194119030,
-        Down = 724361046,
-        Front = 1194117232,
-        Back = 1194117595,
-        Left = 1194117595,
-        Right = 1194117232
-    },
-}
-
-_G.Settings = {
-    Players = {
-        ["Ignore Me"] = true,
-        ["Ignore Others"] = true,
-        ["Ignore Tools"] = true
-    },
-    Meshes = {
-        NoMesh = false,
-        NoTexture = false,
-        Destroy = false
-    },
-    Images = {
-        Invisible = false,
-        Destroy = false
-    },
-    Explosions = {
-        Smaller = true,
-        Invisible = false,
-        Destroy = false
-    },
-    Particles = {
-        Invisible = true,
-        Destroy = false
-    },
-    TextLabels = {
-        LowerQuality = false,
-        Invisible = false,
-        Destroy = false
-    },
-    MeshParts = {
-        LowerQuality = true,
-        Invisible = false,
-        NoTexture = false,
-        NoMesh = false,
-        Destroy = false
-    },
-    Other = {
-        ["FPS Cap"] = 240,
-        ["No Camera Effects"] = true,
-        ["No Clothes"] = false,
-        ["Low Water Graphics"] = true,
-        ["No Shadows"] = true,
-        ["Low Rendering"] = true,
-        ["Low Quality Parts"] = true,
-        ["Low Quality Models"] = true,
-        ["Reset Materials"] = true,
-        ["Lower Quality MeshParts"] = true
-    }
-}
-
-_G.SendNotifications = false
-_G.ConsoleLogs = false
-
-local MaterialService = game:GetService("MaterialService")
-local ME = Players.LocalPlayer
-local CanBeEnabled = {"ParticleEmitter", "Trail", "Smoke", "Fire", "Sparkles"}
-local descendantAddedConnection = nil
-local originalStates = {}
-local graphicsConnection, skyboxConnection, heartbeatConnection
-local lastGraphicsState = {}
-local lastSkyboxPreset = nil
-local connectionSQRT = nil
-local trackedInstances = {}
-local originalSettings = nil
-local TARGET_MODEL_NAME = "ДомнойМоиюйПодомной"
-local targetModel = game.Workspace:FindFirstChild(TARGET_MODEL_NAME)
 
 local function deepcopy(orig)
     local orig_type = type(orig)
@@ -296,6 +303,8 @@ local function deepcopy(orig)
     return copy
 end
 
+_G.WorldFunctions.deepcopy = deepcopy
+
 local function PartOfCharacter(Instance)
     for _, player in pairs(Players:GetPlayers()) do
         if player.Character and Instance:IsDescendantOf(player.Character) then
@@ -305,17 +314,21 @@ local function PartOfCharacter(Instance)
     return false
 end
 
+_G.WorldFunctions.PartOfCharacter = PartOfCharacter
+
 local function storeOriginal(instance, propertyName)
-    if not originalStates[instance] then
-        originalStates[instance] = {}
+    if not _G.WorldFunctions.originalStates[instance] then
+        _G.WorldFunctions.originalStates[instance] = {}
     end
-    if originalStates[instance][propertyName] == nil then
-        originalStates[instance][propertyName] = instance[propertyName]
+    if _G.WorldFunctions.originalStates[instance][propertyName] == nil then
+        _G.WorldFunctions.originalStates[instance][propertyName] = instance[propertyName]
     end
 end
 
+_G.WorldFunctions.storeOriginal = storeOriginal
+
 local function revertAllChanges()
-    for instance, properties in pairs(originalStates) do
+    for instance, properties in pairs(_G.WorldFunctions.originalStates) do
         if instance and instance.Parent ~= nil then
             for prop, value in pairs(properties) do
                 pcall(function()
@@ -324,85 +337,89 @@ local function revertAllChanges()
             end
         end
     end
-    originalStates = {}
+    _G.WorldFunctions.originalStates = {}
 end
+
+_G.WorldFunctions.revertAllChanges = revertAllChanges
 
 local function CheckIfBad(Instance)
     if PartOfCharacter(Instance) then
         return
     end
     if Instance:IsA("DataModelMesh") then
-        if _G.Settings.Meshes.NoMesh and Instance:IsA("SpecialMesh") then
+        if _G.WorldFunctions.Settings.Meshes.NoMesh and Instance:IsA("SpecialMesh") then
             storeOriginal(Instance, "MeshId")
             Instance.MeshId = ""
         end
-        if _G.Settings.Meshes.NoTexture and Instance:IsA("SpecialMesh") then
+        if _G.WorldFunctions.Settings.Meshes.NoTexture and Instance:IsA("SpecialMesh") then
             storeOriginal(Instance, "TextureId")
             Instance.TextureId = ""
         end
-        if _G.Settings.Meshes.Destroy then
+        if _G.WorldFunctions.Settings.Meshes.Destroy then
             storeOriginal(Instance, "Transparency")
             Instance.Transparency = 1
         end
     elseif Instance:IsA("FaceInstance") then
-        if _G.Settings.Images.Invisible then
+        if _G.WorldFunctions.Settings.Images.Invisible then
             storeOriginal(Instance, "Transparency")
             Instance.Transparency = 1
         end
-        if _G.Settings.Images.Destroy then
+        if _G.WorldFunctions.Settings.Images.Destroy then
             storeOriginal(Instance, "Transparency")
             Instance.Transparency = 1
         end
-    elseif table.find(CanBeEnabled, Instance.ClassName) then
-        if _G.Settings.Particles.Invisible then
+    elseif table.find(_G.WorldFunctions.CanBeEnabled, Instance.ClassName) then
+        if _G.WorldFunctions.Settings.Particles.Invisible then
             storeOriginal(Instance, "Enabled")
             Instance.Enabled = false
         end
-        if _G.Settings.Particles.Destroy then
+        if _G.WorldFunctions.Settings.Particles.Destroy then
             storeOriginal(Instance, "Enabled")
             Instance.Enabled = false
         end
-    elseif Instance:IsA("PostEffect") and _G.Settings.Other["No Camera Effects"] then
+    elseif Instance:IsA("PostEffect") and _G.WorldFunctions.Settings.Other["No Camera Effects"] then
         storeOriginal(Instance, "Enabled")
         Instance.Enabled = false
     elseif Instance:IsA("Explosion") then
-        if _G.Settings.Explosions.Smaller then
+        if _G.WorldFunctions.Settings.Explosions.Smaller then
             storeOriginal(Instance, "BlastPressure")
             storeOriginal(Instance, "BlastRadius")
             Instance.BlastPressure = 1
             Instance.BlastRadius = 1
         end
-        if _G.Settings.Explosions.Invisible then
+        if _G.WorldFunctions.Settings.Explosions.Invisible then
             storeOriginal(Instance, "Visible")
             Instance.Visible = false
         end
-        if _G.Settings.Explosions.Destroy then
+        if _G.WorldFunctions.Settings.Explosions.Destroy then
             storeOriginal(Instance, "Visible")
             Instance.Visible = false
         end
     elseif Instance:IsA("Clothing") or Instance:IsA("SurfaceAppearance") then
-        if _G.Settings.Other["No Clothes"] then
+        if _G.WorldFunctions.Settings.Other["No Clothes"] then
             Instance:Destroy()
         end
     elseif Instance:IsA("BasePart") and not Instance:IsA("MeshPart") then
-        if _G.Settings.Other["Low Quality Parts"] then
+        if _G.WorldFunctions.Settings.Other["Low Quality Parts"] then
             storeOriginal(Instance, "Material")
             Instance.Material = Enum.Material.Plastic
         end
-    elseif Instance:IsA("Model") and _G.Settings.Other["Low Quality Models"] then
+    elseif Instance:IsA("Model") and _G.WorldFunctions.Settings.Other["Low Quality Models"] then
         storeOriginal(Instance, "LevelOfDetail")
         Instance.LevelOfDetail = 1
     elseif Instance:IsA("MeshPart") then
-        if _G.Settings.MeshParts.LowerQuality then
+        if _G.WorldFunctions.Settings.MeshParts.LowerQuality then
             storeOriginal(Instance, "RenderFidelity")
             Instance.RenderFidelity = 2
         end
-        if _G.Settings.MeshParts.Invisible then
+        if _G.WorldFunctions.Settings.MeshParts.Invisible then
             storeOriginal(Instance, "Transparency")
             Instance.Transparency = 1
         end
     end
 end
+
+_G.WorldFunctions.CheckIfBad = CheckIfBad
 
 local function isBelowPlayer(part)
     local player = Players.LocalPlayer
@@ -411,6 +428,8 @@ local function isBelowPlayer(part)
     end
     return false
 end
+
+_G.WorldFunctions.isBelowPlayer = isBelowPlayer
 
 local function isDamagingPart(part)
     for _, child in pairs(part:GetChildren()) do
@@ -421,17 +440,19 @@ local function isDamagingPart(part)
     return false
 end
 
+_G.WorldFunctions.isDamagingPart = isDamagingPart
+
 local function exProPerformance(root)
     for _, v in pairs(root:GetChildren()) do
-        if trackedInstances[v] then continue end
+        if _G.WorldFunctions.trackedInstances[v] then continue end
         if v:IsA("Decal") then
             if not PartOfCharacter(v) then
                 v:Destroy()
             end
         elseif v:IsA("BasePart") then
             if not PartOfCharacter(v) then
-                trackedInstances[v] = true
-                local isInTargetModel = targetModel and v:IsDescendantOf(targetModel)
+                _G.WorldFunctions.trackedInstances[v] = true
+                local isInTargetModel = _G.WorldFunctions.targetModel and v:IsDescendantOf(_G.WorldFunctions.targetModel)
                 storeOriginal(v, "Material")
                 storeOriginal(v, "Transparency")
                 v.Material = Enum.Material.SmoothPlastic
@@ -439,10 +460,10 @@ local function exProPerformance(root)
                     if isBelowPlayer(v) and isDamagingPart(v) then
                         v.Transparency = 1
                     else
-                        v.Transparency = originalStates[v] and originalStates[v].Transparency or 0
+                        v.Transparency = _G.WorldFunctions.originalStates[v] and _G.WorldFunctions.originalStates[v].Transparency or 0
                     end
                 else
-                    v.Transparency = originalStates[v] and originalStates[v].Transparency or 0
+                    v.Transparency = _G.WorldFunctions.originalStates[v] and _G.WorldFunctions.originalStates[v].Transparency or 0
                 end
             end
         end
@@ -450,25 +471,27 @@ local function exProPerformance(root)
     end
 end
 
-_G.ApplySQRTChanges = function()
-    if connectionSQRT then
-        connectionSQRT:Disconnect()
-        connectionSQRT = nil
+_G.WorldFunctions.exProPerformance = exProPerformance
+
+function _G.WorldFunctions.ApplySQRTChanges()
+    if _G.WorldFunctions.connectionSQRT then
+        _G.WorldFunctions.connectionSQRT:Disconnect()
+        _G.WorldFunctions.connectionSQRT = nil
     end
-    if descendantAddedConnection then
-        descendantAddedConnection:Disconnect()
-        descendantAddedConnection = nil
+    if _G.WorldFunctions.descendantAddedConnection then
+        _G.WorldFunctions.descendantAddedConnection:Disconnect()
+        _G.WorldFunctions.descendantAddedConnection = nil
     end
     revertAllChanges()
-    trackedInstances = {}
-    if SQRTEnabled then
-        if not originalSettings then
-            originalSettings = deepcopy(_G.Settings)
+    _G.WorldFunctions.trackedInstances = {}
+    if _G.WorldFunctions.SQRTEnabled then
+        if not _G.WorldFunctions.originalSettings then
+            _G.WorldFunctions.originalSettings = deepcopy(_G.WorldFunctions.Settings)
         else
-            _G.Settings = deepcopy(originalSettings)
+            _G.WorldFunctions.Settings = deepcopy(_G.WorldFunctions.originalSettings)
         end
-        if SQRTMode == "Performance" then
-            for category, settingsTable in pairs(_G.Settings) do
+        if _G.WorldFunctions.SQRTMode == "Performance" then
+            for category, settingsTable in pairs(_G.WorldFunctions.Settings) do
                 if type(settingsTable) == "table" then
                     for key in pairs(settingsTable) do
                         if type(settingsTable[key]) == "boolean" then
@@ -477,13 +500,13 @@ _G.ApplySQRTChanges = function()
                     end
                 end
             end
-            _G.Settings.Images.Invisible = false
-            _G.Settings.Images.Destroy = false
-            _G.Settings.Other["Low Quality Parts"] = false
+            _G.WorldFunctions.Settings.Images.Invisible = false
+            _G.WorldFunctions.Settings.Images.Destroy = false
+            _G.WorldFunctions.Settings.Other["Low Quality Parts"] = false
             exProPerformance(game.Workspace)
-            connectionSQRT = game.Workspace.DescendantAdded:Connect(exProPerformance)
-        elseif SQRTMode == "Quality" then
-            for category, settingsTable in pairs(_G.Settings) do
+            _G.WorldFunctions.connectionSQRT = game.Workspace.DescendantAdded:Connect(exProPerformance)
+        elseif _G.WorldFunctions.SQRTMode == "Quality" then
+            for category, settingsTable in pairs(_G.WorldFunctions.Settings) do
                 if type(settingsTable) == "table" then
                     for key in pairs(settingsTable) do
                         if type(settingsTable[key]) == "boolean" then
@@ -492,20 +515,20 @@ _G.ApplySQRTChanges = function()
                     end
                 end
             end
-        elseif SQRTMode == "Balance" then
-            _G.Settings.Other["No Shadows"] = true
-            _G.Settings.Other["Low Rendering"] = true
-            _G.Settings.Particles = {
+        elseif _G.WorldFunctions.SQRTMode == "Balance" then
+            _G.WorldFunctions.Settings.Other["No Shadows"] = true
+            _G.WorldFunctions.Settings.Other["Low Rendering"] = true
+            _G.WorldFunctions.Settings.Particles = {
                 Invisible = true,
                 Destroy = false
             }
-            _G.Settings.TextLabels = {
+            _G.WorldFunctions.Settings.TextLabels = {
                 LowerQuality = false,
                 Invisible = false,
                 Destroy = false
             }
         end
-        if _G.Settings.Other["Low Water Graphics"] then
+        if _G.WorldFunctions.Settings.Other["Low Water Graphics"] then
             storeOriginal(workspace.Terrain, "WaterWaveSize")
             storeOriginal(workspace.Terrain, "WaterWaveSpeed")
             storeOriginal(workspace.Terrain, "WaterReflectance")
@@ -513,31 +536,31 @@ _G.ApplySQRTChanges = function()
             workspace.Terrain.WaterWaveSpeed = 0
             workspace.Terrain.WaterReflectance = 0
         end
-        if _G.Settings.Other["No Shadows"] then
+        if _G.WorldFunctions.Settings.Other["No Shadows"] then
             storeOriginal(Lighting, "GlobalShadows")
             storeOriginal(Lighting, "ShadowSoftness")
             Lighting.GlobalShadows = false
             Lighting.ShadowSoftness = 0
         end
-        if _G.Settings.Other["Low Rendering"] then
+        if _G.WorldFunctions.Settings.Other["Low Rendering"] then
             storeOriginal(settings().Rendering, "QualityLevel")
             settings().Rendering.QualityLevel = 1
         end
-        descendantAddedConnection = game.DescendantAdded:Connect(CheckIfBad)
+        _G.WorldFunctions.descendantAddedConnection = game.DescendantAdded:Connect(CheckIfBad)
         for _, v in pairs(game:GetDescendants()) do
             CheckIfBad(v)
         end
     else
-        if originalSettings then
-            _G.Settings = deepcopy(originalSettings)
-            originalSettings = nil
+        if _G.WorldFunctions.originalSettings then
+            _G.WorldFunctions.Settings = deepcopy(_G.WorldFunctions.originalSettings)
+            _G.WorldFunctions.originalSettings = nil
         end
-        workspace.Terrain.WaterWaveSize = originalTerrainState.WaterWaveSize
-        workspace.Terrain.WaterWaveSpeed = originalTerrainState.WaterWaveSpeed
-        workspace.Terrain.WaterReflectance = originalTerrainState.WaterReflectance
-        Lighting.GlobalShadows = originalLightingState.GlobalShadows
-        Lighting.ShadowSoftness = originalLightingState.ShadowSoftness
-        settings().Rendering.QualityLevel = originalRenderingQuality
+        workspace.Terrain.WaterWaveSize = _G.WorldFunctions.originalTerrainState.WaterWaveSize
+        workspace.Terrain.WaterWaveSpeed = _G.WorldFunctions.originalTerrainState.WaterWaveSpeed
+        workspace.Terrain.WaterReflectance = _G.WorldFunctions.originalTerrainState.WaterReflectance
+        Lighting.GlobalShadows = _G.WorldFunctions.originalLightingState.GlobalShadows
+        Lighting.ShadowSoftness = _G.WorldFunctions.originalLightingState.ShadowSoftness
+        settings().Rendering.QualityLevel = _G.WorldFunctions.originalRenderingQuality
     end
 end
 
@@ -551,37 +574,39 @@ local function CreateOrUpdateEffect(className, settings, instanceName)
     return effect
 end
 
-_G.ApplyBeautifulGraphics = function()
-    CreateOrUpdateEffect("BloomEffect", beautifulGraphicsSettings.Bloom, "BeautifulBloom")
-    CreateOrUpdateEffect("SunRaysEffect", beautifulGraphicsSettings.SunRays, "BeautifulSunRays")
-    CreateOrUpdateEffect("ColorCorrectionEffect", beautifulGraphicsSettings.ColorCorrection, "BeautifulColorCorrection")
-    CreateOrUpdateEffect("BlurEffect", beautifulGraphicsSettings.Blur, "BeautifulBlur")
-    for setting, value in pairs(beautifulGraphicsSettings.Lighting) do
+_G.WorldFunctions.CreateOrUpdateEffect = CreateOrUpdateEffect
+
+function _G.WorldFunctions.ApplyBeautifulGraphics()
+    CreateOrUpdateEffect("BloomEffect", _G.WorldFunctions.beautifulGraphicsSettings.Bloom, "BeautifulBloom")
+    CreateOrUpdateEffect("SunRaysEffect", _G.WorldFunctions.beautifulGraphicsSettings.SunRays, "BeautifulSunRays")
+    CreateOrUpdateEffect("ColorCorrectionEffect", _G.WorldFunctions.beautifulGraphicsSettings.ColorCorrection, "BeautifulColorCorrection")
+    CreateOrUpdateEffect("BlurEffect", _G.WorldFunctions.beautifulGraphicsSettings.Blur, "BeautifulBlur")
+    for setting, value in pairs(_G.WorldFunctions.beautifulGraphicsSettings.Lighting) do
         Lighting[setting] = value
     end
 end
 
-_G.RestoreOriginalGraphics = function()
+function _G.WorldFunctions.RestoreOriginalGraphics()
     for _, name in pairs({"BeautifulBloom", "BeautifulSunRays", "BeautifulColorCorrection", "BeautifulBlur"}) do
         local effect = Lighting:FindFirstChild(name)
         if effect then effect:Destroy() end
     end
-    for setting, value in pairs(originalGraphicsSettings.Lighting) do
+    for setting, value in pairs(_G.WorldFunctions.originalGraphicsSettings.Lighting) do
         Lighting[setting] = value
     end
     if Lighting:FindFirstChild("CustomSky") then
         Lighting.CustomSky:Destroy()
     end
-    if originalGraphicsSettings.Sky then
-        originalGraphicsSettings.Sky.Parent = Lighting
+    if _G.WorldFunctions.originalGraphicsSettings.Sky then
+        _G.WorldFunctions.originalGraphicsSettings.Sky.Parent = Lighting
     end
 end
 
-_G.UpdateSkyBox = function(preset)
-    if not skyboxPresets[preset] then return end
+function _G.WorldFunctions.UpdateSkyBox(preset)
+    if not _G.WorldFunctions.skyboxPresets[preset] then return end
     local s = Lighting:FindFirstChild("CustomSky") or Instance.new("Sky")
     s.Name = "CustomSky"
-    local ids = skyboxPresets[preset]
+    local ids = _G.WorldFunctions.skyboxPresets[preset]
     s.SkyboxUp = "rbxassetid://"..ids.Up
     s.SkyboxDn = "rbxassetid://"..ids.Down
     s.SkyboxFt = "rbxassetid://"..ids.Front
@@ -592,12 +617,12 @@ _G.UpdateSkyBox = function(preset)
     Lighting.TimeOfDay = "12:00:00"
 end
 
-_G.StartPersistentGraphics = function()
-    if graphicsConnection then
-        graphicsConnection:Disconnect()
+function _G.WorldFunctions.StartPersistentGraphics()
+    if _G.WorldFunctions.graphicsConnection then
+        _G.WorldFunctions.graphicsConnection:Disconnect()
     end
-    graphicsConnection = RunService.Heartbeat:Connect(function()
-        if not BeautifulGraphicsEnabled then return end
+    _G.WorldFunctions.graphicsConnection = RunService.Heartbeat:Connect(function()
+        if not _G.WorldFunctions.BeautifulGraphicsEnabled then return end
         local needsUpdate = false
         for _, effect in pairs({"BeautifulBloom", "BeautifulSunRays", "BeautifulColorCorrection", "BeautifulBlur"}) do
             if not Lighting:FindFirstChild(effect) then
@@ -605,65 +630,65 @@ _G.StartPersistentGraphics = function()
                 break
             end
         end
-        for setting, value in pairs(beautifulGraphicsSettings.Lighting) do
-            if Lighting[setting] ~= value and lastGraphicsState[setting] ~= value then
+        for setting, value in pairs(_G.WorldFunctions.beautifulGraphicsSettings.Lighting) do
+            if Lighting[setting] ~= value and _G.WorldFunctions.lastGraphicsState[setting] ~= value then
                 needsUpdate = true
                 break
             end
         end
         if needsUpdate then
-            ApplyBeautifulGraphics()
-            for setting, value in pairs(beautifulGraphicsSettings.Lighting) do
-                lastGraphicsState[setting] = value
+            _G.WorldFunctions.ApplyBeautifulGraphics()
+            for setting, value in pairs(_G.WorldFunctions.beautifulGraphicsSettings.Lighting) do
+                _G.WorldFunctions.lastGraphicsState[setting] = value
             end
         end
     end)
 end
 
-_G.StopPersistentGraphics = function()
-    if graphicsConnection then
-        graphicsConnection:Disconnect()
-        graphicsConnection = nil
+function _G.WorldFunctions.StopPersistentGraphics()
+    if _G.WorldFunctions.graphicsConnection then
+        _G.WorldFunctions.graphicsConnection:Disconnect()
+        _G.WorldFunctions.graphicsConnection = nil
     end
-    lastGraphicsState = {}
+    _G.WorldFunctions.lastGraphicsState = {}
 end
 
-_G.StartPersistentSkyBox = function()
-    if skyboxConnection then
-        skyboxConnection:Disconnect()
+function _G.WorldFunctions.StartPersistentSkyBox()
+    if _G.WorldFunctions.skyboxConnection then
+        _G.WorldFunctions.skyboxConnection:Disconnect()
     end
-    skyboxConnection = RunService.Heartbeat:Connect(function()
-        if not CustomSkyBoxEnabled then return end
-        if not Lighting:FindFirstChild("CustomSky") or lastSkyboxPreset ~= currentSkyBox then
-            UpdateSkyBox(currentSkyBox)
-            lastSkyboxPreset = currentSkyBox
+    _G.WorldFunctions.skyboxConnection = RunService.Heartbeat:Connect(function()
+        if not _G.WorldFunctions.CustomSkyBoxEnabled then return end
+        if not Lighting:FindFirstChild("CustomSky") or _G.WorldFunctions.lastSkyboxPreset ~= _G.WorldFunctions.currentSkyBox then
+            _G.WorldFunctions.UpdateSkyBox(_G.WorldFunctions.currentSkyBox)
+            _G.WorldFunctions.lastSkyboxPreset = _G.WorldFunctions.currentSkyBox
         end
     end)
 end
 
-_G.StopPersistentSkyBox = function()
-    if skyboxConnection then
-        skyboxConnection:Disconnect()
-        skyboxConnection = nil
+function _G.WorldFunctions.StopPersistentSkyBox()
+    if _G.WorldFunctions.skyboxConnection then
+        _G.WorldFunctions.skyboxConnection:Disconnect()
+        _G.WorldFunctions.skyboxConnection = nil
     end
-    lastSkyboxPreset = nil
+    _G.WorldFunctions.lastSkyboxPreset = nil
 end
 
-_G.SafeUpdate = function()
-    if LightEnabled then
-        local intensity = IntensityValue / 10
+function _G.WorldFunctions.SafeUpdate()
+    if _G.WorldFunctions.LightEnabled then
+        local intensity = _G.WorldFunctions.IntensityValue / 10
         Lighting.Ambient = Color3.new(intensity, intensity, intensity)
         Lighting.OutdoorAmbient = Color3.new(intensity, intensity, intensity)
     end
 end
 
-_G.MaintainLight = function()
-    if heartbeatConnection then
-        heartbeatConnection:Disconnect()
+function _G.WorldFunctions.MaintainLight()
+    if _G.WorldFunctions.heartbeatConnection then
+        _G.WorldFunctions.heartbeatConnection:Disconnect()
     end
-    heartbeatConnection = RunService.Heartbeat:Connect(function()
-        if LightEnabled then
-            SafeUpdate()
+    _G.WorldFunctions.heartbeatConnection = RunService.Heartbeat:Connect(function()
+        if _G.WorldFunctions.LightEnabled then
+            _G.WorldFunctions.SafeUpdate()
             if Lighting.ClockTime ~= 12 then
                 Lighting.ClockTime = 12
             end
@@ -673,3 +698,5 @@ _G.MaintainLight = function()
         end
     end)
 end
+
+return _G.WorldFunctions
