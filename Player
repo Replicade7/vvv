@@ -1,0 +1,620 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LP = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+_G.FlyEnabled = false
+_G.FlySpeed = 50
+_G.Control = {F = 0, B = 0, L = 0, R = 0, U = 0, D = 0}
+_G.LastMove = 0
+_G.BGyro, _G.BVelocity = nil, nil
+
+_G.BunnyHopEnabled = false
+_G.BunnyHop_Length = 1
+_G.JumpSettings = {Power = 50, Cooldown = 0.8}
+_G.AirControlMultiplier = _G.BunnyHop_Length
+_G.BV, _G.Humanoid, _G.HRP = nil, nil, nil
+_G.canJump = true
+_G.MovementConnection, _G.JumpConnection = nil, nil
+
+_G.NoFallDamageEnabled = false
+_G.nfdConnection = nil
+_G.MAX_SAFE_VELOCITY = 30
+_G.RAY_LENGTH = 200
+_G.SAFETY_MARGIN = 1.5
+_G.groundCheckRayParams = RaycastParams.new()
+_G.groundCheckRayParams.FilterType = Enum.RaycastFilterType.Exclude
+_G.groundCheckRayParams.IgnoreWater = true
+_G.originalStates = {FallingDown = true, PlatformStanding = true, Freefall = true}
+
+_G.AutoJumpEnabled = false
+_G.AutoJumpThread = nil
+
+_G.NoClipEnabled = false
+_G.noclipConn = nil
+
+_G.InfinityJumpEnabled = false
+
+_G.SpeedChangeEnabled = false
+_G.Walk_Speed = 30
+_G.speedConn = nil
+_G.originalWalkSpeed = 16
+_G.velocityMultiplier = 1
+
+_G.JumpChangeEnabled = false
+_G.Jump_Power = 50
+_G.jumpConn = nil
+_G.jumpCooldown = 0
+_G.originalJumpPower = 50
+
+_G.AntiAimEnabled = false
+_G.AntiAimSpeed = 10
+_G.SpinAngle = 0
+
+_G.ToggleFly = function(state)
+    _G.FlyEnabled = state
+    local Character = LP.Character
+    if not Character then return end
+    local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+    if not Humanoid then return end
+
+    if _G.BGyro then _G.BGyro:Destroy() end
+    if _G.BVelocity then _G.BVelocity:Destroy() end
+
+    if state then
+        Humanoid.PlatformStand = true
+        _G.BGyro = Instance.new("BodyGyro")
+        _G.BVelocity = Instance.new("BodyVelocity")
+        local rootPart = Humanoid.RigType == Enum.HumanoidRigType.R6 and Character.Torso or Character.UpperTorso
+        if not rootPart then return end
+
+        _G.BGyro.P = 9e4
+        _G.BGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+        _G.BVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+        _G.BGyro.Parent = rootPart
+        _G.BVelocity.Parent = rootPart
+
+        if Character:FindFirstChild("Animate") then
+            Character.Animate.Disabled = true
+        end
+        
+        for _, stateType in pairs(Enum.HumanoidStateType:GetEnumItems()) do
+            if stateType ~= Enum.HumanoidStateType.Dead then
+                Humanoid:SetStateEnabled(stateType, false)
+            end
+        end
+        Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming, true)
+        Humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
+        Humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
+    else
+        Humanoid.PlatformStand = false
+        if Character:FindFirstChild("Animate") then
+            Character.Animate.Disabled = false
+        end
+        for _, stateType in pairs(Enum.HumanoidStateType:GetEnumItems()) do
+            Humanoid:SetStateEnabled(stateType, true)
+        end
+    end
+end
+
+UserInputService.InputBegan:Connect(function(input, processed)
+    if processed or not _G.FlyEnabled then return end
+    if input.KeyCode == Enum.KeyCode.W then _G.Control.F = 1
+    elseif input.KeyCode == Enum.KeyCode.S then _G.Control.B = 1
+    elseif input.KeyCode == Enum.KeyCode.A then _G.Control.L = 1
+    elseif input.KeyCode == Enum.KeyCode.D then _G.Control.R = 1
+    elseif input.KeyCode == Enum.KeyCode.Space then _G.Control.U = 1
+    elseif input.KeyCode == Enum.KeyCode.LeftShift then _G.Control.D = 1 end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if not _G.FlyEnabled then return end
+    if input.KeyCode == Enum.KeyCode.W then _G.Control.F = 0
+    elseif input.KeyCode == Enum.KeyCode.S then _G.Control.B = 0
+    elseif input.KeyCode == Enum.KeyCode.A then _G.Control.L = 0
+    elseif input.KeyCode == Enum.KeyCode.D then _G.Control.R = 0
+    elseif input.KeyCode == Enum.KeyCode.Space then _G.Control.U = 0
+    elseif input.KeyCode == Enum.KeyCode.LeftShift then _G.Control.D = 0 end
+end)
+
+_G.UpdateFly = function()
+    if _G.FlyEnabled then
+        local Character = LP.Character
+        if not Character then return end
+        local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+        if not Humanoid or Humanoid.Health <= 0 then return end
+        local rootPart = Humanoid.RigType == Enum.HumanoidRigType.R6 and Character.Torso or Character.UpperTorso
+        if not rootPart then return end
+        
+        if not _G.BGyro or not _G.BGyro.Parent then
+            _G.BGyro = Instance.new("BodyGyro")
+            _G.BGyro.P = 9e4
+            _G.BGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+            _G.BGyro.Parent = rootPart
+        end
+        
+        if not _G.BVelocity or not _G.BVelocity.Parent then
+            _G.BVelocity = Instance.new("BodyVelocity")
+            _G.BVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+            _G.BVelocity.Parent = rootPart
+        end
+
+        local camera = workspace.CurrentCamera
+        local moveVector = Vector3.new(_G.Control.R - _G.Control.L, _G.Control.U - _G.Control.D, _G.Control.B - _G.Control.F)
+        
+        if moveVector.Magnitude > 0 then
+            _G.LastMove = time()
+            _G.BVelocity.Velocity = camera.CFrame:VectorToWorldSpace(moveVector.Unit) * _G.FlySpeed
+            _G.BGyro.CFrame = camera.CFrame
+        elseif time() - _G.LastMove > 0.1 then
+            _G.BVelocity.Velocity = Vector3.new()
+        end
+    end
+end
+
+LP.CharacterAdded:Connect(function(Character)
+    if _G.FlyEnabled then
+        wait(1)
+        _G.ToggleFly(true)
+    end
+end)
+
+RunService.Heartbeat:Connect(function()
+    pcall(_G.UpdateFly)
+end)
+
+_G.InitCharacter = function()
+    local Char = LP.Character
+    if not Char then return end
+    
+    _G.HRP = Char:WaitForChild("HumanoidRootPart")
+    _G.Humanoid = Char:WaitForChild("Humanoid")
+    _G.Humanoid.JumpPower = _G.JumpSettings.Power
+    
+    if _G.BunnyHopEnabled then
+        if _G.BV then _G.BV:Destroy() end
+        _G.BV = Instance.new("BodyVelocity")
+        _G.BV.Parent = _G.HRP
+        _G.BV.MaxForce = Vector3.new(0, 0, 0)
+    end
+    
+    _G.AirControlMultiplier = _G.BunnyHop_Length
+end
+
+_G.ToggleBunnyHop = function(state)
+    _G.BunnyHopEnabled = state
+    if state then
+        if _G.MovementConnection then _G.MovementConnection:Disconnect() end
+        if _G.JumpConnection then _G.JumpConnection:Disconnect() end
+
+        if LP.Character then
+            _G.InitCharacter()
+        end
+
+        _G.MovementConnection = RunService.Heartbeat:Connect(function(delta)
+            if _G.Humanoid and _G.HRP and _G.Humanoid:GetState() == Enum.HumanoidStateType.Freefall then
+                if not _G.BV then
+                    _G.BV = Instance.new("BodyVelocity")
+                    _G.BV.Parent = _G.HRP
+                end
+                _G.BV.MaxForce = Vector3.new(5000, 0, 5000)
+                local moveDir = _G.Humanoid.MoveDirection
+                local currentVel = _G.HRP.Velocity
+                local targetVel = Vector3.new(moveDir.X * 25 * _G.AirControlMultiplier, 0, moveDir.Z * 25 * _G.AirControlMultiplier)
+                _G.BV.Velocity = Vector3.new(currentVel.X * 0.8 + targetVel.X * 0.2, 0, currentVel.Z * 0.8 + targetVel.Z * 0.2)
+            elseif _G.BV then
+                _G.BV.MaxForce = Vector3.new(0, 0, 0)
+            end
+        end)
+
+        _G.JumpConnection = UserInputService.JumpRequest:Connect(function()
+            if _G.canJump and _G.Humanoid and _G.Humanoid:GetState() ~= Enum.HumanoidStateType.Freefall then
+                _G.Humanoid.JumpPower = _G.JumpSettings.Power
+                _G.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                _G.canJump = false
+                task.wait(_G.JumpSettings.Cooldown)
+                _G.canJump = true
+            end
+        end)
+    else
+        if _G.MovementConnection then _G.MovementConnection:Disconnect() end
+        if _G.JumpConnection then _G.JumpConnection:Disconnect() end
+        if _G.BV then 
+            _G.BV:Destroy() 
+            _G.BV = nil
+        end
+        _G.canJump = true
+    end
+end
+
+LP.CharacterAdded:Connect(function(newChar)
+    task.wait() 
+    if _G.BunnyHopEnabled then
+        _G.InitCharacter()
+        _G.ToggleBunnyHop(true)
+    end
+end)
+
+LP.CharacterAdded:Connect(function(newChar)
+    newChar:WaitForChild("Humanoid").Died:Connect(function()
+        if _G.MovementConnection then _G.MovementConnection:Disconnect() end
+        if _G.JumpConnection then _G.JumpConnection:Disconnect() end
+        if _G.BV then _G.BV:Destroy() end
+        _G.canJump = true
+        _G.MovementConnection = nil
+        _G.JumpConnection = nil
+        _G.Humanoid = nil
+        _G.HRP = nil
+    end)
+end)
+
+if LP.Character then
+    _G.InitCharacter()
+end
+
+_G.getGroundInfo = function(character)
+    if not character then return math.huge, nil end
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return math.huge, nil end
+    _G.groundCheckRayParams.FilterDescendantsInstances = {character}
+    local origin = hrp.Position + Vector3.new(0, 2, 0)
+    local ray = Ray.new(origin, Vector3.new(0, -_G.RAY_LENGTH, 0))
+    local result = workspace:Raycast(ray.Origin, ray.Direction, _G.groundCheckRayParams)
+    if result then
+        return (origin.Y - result.Position.Y), result
+    end
+    return math.huge, nil
+end
+
+_G.applyFallProtection = function(hrp)
+    if not _G.NoFallDamageEnabled then return hrp.Velocity end
+    local groundDistance, hitData = _G.getGroundInfo(LP.Character)
+    local currentVelocity = hrp.Velocity
+    if currentVelocity.Y < 0 and groundDistance < _G.RAY_LENGTH then
+        local timeToHit = groundDistance / math.abs(currentVelocity.Y)
+        if timeToHit < 0.5 then
+            local requiredVelocity = math.min(-_G.MAX_SAFE_VELOCITY, currentVelocity.Y)
+            local newYVelocity = currentVelocity.Y
+            if groundDistance < _G.SAFETY_MARGIN * 2 then
+                newYVelocity = math.max(currentVelocity.Y, -_G.MAX_SAFE_VELOCITY * 0.7)
+            else
+                newYVelocity = math.lerp(currentVelocity.Y, requiredVelocity, 0.3)
+            end
+            return Vector3.new(currentVelocity.X, newYVelocity, currentVelocity.Z)
+        end
+    end
+    return currentVelocity
+end
+
+_G.restoreOriginalStates = function(character)
+    if not character then return end
+    local humanoid = character:FindFirstChild("Humanoid")
+    if humanoid then
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, _G.originalStates.FallingDown)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding, _G.originalStates.PlatformStanding)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall, _G.originalStates.Freefall)
+    end
+end
+
+_G.safeDisableNoFall = function()
+    if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = LP.Character.HumanoidRootPart
+        local groundDistance = _G.getGroundInfo(LP.Character)
+        if groundDistance < 0 then
+            hrp.Position = hrp.Position + Vector3.new(0, math.abs(groundDistance) + 2, 0)
+        end
+        _G.restoreOriginalStates(LP.Character)
+    end
+end
+
+_G.ToggleNoFallDamage = function(state)
+    if state == _G.NoFallDamageEnabled then return end
+    if LP.Character and LP.Character:FindFirstChild("Humanoid") and _G.originalStates.FallingDown == true then
+        local humanoid = LP.Character.Humanoid
+        _G.originalStates = {
+            FallingDown = humanoid:GetStateEnabled(Enum.HumanoidStateType.FallingDown),
+            PlatformStanding = humanoid:GetStateEnabled(Enum.HumanoidStateType.PlatformStanding),
+            Freefall = humanoid:GetStateEnabled(Enum.HumanoidStateType.Freefall)
+        }
+    end
+    _G.NoFallDamageEnabled = state
+    if _G.nfdConnection then
+        _G.nfdConnection:Disconnect()
+        _G.nfdConnection = nil
+    end
+    if state then
+        _G.nfdConnection = RunService.Heartbeat:Connect(function()
+            if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+                local hrp = LP.Character.HumanoidRootPart
+                hrp.Velocity = _G.applyFallProtection(hrp)
+                if LP.Character:FindFirstChild("Humanoid") then
+                    local humanoid = LP.Character.Humanoid
+                    if humanoid:GetState() == Enum.HumanoidStateType.Freefall then
+                        humanoid:ChangeState(Enum.HumanoidStateType.Running)
+                    end
+                end
+            end
+        end)
+    else
+        _G.safeDisableNoFall()
+    end
+end
+
+LP.CharacterAdded:Connect(function(character)
+    _G.restoreOriginalStates(character)
+    if _G.NoFallDamageEnabled then
+        _G.ToggleNoFallDamage(true)
+    end
+    local humanoid = character:WaitForChild("Humanoid", 2)
+    if humanoid then
+        humanoid.StateChanged:Connect(function(_, newState)
+            if _G.NoFallDamageEnabled and (newState == Enum.HumanoidStateType.Freefall or 
+               newState == Enum.HumanoidStateType.FallingDown) then
+                humanoid:ChangeState(Enum.HumanoidStateType.Running)
+            end
+        end)
+    end
+end)
+
+_G.autoJump = function()
+    while _G.AutoJumpEnabled do
+        wait()
+        local character = LP.Character
+        if character then
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            if humanoid and humanoid.FloorMaterial ~= Enum.Material.Air then
+                humanoid.Jump = true
+                wait(0.1)
+            end
+        end
+    end
+end
+
+_G.ToggleAutoJump = function(state)
+    _G.AutoJumpEnabled = state
+    if state then
+        if not _G.AutoJumpThread then
+            _G.AutoJumpThread = coroutine.wrap(_G.autoJump)
+            _G.AutoJumpThread()
+        end
+    else
+        if _G.AutoJumpThread then
+            _G.AutoJumpThread = nil
+        end
+    end
+end
+
+LP.CharacterAdded:Connect(function(newChar)
+    if _G.AutoJumpEnabled then _G.ToggleAutoJump(true) end
+end)
+
+_G.manageNoclip = function()
+    if _G.noclipConn then
+        _G.noclipConn:Disconnect()
+        _G.noclipConn = nil
+    end
+    
+    if _G.NoClipEnabled then
+        _G.noclipConn = RunService.Stepped:Connect(function()
+            if LP.Character then
+                for _, part in pairs(LP.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+    else
+        local character = LP.Character
+        if character then
+            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+            if humanoidRootPart then
+                if _G.FlyEnabled then
+                    for _, part in pairs(character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = true
+                        end
+                    end
+                else
+                    local savedVelocity = humanoidRootPart.Velocity
+                    local savedPosition = humanoidRootPart.Position
+                    for _, part in pairs(character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = true
+                        end
+                    end
+                    humanoidRootPart.Velocity = savedVelocity
+                    local raycastParams = RaycastParams.new()
+                    raycastParams.FilterDescendantsInstances = {character}
+                    raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+                    local ray = workspace:Raycast(savedPosition, Vector3.new(0, -5, 0), raycastParams)
+                    if not ray then
+                        humanoidRootPart.Position = savedPosition + Vector3.new(0, 3, 0)
+                    end
+                end
+            end
+        end
+    end
+end
+
+_G.ToggleNoClip = function(state)
+    _G.NoClipEnabled = state
+    _G.manageNoclip()
+end
+
+_G.ToggleInfinityJump = function(state)
+    _G.InfinityJumpEnabled = state
+end
+
+UserInputService.JumpRequest:Connect(function()
+    if _G.InfinityJumpEnabled and LP.Character then
+        local humanoid = LP.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid and humanoid:GetState() == Enum.HumanoidStateType.Freefall then
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+_G.manageSpeed = function()
+    if _G.speedConn then
+        _G.speedConn:Disconnect()
+        _G.speedConn = nil
+    end
+    
+    if _G.SpeedChangeEnabled then
+        _G.speedConn = RunService.Heartbeat:Connect(function(dt)
+            local character = LP.Character
+            if not character then return end
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            local rootPart = character:FindFirstChild("HumanoidRootPart")
+            if not humanoid or not rootPart then return end
+            local moveDirection = humanoid.MoveDirection
+            local calculatedSpeed = moveDirection * (_G.originalWalkSpeed * _G.velocityMultiplier)
+            rootPart.Velocity = rootPart.Velocity:Lerp(
+                Vector3.new(calculatedSpeed.X, rootPart.Velocity.Y, calculatedSpeed.Z),
+                0.5
+            )
+        end)
+        _G.velocityMultiplier = _G.Walk_Speed / _G.originalWalkSpeed
+    else
+        _G.velocityMultiplier = 1
+    end
+end
+
+_G.ToggleSpeedChange = function(state)
+    _G.SpeedChangeEnabled = state
+    _G.manageSpeed()
+end
+
+_G.manageJump = function()
+    if _G.jumpConn then
+        _G.jumpConn:Disconnect()
+        _G.jumpConn = nil
+    end
+    
+    if _G.JumpChangeEnabled then
+        _G.jumpConn = UserInputService.JumpRequest:Connect(function()
+            local character = LP.Character
+            if not character then return end
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            local rootPart = character:FindFirstChild("HumanoidRootPart")
+            if not humanoid or not rootPart then return end
+            local ray = Ray.new(rootPart.Position, Vector3.new(0, -3, 0))
+            local hit = workspace:FindPartOnRay(ray, character)
+            if hit and time() > _G.jumpCooldown then
+                local jumpForce = (_G.Jump_Power / _G.originalJumpPower) * 120
+                rootPart:ApplyImpulse(Vector3.new(0, rootPart.AssemblyMass * jumpForce, 0))
+                _G.jumpCooldown = time() + 0.2
+            end
+        end)
+    end
+end
+
+_G.ToggleJumpChange = function(state)
+    _G.JumpChangeEnabled = state
+    _G.manageJump()
+end
+
+_G.isThirdPerson = function()
+    if not LP.Character then return false end
+    local humanoidRootPart = LP.Character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return false end
+    
+    local cameraPosition = Camera.CFrame.Position
+    local characterPosition = humanoidRootPart.Position
+    local distance = (cameraPosition - characterPosition).Magnitude
+
+    return distance > 5
+end
+
+_G.updateAntiAim = function()
+    if not _G.AntiAimEnabled then return end
+    if not LP.Character then return end
+    
+    local humanoid = LP.Character:FindFirstChild("Humanoid")
+    local humanoidRootPart = LP.Character:FindFirstChild("HumanoidRootPart")
+    
+    if not humanoid or not humanoidRootPart then return end
+
+    if not _G.isThirdPerson() then
+        humanoid.AutoRotate = true
+        return
+    end
+
+    humanoid.AutoRotate = false
+
+    _G.SpinAngle = (_G.SpinAngle + (_G.AntiAimSpeed / 100)) % (math.pi * 2)
+
+    local cameraCFrame = Camera.CFrame
+    local cameraLookVector = cameraCFrame.LookVector
+
+    local rotationOffset = CFrame.Angles(0, _G.SpinAngle, 0)
+
+    local currentCFrame = humanoidRootPart.CFrame
+    local newCFrame = CFrame.new(currentCFrame.Position) * rotationOffset
+    
+    humanoidRootPart.CFrame = newCFrame
+end
+
+local mouse = LP:GetMouse()
+local lastMousePos = Vector2.new(0, 0)
+
+mouse.Move:Connect(function()
+    if not _G.AntiAimEnabled then return end
+    if not _G.isThirdPerson() then return end
+    
+    local currentPos = Vector2.new(mouse.X, mouse.Y)
+    local delta = (currentPos - lastMousePos)
+
+    if delta.Magnitude > 2 then
+        _G.SpinAngle = _G.SpinAngle + (delta.X * 0.01)
+    end
+    
+    lastMousePos = currentPos
+end)
+
+_G.toggleAntiAim = function(state)
+    _G.AntiAimEnabled = state
+    
+    if LP.Character then
+        local humanoid = LP.Character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.AutoRotate = not state
+        end
+    end
+end
+
+LP.CharacterAdded:Connect(function(character)
+    character:WaitForChild("Humanoid")
+    
+    if _G.AntiAimEnabled then
+        character.Humanoid.AutoRotate = false
+    end
+    
+    character.Humanoid.Died:Connect(function()
+        _G.SpinAngle = 0
+    end)
+end)
+
+RunService.RenderStepped:Connect(function(deltaTime)
+    _G.updateAntiAim()
+end)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed then
+        if input.KeyCode == Enum.KeyCode.Insert then
+            _G.AntiAimEnabled = not _G.AntiAimEnabled
+            _G.toggleAntiAim(_G.AntiAimEnabled)
+        end
+    end
+end)
+
+if LP.Character then
+    local humanoid = LP.Character:FindFirstChild("Humanoid")
+    if humanoid then
+        humanoid.AutoRotate = not _G.AntiAimEnabled
+    end
+end
+
+return _G
