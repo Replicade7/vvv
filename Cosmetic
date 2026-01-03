@@ -1,0 +1,223 @@
+local localPlayer = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local workspace = game:GetService("Workspace")
+local camera = workspace.CurrentCamera
+
+_G.Visuals_Color = Color3.fromRGB(255, 255, 255)
+
+_G.Settings = {
+    ChinaHat = {
+        Enabled = false,
+        Color = _G.Visuals_Color,
+        Transparency = 0.8,
+        Size = Vector3.new(2, 1, 2),
+        PositionOffset = Vector3.new(0, 0.5, 0)
+    },
+    Trails = {
+        Enabled = false,
+        Color = _G.Visuals_Color,
+        Transparency = 0.5
+    }
+}
+
+_G.hatData = {
+    meshPart = nil,
+    headAttachment = nil,
+    meshAttachment = nil,
+    weld = nil
+}
+
+_G.trailData = {
+    trails = {}
+}
+
+_G.removeHat = function()
+    if _G.hatData.meshPart then
+        _G.hatData.meshPart:Destroy()
+        _G.hatData.meshPart = nil
+    end
+    if _G.hatData.headAttachment then
+        _G.hatData.headAttachment:Destroy()
+        _G.hatData.headAttachment = nil
+    end
+    if _G.hatData.meshAttachment then
+        _G.hatData.meshAttachment:Destroy()
+        _G.hatData.meshAttachment = nil
+    end
+    if _G.hatData.weld then
+        _G.hatData.weld:Destroy()
+        _G.hatData.weld = nil
+    end
+end
+
+_G.createHat = function(head)
+    if not head then return end
+    _G.removeHat()
+
+    _G.hatData.meshPart = Instance.new("MeshPart")
+    _G.hatData.meshPart.Name = "ChinaHat"
+    _G.hatData.meshPart.Size = _G.Settings.ChinaHat.Size
+    _G.hatData.meshPart.Anchored = false
+    _G.hatData.meshPart.CanCollide = false
+    _G.hatData.meshPart.Material = Enum.Material.Neon
+    _G.hatData.meshPart.Color = _G.Settings.ChinaHat.Color
+    _G.hatData.meshPart.Transparency = _G.Settings.ChinaHat.Transparency
+    _G.hatData.meshPart.RenderFidelity = Enum.RenderFidelity.Automatic
+    _G.hatData.meshPart.MeshId = "rbxassetid://1033714"
+
+    _G.hatData.headAttachment = Instance.new("Attachment")
+    _G.hatData.headAttachment.Parent = head
+
+    _G.hatData.meshAttachment = Instance.new("Attachment")
+    _G.hatData.meshAttachment.Parent = _G.hatData.meshPart
+
+    _G.hatData.weld = Instance.new("WeldConstraint")
+    _G.hatData.weld.Part0 = head
+    _G.hatData.weld.Part1 = _G.hatData.meshPart
+    _G.hatData.weld.Parent = _G.hatData.meshPart
+
+    _G.hatData.meshPart.CFrame = head.CFrame * CFrame.new(_G.Settings.ChinaHat.PositionOffset)
+    _G.hatData.meshPart.Parent = workspace
+end
+
+_G.clearTrails = function()
+    for _, trail in pairs(_G.trailData.trails) do
+        if trail and trail.Parent then
+            trail:Destroy()
+        end
+    end
+    _G.trailData.trails = {}
+end
+
+_G.createTrail = function(part)
+    if not part then return end
+
+    local trail = Instance.new("Trail")
+    local attachment0 = Instance.new("Attachment")
+    local attachment1 = Instance.new("Attachment")
+
+    attachment0.Parent = part
+    attachment1.Parent = part
+    attachment1.Position = Vector3.new(0, 0.5, 0)
+
+    trail.Attachment0 = attachment0
+    trail.Attachment1 = attachment1
+    trail.LightEmission = 1
+    trail.Color = ColorSequence.new(_G.Settings.Trails.Color)
+    trail.Transparency = NumberSequence.new(_G.Settings.Trails.Transparency)
+    trail.Lifetime = 0.5
+    trail.Enabled = true
+    trail.Parent = part
+
+    table.insert(_G.trailData.trails, trail)
+    return trail
+end
+
+_G.initializeTrails = function(character)
+    if not character then return end
+    _G.clearTrails()
+    if _G.Settings.Trails.Enabled then
+        local torso = character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso")
+        if torso then
+            _G.createTrail(torso)
+        end
+    end
+end
+
+_G.updateHatProperties = function()
+    if _G.hatData.meshPart then
+        _G.hatData.meshPart.Color = _G.Settings.ChinaHat.Color
+        _G.hatData.meshPart.Transparency = _G.Settings.ChinaHat.Transparency
+        _G.hatData.meshPart.Size = _G.Settings.ChinaHat.Size
+    end
+end
+
+_G.updateTrailProperties = function()
+    for _, trail in pairs(_G.trailData.trails) do
+        if trail and trail.Parent then
+            trail.Color = ColorSequence.new(_G.Settings.Trails.Color)
+            trail.Transparency = NumberSequence.new(_G.Settings.Trails.Transparency)
+        end
+    end
+end
+
+local function onCharacterAdded(character)
+    if _G.Settings.ChinaHat.Enabled then
+        local head = character:WaitForChild("Head", 5)
+        if head then
+            _G.createHat(head)
+        end
+    end
+    if _G.Settings.Trails.Enabled then
+        _G.initializeTrails(character)
+    end
+end
+
+localPlayer.CharacterAdded:Connect(onCharacterAdded)
+
+if localPlayer.Character then
+    onCharacterAdded(localPlayer.Character)
+end
+
+local Camera = workspace.CurrentCamera
+local OriginalFOV = Camera.FieldOfView 
+_G.FovCustomEnabled = false
+_G.FovRemovalValue = 70 
+_G.FovConnection = nil
+
+if not Camera then
+    warn("Camera not found in Workspace!")
+    return
+end
+
+local function UpdateFOV()
+    if _G.FovCustomEnabled then
+        Camera.FieldOfView = _G.FovRemovalValue
+    else
+        Camera.FieldOfView = OriginalFOV
+    end
+end
+
+_G.ToggleFovCustom = function(state)
+    _G.FovCustomEnabled = state
+    if state then
+        if _G.FovConnection then
+            _G.FovConnection:Disconnect()
+            _G.FovConnection = nil
+        end
+        
+        _G.FovConnection = Camera:GetPropertyChangedSignal("FieldOfView"):Connect(function()
+            if _G.FovCustomEnabled and Camera.FieldOfView ~= _G.FovRemovalValue then
+                Camera.FieldOfView = _G.FovRemovalValue
+            end
+        end)
+        UpdateFOV()
+    else
+        if _G.FovConnection then
+            _G.FovConnection:Disconnect()
+            _G.FovConnection = nil
+        end
+        UpdateFOV()
+    end
+end
+
+_G.Resolution = 0.65
+_G.ScrenchEnabled = false
+
+_G.screnchConnection = nil
+
+_G.toggleScrench = function(state)
+    _G.ScrenchEnabled = state
+    if state then
+        _G.screnchConnection = RunService.RenderStepped:Connect(function()
+            Camera.CFrame = Camera.CFrame * CFrame.new(0, 0, 0, 1, 0, 0, 0, _G.Resolution, 0, 0, 0, 1)
+        end)
+    else
+        if _G.screnchConnection then
+            _G.screnchConnection:Disconnect()
+            _G.screnchConnection = nil
+        end
+    end
+end
+
+return _G
