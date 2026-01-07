@@ -52,8 +52,11 @@ _G.jumpCooldown = 0
 _G.originalJumpPower = 50
 
 _G.AntiAimEnabled = false
+_G.AntiAimMode = "Spin"
 _G.AntiAimSpeed = 10
 _G.SpinAngle = 0
+_G.RandomAngle = 0
+_G.NextRandomTime = 0
 
 _G.ToggleFly = function(state)
     _G.FlyEnabled = state
@@ -320,6 +323,7 @@ LP.CharacterAdded:Connect(function(newChar)
         _G.JumpConnection = nil
         _G.Humanoid = nil
         _G.HRP = nil
+    end
     end)
 end)
 
@@ -602,6 +606,30 @@ _G.isThirdPerson = function()
     return distance > 5
 end
 
+_G.updateAntiAimSpin = function(humanoid, humanoidRootPart)
+    _G.SpinAngle = (_G.SpinAngle + (_G.AntiAimSpeed / 100)) % (math.pi * 2)
+    local rotationOffset = CFrame.Angles(0, _G.SpinAngle, 0)
+    local currentCFrame = humanoidRootPart.CFrame
+    local newCFrame = CFrame.new(currentCFrame.Position) * rotationOffset
+    humanoidRootPart.CFrame = newCFrame
+end
+
+_G.updateAntiAim180 = function(humanoid, humanoidRootPart)
+    local cameraLookVector = Camera.CFrame.LookVector
+    local lookDirection = Vector3.new(cameraLookVector.X, 0, cameraLookVector.Z).Unit
+    local lookAtPosition = humanoidRootPart.Position - lookDirection
+    humanoidRootPart.CFrame = CFrame.lookAt(humanoidRootPart.Position, lookAtPosition)
+end
+
+_G.updateAntiAimRandom = function(humanoid, humanoidRootPart)
+    local currentTime = tick()
+    if currentTime >= _G.NextRandomTime then
+        _G.RandomAngle = math.random(0, 360)
+        _G.NextRandomTime = currentTime + 0.1
+    end
+    humanoidRootPart.CFrame = CFrame.new(humanoidRootPart.Position) * CFrame.Angles(0, math.rad(_G.RandomAngle), 0)
+end
+
 _G.updateAntiAim = function()
     if not _G.AntiAimEnabled then return end
     if not LP.Character then return end
@@ -618,17 +646,13 @@ _G.updateAntiAim = function()
 
     humanoid.AutoRotate = false
 
-    _G.SpinAngle = (_G.SpinAngle + (_G.AntiAimSpeed / 100)) % (math.pi * 2)
-
-    local cameraCFrame = Camera.CFrame
-    local cameraLookVector = cameraCFrame.LookVector
-
-    local rotationOffset = CFrame.Angles(0, _G.SpinAngle, 0)
-
-    local currentCFrame = humanoidRootPart.CFrame
-    local newCFrame = CFrame.new(currentCFrame.Position) * rotationOffset
-    
-    humanoidRootPart.CFrame = newCFrame
+    if _G.AntiAimMode == "Spin" then
+        _G.updateAntiAimSpin(humanoid, humanoidRootPart)
+    elseif _G.AntiAimMode == "180" then
+        _G.updateAntiAim180(humanoid, humanoidRootPart)
+    elseif _G.AntiAimMode == "Random" then
+        _G.updateAntiAimRandom(humanoid, humanoidRootPart)
+    end
 end
 
 local mouse = LP:GetMouse()
@@ -647,6 +671,10 @@ mouse.Move:Connect(function()
     
     lastMousePos = currentPos
 end)
+
+_G.SetAntiAimMode = function(mode)
+    _G.AntiAimMode = mode
+end
 
 _G.toggleAntiAim = function(state)
     _G.AntiAimEnabled = state
@@ -668,6 +696,7 @@ LP.CharacterAdded:Connect(function(character)
     
     character.Humanoid.Died:Connect(function()
         _G.SpinAngle = 0
+        _G.RandomAngle = 0
     end)
 end)
 
