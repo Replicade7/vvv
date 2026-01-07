@@ -1,4 +1,3 @@
--- loadstring.lua
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
@@ -249,15 +248,14 @@ mt.__namecall = newcclosure(function(self, ...)
 end)
 setreadonly(mt, true)
 
-local modifiConnection = nil
-local screnchConnection = nil
+local thirdPersonConnection = nil
 
-local function ForceThirdPersonCameraModifi()
+local function RenderSteppedModifi()
     local PlayerArms = Camera:FindFirstChild("Arms")
     if PlayerArms then
         for _, part in ipairs(PlayerArms:GetDescendants()) do
             if part:IsA("BasePart") or part:IsA("MeshPart") then
-                if part.Name == "StatClock" then
+                if part.Name == "StatClock" then 
                     part:ClearAllChildren()
                 end
                 part.Transparency = 1
@@ -273,27 +271,29 @@ _G.ToggleThirdPerson = function(state)
     if state then
         captureOriginalCamera()
         if _G.Settings.ThirdPerson.View == "Default" then
-            LocalPlayer.CameraMaxZoomDistance = _G.Settings.ThirdPerson.Distance
-            LocalPlayer.CameraMode = Enum.CameraMode.Classic
-        else
-            if modifiConnection then
-                modifiConnection:Disconnect()
-                modifiConnection = nil
+            if thirdPersonConnection then
+                thirdPersonConnection:Disconnect()
+                thirdPersonConnection = nil
             end
-            modifiConnection = RunService.RenderStepped:Connect(ForceThirdPersonCameraModifi)
+            LocalPlayer.CameraMaxZoomDistance = _G.Settings.ThirdPerson.Distance
+            LocalPlayer.CameraMinZoomDistance = 0.5
+        elseif _G.Settings.ThirdPerson.View == "Modifi" then
+            if not thirdPersonConnection then
+                thirdPersonConnection = RunService.RenderStepped:Connect(RenderSteppedModifi)
+            end
         end
     else
-        if modifiConnection then
-            modifiConnection:Disconnect()
-            modifiConnection = nil
+        if thirdPersonConnection then
+            thirdPersonConnection:Disconnect()
+            thirdPersonConnection = nil
         end
         if origCameraSettings.captured then
             LocalPlayer.CameraMaxZoomDistance = origCameraSettings.MaxZoom or LocalPlayer.CameraMaxZoomDistance
             LocalPlayer.CameraMinZoomDistance = origCameraSettings.MinZoom or LocalPlayer.CameraMinZoomDistance
             LocalPlayer.CameraMode = origCameraSettings.Mode or LocalPlayer.CameraMode
         else
-            LocalPlayer.CameraMaxZoomDistance = 0
-            LocalPlayer.CameraMode = Enum.CameraMode.LockFirstPerson
+            LocalPlayer.CameraMaxZoomDistance = 12.5
+            LocalPlayer.CameraMinZoomDistance = 0.5
         end
     end
 end
@@ -301,8 +301,6 @@ end
 _G.SetThirdPersonView = function(value)
     _G.Settings.ThirdPerson.View = value
     if _G.Settings.ThirdPerson.Enabled then
-        _G.ToggleThirdPerson(false)
-        task.wait()
         _G.ToggleThirdPerson(true)
     end
 end
@@ -316,7 +314,6 @@ _G.SetBulletTracerView = function(value)
 end
 
 _G.UpdateBulletTracerProperties = function()
-    -- props stored in _G.Settings.BulletTracer are used automatically by spawnBulletTrail
 end
 
 local CameraLocal = Camera
@@ -386,6 +383,7 @@ local function onCharacterAdded(character)
         _G.initializeTrails(character)
     end
     if _G.Settings.ThirdPerson.Enabled then
+        task.wait(0.1)
         _G.ToggleThirdPerson(true)
     end
 end
