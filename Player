@@ -17,6 +17,9 @@ _G.AirControlMultiplier = _G.BunnyHop_Length
 _G.BV, _G.Humanoid, _G.HRP = nil, nil, nil
 _G.canJump = true
 _G.MovementConnection, _G.JumpConnection = nil, nil
+_G.BunnyHopMode = "V1"
+_G.BunnyHopV2BodyVelocity = nil
+_G.BunnyHopV2Connection = nil
 
 _G.NoFallDamageEnabled = false
 _G.nfdConnection = nil
@@ -172,7 +175,7 @@ _G.InitCharacter = function()
     _G.Humanoid = Char:WaitForChild("Humanoid")
     _G.Humanoid.JumpPower = _G.JumpSettings.Power
     
-    if _G.BunnyHopEnabled then
+    if _G.BunnyHopEnabled and _G.BunnyHopMode == "V1" then
         if _G.BV then _G.BV:Destroy() end
         _G.BV = Instance.new("BodyVelocity")
         _G.BV.Parent = _G.HRP
@@ -182,8 +185,42 @@ _G.InitCharacter = function()
     _G.AirControlMultiplier = _G.BunnyHop_Length
 end
 
-_G.ToggleBunnyHop = function(state)
-    _G.BunnyHopEnabled = state
+_G.BunnyHopV2Function = function()
+    if not LP.Character then return end
+    if not LP.Character:FindFirstChild("Humanoid") then return end
+    if not LP.Character:FindFirstChild("HumanoidRootPart") then return end
+    
+    local Humanoid = LP.Character.Humanoid
+    local Root = LP.Character.HumanoidRootPart
+
+    if Humanoid:GetState() == Enum.HumanoidStateType.Running or 
+       Humanoid:GetState() == Enum.HumanoidStateType.Jumping or
+       Humanoid:GetState() == Enum.HumanoidStateType.Freefall then
+
+        local add = 0
+        if UserInputService:IsKeyDown("A") then add = 90 end
+        if UserInputService:IsKeyDown("S") then add = 180 end
+        if UserInputService:IsKeyDown("D") then add = 270 end
+        if UserInputService:IsKeyDown("A") and UserInputService:IsKeyDown("W") then add = 45 end
+        if UserInputService:IsKeyDown("D") and UserInputService:IsKeyDown("W") then add = 315 end
+        if UserInputService:IsKeyDown("D") and UserInputService:IsKeyDown("S") then add = 225 end
+        if UserInputService:IsKeyDown("A") and UserInputService:IsKeyDown("S") then add = 145 end
+
+        if Humanoid.FloorMaterial ~= Enum.Material.Air then
+            Humanoid.Jump = true
+        end
+
+        local cam = workspace.CurrentCamera
+        local rot = CFrame.new(Vector3.new(), cam.CFrame.LookVector) * CFrame.Angles(0, math.rad(add), 0)
+        
+        _G.BunnyHopV2BodyVelocity.Parent = LP.Character:FindFirstChild("UpperTorso") or LP.Character:FindFirstChild("Torso") or Root
+        _G.BunnyHopV2BodyVelocity.Velocity = Vector3.new(rot.LookVector.X, 0, rot.LookVector.Z) * 50
+    else
+        _G.BunnyHopV2BodyVelocity.Parent = nil
+    end
+end
+
+_G.ToggleBunnyHopV1 = function(state)
     if state then
         if _G.MovementConnection then _G.MovementConnection:Disconnect() end
         if _G.JumpConnection then _G.JumpConnection:Disconnect() end
@@ -225,6 +262,43 @@ _G.ToggleBunnyHop = function(state)
             _G.BV = nil
         end
         _G.canJump = true
+    end
+end
+
+_G.ToggleBunnyHopV2 = function(state)
+    if state then
+        if not _G.BunnyHopV2BodyVelocity then
+            _G.BunnyHopV2BodyVelocity = Instance.new("BodyVelocity")
+            _G.BunnyHopV2BodyVelocity.MaxForce = Vector3.new(math.huge, 0, math.huge)
+        end
+        
+        if not _G.BunnyHopV2Connection then
+            _G.BunnyHopV2Connection = RunService.RenderStepped:Connect(_G.BunnyHopV2Function)
+        end
+    else
+        if _G.BunnyHopV2Connection then
+            _G.BunnyHopV2Connection:Disconnect()
+            _G.BunnyHopV2Connection = nil
+        end
+        
+        if _G.BunnyHopV2BodyVelocity then
+            _G.BunnyHopV2BodyVelocity:Destroy()
+            _G.BunnyHopV2BodyVelocity = nil
+        end
+    end
+end
+
+_G.ToggleBunnyHop = function(state)
+    _G.BunnyHopEnabled = state
+    if state then
+        if _G.BunnyHopMode == "V1" then
+            _G.ToggleBunnyHopV1(true)
+        else
+            _G.ToggleBunnyHopV2(true)
+        end
+    else
+        _G.ToggleBunnyHopV1(false)
+        _G.ToggleBunnyHopV2(false)
     end
 end
 
