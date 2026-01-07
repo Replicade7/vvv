@@ -1,8 +1,10 @@
-local localPlayer = game.Players.LocalPlayer
-local RunService = game:GetService("RunService")
-local workspace = game:GetService("Workspace")
-local camera = workspace.CurrentCamera
+-- loadstring.lua
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local Camera = Workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 
 _G.Visuals_Color = Color3.fromRGB(255, 255, 255)
@@ -19,23 +21,29 @@ _G.Settings = {
         Enabled = false,
         Color = _G.Visuals_Color,
         Transparency = 0.5
+    },
+    BulletTracer = {
+        Enabled = false,
+        View = "Counter Blox",
+        Transparency = 0.5,
+        Color = Color3.fromRGB(255,255,255),
+        Lifetime = 3,
+        Speed = 900,
+        Scale = NumberSequence.new(0.209)
+    },
+    ThirdPerson = {
+        Enabled = false,
+        View = "Default",
+        Distance = 200
+    },
+    FovCustom = {
+        Enabled = false,
+        Value = 70
+    },
+    Scrench = {
+        Enabled = false,
+        Resolution = 0.65
     }
-}
-
-_G.ThirdPersonSettings = {
-    Enabled = false,
-    Mode = "Default",
-    Distance = 200,
-    RemoveHands = true
-}
-
-_G.BulletTracerSettings = {
-    Enabled = false,
-    Mode = "Counter Blox",
-    Color = Color3.fromRGB(100, 100, 255),
-    Transparency = 0.5,
-    Lifetime = 3,
-    Speed = 900
 }
 
 _G.hatData = {
@@ -49,17 +57,23 @@ _G.trailData = {
     trails = {}
 }
 
-_G.thirdPersonData = {
-    connection = nil,
-    originalMaxDistance = 0,
-    originalMinDistance = 0,
-    originalCameraMode = nil
+local origCameraSettings = {
+    captured = false,
+    MaxZoom = nil,
+    MinZoom = nil,
+    Mode = nil,
+    FOV = nil
 }
 
-_G.bulletTracerData = {
-    connection = nil,
-    originalNamecall = nil
-}
+local function captureOriginalCamera()
+    if not origCameraSettings.captured and LocalPlayer and Camera then
+        origCameraSettings.MaxZoom = LocalPlayer.CameraMaxZoomDistance
+        origCameraSettings.MinZoom = LocalPlayer.CameraMinZoomDistance
+        origCameraSettings.Mode = LocalPlayer.CameraMode
+        origCameraSettings.FOV = Camera.FieldOfView
+        origCameraSettings.captured = true
+    end
+end
 
 _G.removeHat = function()
     if _G.hatData.meshPart then
@@ -83,7 +97,6 @@ end
 _G.createHat = function(head)
     if not head then return end
     _G.removeHat()
-
     _G.hatData.meshPart = Instance.new("MeshPart")
     _G.hatData.meshPart.Name = "ChinaHat"
     _G.hatData.meshPart.Size = _G.Settings.ChinaHat.Size
@@ -94,20 +107,16 @@ _G.createHat = function(head)
     _G.hatData.meshPart.Transparency = _G.Settings.ChinaHat.Transparency
     _G.hatData.meshPart.RenderFidelity = Enum.RenderFidelity.Automatic
     _G.hatData.meshPart.MeshId = "rbxassetid://1033714"
-
     _G.hatData.headAttachment = Instance.new("Attachment")
     _G.hatData.headAttachment.Parent = head
-
     _G.hatData.meshAttachment = Instance.new("Attachment")
     _G.hatData.meshAttachment.Parent = _G.hatData.meshPart
-
     _G.hatData.weld = Instance.new("WeldConstraint")
     _G.hatData.weld.Part0 = head
     _G.hatData.weld.Part1 = _G.hatData.meshPart
     _G.hatData.weld.Parent = _G.hatData.meshPart
-
     _G.hatData.meshPart.CFrame = head.CFrame * CFrame.new(_G.Settings.ChinaHat.PositionOffset)
-    _G.hatData.meshPart.Parent = workspace
+    _G.hatData.meshPart.Parent = Workspace
 end
 
 _G.clearTrails = function()
@@ -121,15 +130,12 @@ end
 
 _G.createTrail = function(part)
     if not part then return end
-
     local trail = Instance.new("Trail")
     local attachment0 = Instance.new("Attachment")
     local attachment1 = Instance.new("Attachment")
-
     attachment0.Parent = part
     attachment1.Parent = part
     attachment1.Position = Vector3.new(0, 0.5, 0)
-
     trail.Attachment0 = attachment0
     trail.Attachment1 = attachment1
     trail.LightEmission = 1
@@ -138,7 +144,6 @@ _G.createTrail = function(part)
     trail.Lifetime = 0.5
     trail.Enabled = true
     trail.Parent = part
-
     table.insert(_G.trailData.trails, trail)
     return trail
 end
@@ -171,121 +176,202 @@ _G.updateTrailProperties = function()
     end
 end
 
-_G.forceThirdPersonModifi = function()
-    local PlayerArms = camera:FindFirstChild("Arms")
-    if PlayerArms and _G.ThirdPersonSettings.RemoveHands then
+local function spawnBulletTrail(originCFrame, view)
+    local TRACER_COLOR = _G.Settings.BulletTracer.Color
+    local TRACER_LIFETIME = _G.Settings.BulletTracer.Lifetime
+    local TRACER_SPEED = _G.Settings.BulletTracer.Speed
+    local BULLET_LIFETIME = _G.Settings.BulletTracer.Lifetime
+    local scale = _G.Settings.BulletTracer.Scale
+    if view == "Arsenal" then
+        scale = NumberSequence.new(0.35)
+        TRACER_SPEED = 1400
+    end
+    local bullet = Instance.new("Part")
+    bullet.Size = Vector3.new(1, 0.5, 1.1)
+    bullet.Material = Enum.Material.Neon
+    bullet.Color = TRACER_COLOR
+    bullet.Anchored = false
+    bullet.CanCollide = false
+    bullet.CastShadow = false
+    local bv = Instance.new("BodyVelocity")
+    bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+    bv.Parent = bullet
+    bullet.CFrame = originCFrame
+    bv.Velocity = originCFrame.LookVector * TRACER_SPEED
+    bullet.Parent = Workspace
+    local a0 = Instance.new("Attachment", bullet)
+    a0.Position = Vector3.new(0, 0, -0.15)
+    local a1 = Instance.new("Attachment", bullet)
+    a1.Position = Vector3.new(0, 0, 0.15)
+    local trail = Instance.new("Trail")
+    trail.Attachment0 = a0
+    trail.Attachment1 = a1
+    trail.FaceCamera = true
+    trail.Lifetime = TRACER_LIFETIME
+    trail.LightEmission = 1
+    trail.LightInfluence = 0
+    trail.WidthScale = scale
+    trail.Transparency = NumberSequence.new(_G.Settings.BulletTracer.Transparency)
+    trail.Color = ColorSequence.new(TRACER_COLOR)
+    trail.Parent = bullet
+    task.delay(BULLET_LIFETIME, function()
+        if bullet then bullet:Destroy() end
+    end)
+end
+
+local tracerRemoteMapping = {
+    ["Counter Blox"] = {"ReplicateShot"},
+    ["Arsenal"] = {"FireBullet","ReplicateShot"}
+}
+
+local mt = getrawmetatable(game)
+local oldNamecall = mt.__namecall
+setreadonly(mt, false)
+mt.__namecall = newcclosure(function(self, ...)
+    local method = getnamecallmethod()
+    if method == "FireServer" and _G.Settings.BulletTracer.Enabled then
+        local name = tostring(self)
+        local view = _G.Settings.BulletTracer.View
+        local remotes = tracerRemoteMapping[view]
+        if remotes then
+            for _, rem in ipairs(remotes) do
+                if name == rem then
+                    local cam = Camera or Workspace.CurrentCamera
+                    if cam then
+                        spawnBulletTrail(cam.CFrame, view)
+                    end
+                    break
+                end
+            end
+        end
+    end
+    return oldNamecall(self, ...)
+end)
+setreadonly(mt, true)
+
+local modifiConnection = nil
+local screnchConnection = nil
+
+local function ForceThirdPersonCameraModifi()
+    local PlayerArms = Camera:FindFirstChild("Arms")
+    if PlayerArms then
         for _, part in ipairs(PlayerArms:GetDescendants()) do
             if part:IsA("BasePart") or part:IsA("MeshPart") then
-                if part.Name == "StatClock" then 
+                if part.Name == "StatClock" then
                     part:ClearAllChildren()
                 end
                 part.Transparency = 1
             end
         end
     end
-    LocalPlayer.CameraMaxZoomDistance = _G.ThirdPersonSettings.Distance
-    LocalPlayer.CameraMinZoomDistance = _G.ThirdPersonSettings.Distance
+    LocalPlayer.CameraMaxZoomDistance = _G.Settings.ThirdPerson.Distance
+    LocalPlayer.CameraMinZoomDistance = _G.Settings.ThirdPerson.Distance
 end
 
-_G.applyThirdPerson = function()
-    if _G.ThirdPersonSettings.Enabled then
-        if _G.ThirdPersonSettings.Mode == "Modifi" then
-            if not _G.thirdPersonData.connection then
-                _G.thirdPersonData.connection = RunService.RenderStepped:Connect(_G.forceThirdPersonModifi)
-            end
-        else
-            if _G.thirdPersonData.connection then
-                _G.thirdPersonData.connection:Disconnect()
-                _G.thirdPersonData.connection = nil
-            end
-            LocalPlayer.CameraMaxZoomDistance = _G.ThirdPersonSettings.Distance
-            LocalPlayer.CameraMinZoomDistance = _G.ThirdPersonSettings.Distance
+_G.ToggleThirdPerson = function(state)
+    _G.Settings.ThirdPerson.Enabled = state
+    if state then
+        captureOriginalCamera()
+        if _G.Settings.ThirdPerson.View == "Default" then
+            LocalPlayer.CameraMaxZoomDistance = _G.Settings.ThirdPerson.Distance
             LocalPlayer.CameraMode = Enum.CameraMode.Classic
-        end
-    else
-        if _G.thirdPersonData.connection then
-            _G.thirdPersonData.connection:Disconnect()
-            _G.thirdPersonData.connection = nil
-        end
-        LocalPlayer.CameraMaxZoomDistance = _G.thirdPersonData.originalMaxDistance
-        LocalPlayer.CameraMinZoomDistance = _G.thirdPersonData.originalMinDistance
-        LocalPlayer.CameraMode = _G.thirdPersonData.originalCameraMode or Enum.CameraMode.LockFirstPerson
-    end
-end
-
-_G.spawnBulletTrail = function(originCFrame)
-    local bullet = Instance.new("Part")
-    bullet.Size = Vector3.new(1, 0.5, 1.1)
-    bullet.Material = Enum.Material.Neon
-    bullet.Color = _G.BulletTracerSettings.Color
-    bullet.Transparency = _G.BulletTracerSettings.Transparency
-    bullet.Anchored = false
-    bullet.CanCollide = false
-    bullet.CastShadow = false
-
-    local bv = Instance.new("BodyVelocity")
-    bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
-    bv.Parent = bullet
-
-    bullet.CFrame = originCFrame
-    bv.Velocity = originCFrame.LookVector * _G.BulletTracerSettings.Speed
-
-    bullet.Parent = workspace
-
-    local a0 = Instance.new("Attachment", bullet)
-    a0.Position = Vector3.new(0, 0, -0.15)
-    local a1 = Instance.new("Attachment", bullet)
-    a1.Position = Vector3.new(0, 0, 0.15)
-
-    local trail = Instance.new("Trail")
-    trail.Attachment0 = a0
-    trail.Attachment1 = a1
-    trail.FaceCamera = true
-    trail.Lifetime = _G.BulletTracerSettings.Lifetime
-    trail.LightEmission = 1
-    trail.LightInfluence = 0
-    trail.WidthScale = NumberSequence.new(0.209)
-    trail.Transparency = NumberSequence.new(_G.BulletTracerSettings.Transparency)
-    trail.Color = ColorSequence.new(_G.BulletTracerSettings.Color)
-    trail.Parent = bullet
-
-    task.delay(_G.BulletTracerSettings.Lifetime, function()
-        if bullet then bullet:Destroy() end
-    end)
-end
-
-_G.setupBulletTracer = function()
-    if _G.BulletTracerSettings.Enabled and _G.BulletTracerSettings.Mode == "Counter Blox" then
-        local mt = getrawmetatable(game)
-        if not _G.bulletTracerData.originalNamecall then
-            _G.bulletTracerData.originalNamecall = mt.__namecall
-        end
-        
-        setreadonly(mt, false)
-        
-        mt.__namecall = newcclosure(function(self, ...)
-            local method = getnamecallmethod()
-            if method == "FireServer" and tostring(self) == "ReplicateShot" then
-                _G.spawnBulletTrail(camera.CFrame)
+        else
+            if modifiConnection then
+                modifiConnection:Disconnect()
+                modifiConnection = nil
             end
-            return _G.bulletTracerData.originalNamecall(self, ...)
-        end)
-        
-        setreadonly(mt, true)
+            modifiConnection = RunService.RenderStepped:Connect(ForceThirdPersonCameraModifi)
+        end
     else
-        if _G.bulletTracerData.originalNamecall then
-            local mt = getrawmetatable(game)
-            setreadonly(mt, false)
-            mt.__namecall = _G.bulletTracerData.originalNamecall
-            setreadonly(mt, true)
-            _G.bulletTracerData.originalNamecall = nil
+        if modifiConnection then
+            modifiConnection:Disconnect()
+            modifiConnection = nil
+        end
+        if origCameraSettings.captured then
+            LocalPlayer.CameraMaxZoomDistance = origCameraSettings.MaxZoom or LocalPlayer.CameraMaxZoomDistance
+            LocalPlayer.CameraMinZoomDistance = origCameraSettings.MinZoom or LocalPlayer.CameraMinZoomDistance
+            LocalPlayer.CameraMode = origCameraSettings.Mode or LocalPlayer.CameraMode
+        else
+            LocalPlayer.CameraMaxZoomDistance = 0
+            LocalPlayer.CameraMode = Enum.CameraMode.LockFirstPerson
         end
     end
 end
 
-_G.updateBulletTracerProperties = function()
-    if _G.BulletTracerSettings.Mode == "Counter Blox" then
-        _G.setupBulletTracer()
+_G.SetThirdPersonView = function(value)
+    _G.Settings.ThirdPerson.View = value
+    if _G.Settings.ThirdPerson.Enabled then
+        _G.ToggleThirdPerson(false)
+        task.wait()
+        _G.ToggleThirdPerson(true)
+    end
+end
+
+_G.ToggleBulletTracer = function(state)
+    _G.Settings.BulletTracer.Enabled = state
+end
+
+_G.SetBulletTracerView = function(value)
+    _G.Settings.BulletTracer.View = value
+end
+
+_G.UpdateBulletTracerProperties = function()
+    -- props stored in _G.Settings.BulletTracer are used automatically by spawnBulletTrail
+end
+
+local CameraLocal = Camera
+local OriginalFOV = CameraLocal and CameraLocal.FieldOfView or 70
+_G.FovCustomEnabled = false
+_G.FovRemovalValue = _G.Settings.FovCustom.Value
+_G.FovConnection = nil
+
+_G.ToggleFovCustom = function(state)
+    _G.FovCustomEnabled = state
+    if state then
+        captureOriginalCamera()
+        if _G.FovConnection then
+            _G.FovConnection:Disconnect()
+            _G.FovConnection = nil
+        end
+        _G.FovRemovalValue = _G.Settings.FovCustom.Value
+        _G.FovConnection = CameraLocal:GetPropertyChangedSignal("FieldOfView"):Connect(function()
+            if _G.FovCustomEnabled and CameraLocal.FieldOfView ~= _G.FovRemovalValue then
+                CameraLocal.FieldOfView = _G.FovRemovalValue
+            end
+        end)
+        CameraLocal.FieldOfView = _G.FovRemovalValue
+    else
+        if _G.FovConnection then
+            _G.FovConnection:Disconnect()
+            _G.FovConnection = nil
+        end
+        if origCameraSettings.captured and CameraLocal then
+            CameraLocal.FieldOfView = origCameraSettings.FOV or CameraLocal.FieldOfView
+        else
+            CameraLocal.FieldOfView = OriginalFOV
+        end
+    end
+end
+
+_G.Resolution = _G.Settings.Scrench.Resolution
+_G.ScrenchEnabled = false
+_G.screnchConnection = nil
+
+_G.toggleScrench = function(state)
+    _G.ScrenchEnabled = state
+    if state then
+        if _G.screnchConnection then
+            _G.screnchConnection:Disconnect()
+            _G.screnchConnection = nil
+        end
+        _G.screnchConnection = RunService.RenderStepped:Connect(function()
+            Camera.CFrame = Camera.CFrame * CFrame.new(0, 0, 0, 1, 0, 0, 0, _G.Resolution, 0, 0, 0, 1)
+        end)
+    else
+        if _G.screnchConnection then
+            _G.screnchConnection:Disconnect()
+            _G.screnchConnection = nil
+        end
     end
 end
 
@@ -299,78 +385,15 @@ local function onCharacterAdded(character)
     if _G.Settings.Trails.Enabled then
         _G.initializeTrails(character)
     end
-    
-    task.wait(0.1)
-    _G.applyThirdPerson()
-end
-
-localPlayer.CharacterAdded:Connect(onCharacterAdded)
-
-if localPlayer.Character then
-    onCharacterAdded(localPlayer.Character)
-end
-
-local OriginalFOV = camera.FieldOfView 
-_G.FovCustomEnabled = false
-_G.FovRemovalValue = 70 
-_G.FovConnection = nil
-
-if not camera then
-    warn("Camera not found in Workspace!")
-    return
-end
-
-local function UpdateFOV()
-    if _G.FovCustomEnabled then
-        camera.FieldOfView = _G.FovRemovalValue
-    else
-        camera.FieldOfView = OriginalFOV
+    if _G.Settings.ThirdPerson.Enabled then
+        _G.ToggleThirdPerson(true)
     end
 end
 
-_G.ToggleFovCustom = function(state)
-    _G.FovCustomEnabled = state
-    if state then
-        if _G.FovConnection then
-            _G.FovConnection:Disconnect()
-            _G.FovConnection = nil
-        end
-        
-        _G.FovConnection = camera:GetPropertyChangedSignal("FieldOfView"):Connect(function()
-            if _G.FovCustomEnabled and camera.FieldOfView ~= _G.FovRemovalValue then
-                camera.FieldOfView = _G.FovRemovalValue
-            end
-        end)
-        UpdateFOV()
-    else
-        if _G.FovConnection then
-            _G.FovConnection:Disconnect()
-            _G.FovConnection = nil
-        end
-        UpdateFOV()
-    end
+Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
+
+if Players.LocalPlayer.Character then
+    onCharacterAdded(Players.LocalPlayer.Character)
 end
-
-_G.Resolution = 0.65
-_G.ScrenchEnabled = false
-_G.screnchConnection = nil
-
-_G.toggleScrench = function(state)
-    _G.ScrenchEnabled = state
-    if state then
-        _G.screnchConnection = RunService.RenderStepped:Connect(function()
-            camera.CFrame = camera.CFrame * CFrame.new(0, 0, 0, 1, 0, 0, 0, _G.Resolution, 0, 0, 0, 1)
-        end)
-    else
-        if _G.screnchConnection then
-            _G.screnchConnection:Disconnect()
-            _G.screnchConnection = nil
-        end
-    end
-end
-
-_thirdPersonData.originalMaxDistance = LocalPlayer.CameraMaxZoomDistance
-_thirdPersonData.originalMinDistance = LocalPlayer.CameraMinZoomDistance
-_thirdPersonData.originalCameraMode = LocalPlayer.CameraMode
 
 return _G
