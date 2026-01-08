@@ -239,6 +239,12 @@ mt.__namecall = newcclosure(function(self, ...)
     if method == "FireServer" and _G.Settings.BulletTracer.Enabled then
         local name = tostring(self)
         local view = _G.Settings.BulletTracer.View
+        
+        -- FIX: Если view приходит как таблица (баг UI библиотек), берем первое значение
+        if type(view) == "table" then
+            view = view[1]
+        end
+
         local remotes = tracerRemoteMapping[view]
         
         if remotes then
