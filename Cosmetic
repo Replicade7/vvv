@@ -3,7 +3,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
-local Camera = Workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 
 _G.Visuals_Color = Color3.fromRGB(255, 255, 255)
@@ -25,7 +24,7 @@ _G.Settings = {
         Enabled = false,
         View = "Counter Blox",
         Transparency = 0.5,
-        Color = Color3.fromRGB(255,255,255),
+        Color = Color3.fromRGB(255, 255, 255),
         Lifetime = 3,
         Speed = 900,
         Scale = NumberSequence.new(0.209)
@@ -65,6 +64,7 @@ local origCameraSettings = {
 }
 
 local function captureOriginalCamera()
+    local Camera = Workspace.CurrentCamera
     if not origCameraSettings.captured and LocalPlayer and Camera then
         origCameraSettings.MaxZoom = LocalPlayer.CameraMaxZoomDistance
         origCameraSettings.MinZoom = LocalPlayer.CameraMinZoomDistance
@@ -179,12 +179,13 @@ local function spawnBulletTrail(originCFrame, view)
     local TRACER_COLOR = _G.Settings.BulletTracer.Color
     local TRACER_LIFETIME = _G.Settings.BulletTracer.Lifetime
     local TRACER_SPEED = _G.Settings.BulletTracer.Speed
-    local BULLET_LIFETIME = _G.Settings.BulletTracer.Lifetime
     local scale = _G.Settings.BulletTracer.Scale
+    
     if view == "Arsenal" then
         scale = NumberSequence.new(0.35)
         TRACER_SPEED = 1400
     end
+
     local bullet = Instance.new("Part")
     bullet.Size = Vector3.new(1, 0.5, 1.1)
     bullet.Material = Enum.Material.Neon
@@ -192,16 +193,21 @@ local function spawnBulletTrail(originCFrame, view)
     bullet.Anchored = false
     bullet.CanCollide = false
     bullet.CastShadow = false
+
     local bv = Instance.new("BodyVelocity")
     bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
     bv.Parent = bullet
+
     bullet.CFrame = originCFrame
     bv.Velocity = originCFrame.LookVector * TRACER_SPEED
+
     bullet.Parent = Workspace
+
     local a0 = Instance.new("Attachment", bullet)
     a0.Position = Vector3.new(0, 0, -0.15)
     local a1 = Instance.new("Attachment", bullet)
     a1.Position = Vector3.new(0, 0, 0.15)
+
     local trail = Instance.new("Trail")
     trail.Attachment0 = a0
     trail.Attachment1 = a1
@@ -213,60 +219,48 @@ local function spawnBulletTrail(originCFrame, view)
     trail.Transparency = NumberSequence.new(_G.Settings.BulletTracer.Transparency)
     trail.Color = ColorSequence.new(TRACER_COLOR)
     trail.Parent = bullet
-    task.delay(BULLET_LIFETIME, function()
+
+    task.delay(TRACER_LIFETIME, function()
         if bullet then bullet:Destroy() end
     end)
 end
 
 local tracerRemoteMapping = {
-    ["Counter Blox"] = {"ReplicateShot", "FireServer"},
-    ["Arsenal"] = {"FireBullet", "ReplicateShot", "FireServer"}
+    ["Counter Blox"] = {"ReplicateShot"},
+    ["Arsenal"] = {"FireBullet", "ReplicateShot"}
 }
 
-local bulletTracerHookActive = false
-local hookConnection = nil
+local mt = getrawmetatable(game)
+local oldNamecall = mt.__namecall
+setreadonly(mt, false)
 
-_G.setupBulletTracerHook = function()
-    if bulletTracerHookActive then return end
-    
-    local mt = getrawmetatable(game)
-    if not mt then return end
-    
-    local oldNamecall = mt.__namecall
-    setreadonly(mt, false)
-    
-    mt.__namecall = newcclosure(function(self, ...)
-        local method = getnamecallmethod()
-        if method == "FireServer" and _G.Settings.BulletTracer.Enabled then
-            local name = tostring(self)
-            local view = _G.Settings.BulletTracer.View
-            local remotes = tracerRemoteMapping[view]
-            if remotes then
-                for _, rem in ipairs(remotes) do
-                    if name == rem then
-                        local cam = Camera or Workspace.CurrentCamera
-                        if cam then
-                            spawnBulletTrail(cam.CFrame, view)
-                        end
-                        break
+mt.__namecall = newcclosure(function(self, ...)
+    local method = getnamecallmethod()
+    if method == "FireServer" and _G.Settings.BulletTracer.Enabled then
+        local name = tostring(self)
+        local view = _G.Settings.BulletTracer.View
+        local remotes = tracerRemoteMapping[view]
+        
+        if remotes then
+            for _, rem in ipairs(remotes) do
+                if name == rem then
+                    local cam = Workspace.CurrentCamera
+                    if cam then
+                        spawnBulletTrail(cam.CFrame, view)
                     end
+                    break
                 end
             end
         end
-        return oldNamecall(self, ...)
-    end)
-    
-    setreadonly(mt, true)
-    bulletTracerHookActive = true
-end
-
-_G.disableBulletTracerHook = function()
-    bulletTracerHookActive = false
-end
+    end
+    return oldNamecall(self, ...)
+end)
+setreadonly(mt, true)
 
 local thirdPersonConnection = nil
 
 local function RenderSteppedModifi()
+    local Camera = Workspace.CurrentCamera
     local PlayerArms = Camera:FindFirstChild("Arms")
     if PlayerArms then
         for _, part in ipairs(PlayerArms:GetDescendants()) do
@@ -284,6 +278,7 @@ end
 
 _G.ToggleThirdPerson = function(state)
     _G.Settings.ThirdPerson.Enabled = state
+    local Camera = Workspace.CurrentCamera
     if state then
         captureOriginalCamera()
         if _G.Settings.ThirdPerson.View == "Default" then
@@ -323,30 +318,26 @@ end
 
 _G.ToggleBulletTracer = function(state)
     _G.Settings.BulletTracer.Enabled = state
-    if state then
-        _G.setupBulletTracerHook()
-    else
-        _G.disableBulletTracerHook()
-    end
 end
 
 _G.SetBulletTracerView = function(value)
     _G.Settings.BulletTracer.View = value
-    if _G.Settings.BulletTracer.Enabled then
-        _G.setupBulletTracerHook()
-    end
 end
 
 _G.UpdateBulletTracerProperties = function()
 end
 
-local CameraLocal = Camera
-local OriginalFOV = CameraLocal and CameraLocal.FieldOfView or 70
+local OriginalFOV = 70
+if Workspace.CurrentCamera then
+    OriginalFOV = Workspace.CurrentCamera.FieldOfView
+end
+
 _G.FovCustomEnabled = false
 _G.FovRemovalValue = _G.Settings.FovCustom.Value
 _G.FovConnection = nil
 
 _G.ToggleFovCustom = function(state)
+    local CameraLocal = Workspace.CurrentCamera
     _G.FovCustomEnabled = state
     if state then
         captureOriginalCamera()
@@ -386,7 +377,10 @@ _G.toggleScrench = function(state)
             _G.screnchConnection = nil
         end
         _G.screnchConnection = RunService.RenderStepped:Connect(function()
-            Camera.CFrame = Camera.CFrame * CFrame.new(0, 0, 0, 1, 0, 0, 0, _G.Resolution, 0, 0, 0, 1)
+            local cam = Workspace.CurrentCamera
+            if cam then
+                cam.CFrame = cam.CFrame * CFrame.new(0, 0, 0, 1, 0, 0, 0, _G.Resolution, 0, 0, 0, 1)
+            end
         end)
     else
         if _G.screnchConnection then
@@ -410,9 +404,6 @@ local function onCharacterAdded(character)
         task.wait(0.1)
         _G.ToggleThirdPerson(true)
     end
-    if _G.Settings.BulletTracer.Enabled then
-        _G.setupBulletTracerHook()
-    end
 end
 
 Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
@@ -420,7 +411,5 @@ Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
 if Players.LocalPlayer.Character then
     onCharacterAdded(Players.LocalPlayer.Character)
 end
-
-_G.setupBulletTracerHook()
 
 return _G
