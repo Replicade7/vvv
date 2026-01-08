@@ -219,34 +219,50 @@ local function spawnBulletTrail(originCFrame, view)
 end
 
 local tracerRemoteMapping = {
-    ["Counter Blox"] = {"ReplicateShot"},
-    ["Arsenal"] = {"FireBullet","ReplicateShot"}
+    ["Counter Blox"] = {"ReplicateShot", "FireServer"},
+    ["Arsenal"] = {"FireBullet", "ReplicateShot", "FireServer"}
 }
 
-local mt = getrawmetatable(game)
-local oldNamecall = mt.__namecall
-setreadonly(mt, false)
-mt.__namecall = newcclosure(function(self, ...)
-    local method = getnamecallmethod()
-    if method == "FireServer" and _G.Settings.BulletTracer.Enabled then
-        local name = tostring(self)
-        local view = _G.Settings.BulletTracer.View
-        local remotes = tracerRemoteMapping[view]
-        if remotes then
-            for _, rem in ipairs(remotes) do
-                if name == rem then
-                    local cam = Camera or Workspace.CurrentCamera
-                    if cam then
-                        spawnBulletTrail(cam.CFrame, view)
+local bulletTracerHookActive = false
+local hookConnection = nil
+
+_G.setupBulletTracerHook = function()
+    if bulletTracerHookActive then return end
+    
+    local mt = getrawmetatable(game)
+    if not mt then return end
+    
+    local oldNamecall = mt.__namecall
+    setreadonly(mt, false)
+    
+    mt.__namecall = newcclosure(function(self, ...)
+        local method = getnamecallmethod()
+        if method == "FireServer" and _G.Settings.BulletTracer.Enabled then
+            local name = tostring(self)
+            local view = _G.Settings.BulletTracer.View
+            local remotes = tracerRemoteMapping[view]
+            if remotes then
+                for _, rem in ipairs(remotes) do
+                    if name == rem then
+                        local cam = Camera or Workspace.CurrentCamera
+                        if cam then
+                            spawnBulletTrail(cam.CFrame, view)
+                        end
+                        break
                     end
-                    break
                 end
             end
         end
-    end
-    return oldNamecall(self, ...)
-end)
-setreadonly(mt, true)
+        return oldNamecall(self, ...)
+    end)
+    
+    setreadonly(mt, true)
+    bulletTracerHookActive = true
+end
+
+_G.disableBulletTracerHook = function()
+    bulletTracerHookActive = false
+end
 
 local thirdPersonConnection = nil
 
@@ -307,10 +323,18 @@ end
 
 _G.ToggleBulletTracer = function(state)
     _G.Settings.BulletTracer.Enabled = state
+    if state then
+        _G.setupBulletTracerHook()
+    else
+        _G.disableBulletTracerHook()
+    end
 end
 
 _G.SetBulletTracerView = function(value)
     _G.Settings.BulletTracer.View = value
+    if _G.Settings.BulletTracer.Enabled then
+        _G.setupBulletTracerHook()
+    end
 end
 
 _G.UpdateBulletTracerProperties = function()
@@ -386,6 +410,9 @@ local function onCharacterAdded(character)
         task.wait(0.1)
         _G.ToggleThirdPerson(true)
     end
+    if _G.Settings.BulletTracer.Enabled then
+        _G.setupBulletTracerHook()
+    end
 end
 
 Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
@@ -393,5 +420,7 @@ Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
 if Players.LocalPlayer.Character then
     onCharacterAdded(Players.LocalPlayer.Character)
 end
+
+_G.setupBulletTracerHook()
 
 return _G
