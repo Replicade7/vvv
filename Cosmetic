@@ -22,7 +22,7 @@ _G.Settings = {
     },
     BulletTracer = {
         Enabled = false,
-        View = "Counter Blox",
+        View = "Counter Blox", -- По умолчанию
         Transparency = 0.5,
         Color = Color3.fromRGB(255, 255, 255),
         Lifetime = 3,
@@ -180,7 +180,7 @@ local function spawnBulletTrail(originCFrame, view)
     local TRACER_LIFETIME = _G.Settings.BulletTracer.Lifetime
     local TRACER_SPEED = _G.Settings.BulletTracer.Speed
     local scale = _G.Settings.BulletTracer.Scale
-    
+
     if view == "Arsenal" then
         scale = NumberSequence.new(0.35)
         TRACER_SPEED = 1400
@@ -227,7 +227,7 @@ end
 
 local tracerRemoteMapping = {
     ["Counter Blox"] = {"ReplicateShot"},
-    ["Arsenal"] = {"FireBullet", "ReplicateShot"}
+    ["Arsenal"] = {"FireBullet"} -- Убрал "ReplicateShot", чтобы не было конфликтов
 }
 
 local mt = getrawmetatable(game)
@@ -240,13 +240,14 @@ mt.__namecall = newcclosure(function(self, ...)
         local name = tostring(self)
         local view = _G.Settings.BulletTracer.View
         
-        -- FIX: Если view приходит как таблица (баг UI библиотек), берем первое значение
+        -- Фикс таблицы из UI
         if type(view) == "table" then
             view = view[1]
         end
 
         local remotes = tracerRemoteMapping[view]
         
+        -- Проверяем, есть ли текущий ивент (name) в списке ВЫБРАННОГО режима (remotes)
         if remotes then
             for _, rem in ipairs(remotes) do
                 if name == rem then
