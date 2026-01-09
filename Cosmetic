@@ -2,11 +2,8 @@ local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-
 local LocalPlayer = Players.LocalPlayer
-
 _G.Visuals_Color = Color3.fromRGB(255, 255, 255)
-
 _G.Settings = {
     ChinaHat = {
         Enabled = false,
@@ -22,7 +19,7 @@ _G.Settings = {
     },
     BulletTracer = {
         Enabled = false,
-        View = "Counter Blox", -- По умолчанию
+        View = "Counter Blox",
         Transparency = 0.5,
         Color = Color3.fromRGB(255, 255, 255),
         Lifetime = 3,
@@ -41,20 +38,30 @@ _G.Settings = {
     Scrench = {
         Enabled = false,
         Resolution = 0.65
+    },
+    WeaphonMaterial = {
+        Enabled = false,
+        View = "Default",
+        Material = "Neon",
+        Color = Color3.fromRGB(255, 255, 255),
+        RGB = false
+    },
+    PlayerMaterial = {
+        Enabled = false,
+        Material = "Neon",
+        Color = Color3.fromRGB(255, 255, 255),
+        TeamCheck = false
     }
 }
-
 _G.hatData = {
     meshPart = nil,
     headAttachment = nil,
     meshAttachment = nil,
     weld = nil
 }
-
 _G.trailData = {
     trails = {}
 }
-
 local origCameraSettings = {
     captured = false,
     MaxZoom = nil,
@@ -62,7 +69,6 @@ local origCameraSettings = {
     Mode = nil,
     FOV = nil
 }
-
 local function captureOriginalCamera()
     local Camera = Workspace.CurrentCamera
     if not origCameraSettings.captured and LocalPlayer and Camera then
@@ -73,7 +79,6 @@ local function captureOriginalCamera()
         origCameraSettings.captured = true
     end
 end
-
 _G.removeHat = function()
     if _G.hatData.meshPart then
         _G.hatData.meshPart:Destroy()
@@ -92,7 +97,6 @@ _G.removeHat = function()
         _G.hatData.weld = nil
     end
 end
-
 _G.createHat = function(head)
     if not head then return end
     _G.removeHat()
@@ -117,7 +121,6 @@ _G.createHat = function(head)
     _G.hatData.meshPart.CFrame = head.CFrame * CFrame.new(_G.Settings.ChinaHat.PositionOffset)
     _G.hatData.meshPart.Parent = Workspace
 end
-
 _G.clearTrails = function()
     for _, trail in pairs(_G.trailData.trails) do
         if trail and trail.Parent then
@@ -126,7 +129,6 @@ _G.clearTrails = function()
     end
     _G.trailData.trails = {}
 end
-
 _G.createTrail = function(part)
     if not part then return end
     local trail = Instance.new("Trail")
@@ -146,7 +148,6 @@ _G.createTrail = function(part)
     table.insert(_G.trailData.trails, trail)
     return trail
 end
-
 _G.initializeTrails = function(character)
     if not character then return end
     _G.clearTrails()
@@ -157,7 +158,6 @@ _G.initializeTrails = function(character)
         end
     end
 end
-
 _G.updateHatProperties = function()
     if _G.hatData.meshPart then
         _G.hatData.meshPart.Color = _G.Settings.ChinaHat.Color
@@ -165,7 +165,6 @@ _G.updateHatProperties = function()
         _G.hatData.meshPart.Size = _G.Settings.ChinaHat.Size
     end
 end
-
 _G.updateTrailProperties = function()
     for _, trail in pairs(_G.trailData.trails) do
         if trail and trail.Parent then
@@ -174,18 +173,15 @@ _G.updateTrailProperties = function()
         end
     end
 end
-
 local function spawnBulletTrail(originCFrame, view)
     local TRACER_COLOR = _G.Settings.BulletTracer.Color
     local TRACER_LIFETIME = _G.Settings.BulletTracer.Lifetime
     local TRACER_SPEED = _G.Settings.BulletTracer.Speed
     local scale = _G.Settings.BulletTracer.Scale
-
     if view == "Arsenal" then
         scale = NumberSequence.new(0.35)
         TRACER_SPEED = 1400
     end
-
     local bullet = Instance.new("Part")
     bullet.Size = Vector3.new(1, 0.5, 1.1)
     bullet.Material = Enum.Material.Neon
@@ -193,21 +189,16 @@ local function spawnBulletTrail(originCFrame, view)
     bullet.Anchored = false
     bullet.CanCollide = false
     bullet.CastShadow = false
-
     local bv = Instance.new("BodyVelocity")
     bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
     bv.Parent = bullet
-
     bullet.CFrame = originCFrame
     bv.Velocity = originCFrame.LookVector * TRACER_SPEED
-
     bullet.Parent = Workspace
-
     local a0 = Instance.new("Attachment", bullet)
     a0.Position = Vector3.new(0, 0, -0.15)
     local a1 = Instance.new("Attachment", bullet)
     a1.Position = Vector3.new(0, 0, 0.15)
-
     local trail = Instance.new("Trail")
     trail.Attachment0 = a0
     trail.Attachment1 = a1
@@ -219,35 +210,26 @@ local function spawnBulletTrail(originCFrame, view)
     trail.Transparency = NumberSequence.new(_G.Settings.BulletTracer.Transparency)
     trail.Color = ColorSequence.new(TRACER_COLOR)
     trail.Parent = bullet
-
     task.delay(TRACER_LIFETIME, function()
         if bullet then bullet:Destroy() end
     end)
 end
-
 local tracerRemoteMapping = {
     ["Counter Blox"] = {"ReplicateShot"},
-    ["Arsenal"] = {"FireBullet"} -- Убрал "ReplicateShot", чтобы не было конфликтов
+    ["Arsenal"] = {"FireBullet"}
 }
-
 local mt = getrawmetatable(game)
 local oldNamecall = mt.__namecall
 setreadonly(mt, false)
-
 mt.__namecall = newcclosure(function(self, ...)
     local method = getnamecallmethod()
     if method == "FireServer" and _G.Settings.BulletTracer.Enabled then
         local name = tostring(self)
         local view = _G.Settings.BulletTracer.View
-        
-        -- Фикс таблицы из UI
         if type(view) == "table" then
             view = view[1]
         end
-
         local remotes = tracerRemoteMapping[view]
-        
-        -- Проверяем, есть ли текущий ивент (name) в списке ВЫБРАННОГО режима (remotes)
         if remotes then
             for _, rem in ipairs(remotes) do
                 if name == rem then
@@ -263,9 +245,7 @@ mt.__namecall = newcclosure(function(self, ...)
     return oldNamecall(self, ...)
 end)
 setreadonly(mt, true)
-
 local thirdPersonConnection = nil
-
 local function RenderSteppedModifi()
     local Camera = Workspace.CurrentCamera
     local PlayerArms = Camera:FindFirstChild("Arms")
@@ -282,7 +262,6 @@ local function RenderSteppedModifi()
     LocalPlayer.CameraMaxZoomDistance = _G.Settings.ThirdPerson.Distance
     LocalPlayer.CameraMinZoomDistance = _G.Settings.ThirdPerson.Distance
 end
-
 _G.ToggleThirdPerson = function(state)
     _G.Settings.ThirdPerson.Enabled = state
     local Camera = Workspace.CurrentCamera
@@ -315,34 +294,27 @@ _G.ToggleThirdPerson = function(state)
         end
     end
 end
-
 _G.SetThirdPersonView = function(value)
     _G.Settings.ThirdPerson.View = value
     if _G.Settings.ThirdPerson.Enabled then
         _G.ToggleThirdPerson(true)
     end
 end
-
 _G.ToggleBulletTracer = function(state)
     _G.Settings.BulletTracer.Enabled = state
 end
-
 _G.SetBulletTracerView = function(value)
     _G.Settings.BulletTracer.View = value
 end
-
 _G.UpdateBulletTracerProperties = function()
 end
-
 local OriginalFOV = 70
 if Workspace.CurrentCamera then
     OriginalFOV = Workspace.CurrentCamera.FieldOfView
 end
-
 _G.FovCustomEnabled = false
 _G.FovRemovalValue = _G.Settings.FovCustom.Value
 _G.FovConnection = nil
-
 _G.ToggleFovCustom = function(state)
     local CameraLocal = Workspace.CurrentCamera
     _G.FovCustomEnabled = state
@@ -371,11 +343,9 @@ _G.ToggleFovCustom = function(state)
         end
     end
 end
-
 _G.Resolution = _G.Settings.Scrench.Resolution
 _G.ScrenchEnabled = false
 _G.screnchConnection = nil
-
 _G.toggleScrench = function(state)
     _G.ScrenchEnabled = state
     if state then
@@ -396,7 +366,6 @@ _G.toggleScrench = function(state)
         end
     end
 end
-
 local function onCharacterAdded(character)
     if _G.Settings.ChinaHat.Enabled then
         local head = character:WaitForChild("Head", 5)
@@ -412,11 +381,100 @@ local function onCharacterAdded(character)
         _G.ToggleThirdPerson(true)
     end
 end
-
 Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
-
 if Players.LocalPlayer.Character then
     onCharacterAdded(Players.LocalPlayer.Character)
 end
-
+local materialMap = {
+    ["Neon"] = Enum.Material.Neon,
+    ["ForceField"] = Enum.Material.ForceField,
+    ["Glow"] = Enum.Material.SmoothPlastic
+}
+local function applyMaterialToPart(part, material, color)
+    if part and part:IsA("BasePart") then
+        part.Material = material
+        part.Color = color
+        if material == Enum.Material.SmoothPlastic then
+            part.Reflectance = 0.4
+        else
+            part.Reflectance = 0
+        end
+    end
+end
+local function applyWeaponMaterial()
+    if not _G.Settings.WeaphonMaterial.Enabled then return end
+    local material = materialMap[_G.Settings.WeaphonMaterial.Material]
+    if not material then return end
+    local color = _G.Settings.WeaphonMaterial.Color
+    if _G.Settings.WeaphonMaterial.RGB then
+        color = Color3.fromHSV(tick() % 5 / 5, 1, 1)
+    end
+    local lplayer = LocalPlayer
+    local camera = Workspace.CurrentCamera
+    if _G.Settings.WeaphonMaterial.View == "Default" then
+        if camera then
+            for _, obj in ipairs(camera:GetChildren()) do
+                if obj:IsA("Model") or obj:IsA("Tool") then
+                    for _, part in ipairs(obj:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                             applyMaterialToPart(part, material, color)
+                        end
+                    end
+                end
+            end
+        end
+        if lplayer.Character then
+            for _, tool in ipairs(lplayer.Character:GetChildren()) do
+                if tool:IsA("Tool") then
+                    for _, part in ipairs(tool:GetDescendants()) do
+                         if part:IsA("BasePart") then
+                             applyMaterialToPart(part, material, color)
+                        end
+                    end
+                end
+            end
+        end
+    elseif _G.Settings.WeaphonMaterial.View == "Counter Blox" then
+        if camera and camera:FindFirstChild("Arms") then
+            for _, part in ipairs(camera.Arms:GetDescendants()) do
+                 if part:IsA("MeshPart") then
+                    local name = part.Name:lower()
+                    if not (name:find("arms") or name:find("armleft") or name:find("left arm")) then
+                        part.TextureID = ""
+                        applyMaterialToPart(part, material, color)
+                        part.Transparency = 0
+                    end
+                 end
+            end
+        end
+    end
+end
+local function applyPlayerMaterial()
+    if not _G.Settings.PlayerMaterial.Enabled then return end
+    local material = materialMap[_G.Settings.PlayerMaterial.Material]
+    if not material then return end
+    local color = _G.Settings.PlayerMaterial.Color
+    local lplayer = LocalPlayer
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= lplayer and player.Character then
+            local apply = true
+            if _G.Settings.PlayerMaterial.TeamCheck then
+                if player.Team and lplayer.Team and player.Team == lplayer.Team then
+                    apply = false
+                end
+            end
+            if apply then
+                for _, part in ipairs(player.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        applyMaterialToPart(part, material, color)
+                    end
+                end
+            end
+        end
+    end
+end
+RunService.RenderStepped:Connect(function()
+    applyWeaponMaterial()
+    applyPlayerMaterial()
+end)
 return _G
