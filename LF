@@ -110,23 +110,20 @@ function Leaf:CreateWindow(config)
     local InnerFrame = Instance.new("Frame")
     local UIStroke2 = Instance.new("UIStroke")
     local MainframeLeft = Instance.new("Frame")
-    local UICornerMainLeft = Instance.new("UICorner")
     local UIStroke3Left = Instance.new("UIStroke")
     
     local MainframeRight
     if isDual then
         MainframeRight = Instance.new("Frame")
-        local UICornerMainRight = Instance.new("UICorner")
         local UIStroke3Right = Instance.new("UIStroke")
         
         MainframeRight.Name = "MainFrameRight"
         MainframeRight.Parent = InnerFrame
         MainframeRight.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
         MainframeRight.BorderSizePixel = 0
-        MainframeRight.Position = UDim2.new(0.51, 0, 0.176, 0)
-        MainframeRight.Size = UDim2.new(0, 310, 0, 200)
+        MainframeRight.Position = UDim2.new(0.52, 0, 0.13, 0)
+        MainframeRight.Size = UDim2.new(0, 310, 0, 300)
 
-        UICornerMainRight.Parent = MainframeRight
         UIStroke3Right.Parent = MainframeRight
         UIStroke3Right.Color = Color3.fromRGB(80, 80, 80)
         UIStroke3Right.Thickness = 2
@@ -145,9 +142,9 @@ function Leaf:CreateWindow(config)
     OuterFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
     
     if isDual then
-        OuterFrame.Size = UDim2.new(0, 666, 0, 300)
+        OuterFrame.Size = UDim2.new(0, 666, 0, 400)
     else
-        OuterFrame.Size = UDim2.new(0, 336, 0, 300)
+        OuterFrame.Size = UDim2.new(0, 336, 0, 400)
     end
 
     UIStroke1.Parent = OuterFrame
@@ -161,10 +158,10 @@ function Leaf:CreateWindow(config)
     InnerFrame.Position = UDim2.new(0.024, 0, 0.031, 0)
     
     if isDual then
-        InnerFrame.Size = UDim2.new(0, 640, 0, 283)
+        InnerFrame.Size = UDim2.new(0, 640, 0, 383)
         InnerFrame.Position = UDim2.new(0, 13, 0, 9)
     else
-        InnerFrame.Size = UDim2.new(0, 320, 0, 283)
+        InnerFrame.Size = UDim2.new(0, 320, 0, 383)
     end
 
     UIStroke2.Parent = InnerFrame
@@ -175,10 +172,9 @@ function Leaf:CreateWindow(config)
     MainframeLeft.Parent = InnerFrame
     MainframeLeft.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     MainframeLeft.BorderSizePixel = 0
-    MainframeLeft.Position = UDim2.new(0.017, 0, 0.176, 0)
-    MainframeLeft.Size = UDim2.new(0, 310, 0, 200)
+    MainframeLeft.Position = UDim2.new(0.017, 0, 0.13, 0)
+    MainframeLeft.Size = UDim2.new(0, 310, 0, 300)
 
-    UICornerMainLeft.Parent = MainframeLeft
     UIStroke3Left.Parent = MainframeLeft
     UIStroke3Left.Color = Color3.fromRGB(80, 80, 80)
     UIStroke3Left.Thickness = 2
@@ -236,7 +232,7 @@ function Leaf:CreateWindow(config)
         local totalWidth = buttonWidth * n + gap * (n - 1)
         
         local containerWidth = isDual and 630 or 310
-        local startX = containerWidth - rightPadding - totalWidth
+        local startX = 210
         
         for i, tab in ipairs(allTabs) do
             tab.TabButton.Position = UDim2.new(0, startX + (i - 1) * (buttonWidth + gap), 0.073, 0)
@@ -607,7 +603,7 @@ function Leaf:CreateWindow(config)
             Fill.Parent = SliderFrame
             Fill.BackgroundColor3 = Color3.fromRGB(31, 31, 31)
             Fill.Position = UDim2.new(0.035, 0, 0.6, 0)
-            Fill.Size = UDim2.new(0, 261, 0, 10)
+            Fill.Size = UDim2.new(0, 260, 0, 5)
             
             UICornerFill.CornerRadius = UDim.new(0, 4)
             UICornerFill.Parent = Fill
@@ -622,128 +618,76 @@ function Leaf:CreateWindow(config)
             
             Snumber.Parent = SliderFrame
             Snumber.BackgroundTransparency = 1
-            Snumber.Position = UDim2.new(1, -60, 0, 0) 
-            Snumber.Size = UDim2.new(0, 50, 0.5, 0)      
+            Snumber.Position = UDim2.new(0.75, 0, 0, 0)
+            Snumber.Size = UDim2.new(0.2, 0, 0.5, 0)
             Snumber.Font = Enum.Font.GothamBold
-            if decimalPlaces > 0 then
-                Snumber.Text = string.format("%."..decimalPlaces.."f", default)
-            else
-                Snumber.Text = tostring(math.round(default))
-            end
+            Snumber.Text = tostring(default)
             Snumber.TextColor3 = Color3.fromRGB(255, 255, 255)
             Snumber.TextSize = 16
             Snumber.TextXAlignment = Enum.TextXAlignment.Right
-            Snumber.TextYAlignment = Enum.TextYAlignment.Center 
             
-            local currentValue = default
+            local value = default
             local dragging = false
             
-            local function updateSlider(value)
-                value = math.clamp(value, min, max)
-                local steppedValue = min + math.round((value - min) / increment) * increment
-                currentValue = steppedValue
-                if currentValue > max then currentValue = max end
-                if currentValue < min then currentValue = min end
-
-                local percent = (currentValue - min) / (max - min)
-                Progress.Size = UDim2.new(percent, 0, 1, 0)
-
-                if decimalPlaces > 0 and math.abs(currentValue - math.round(currentValue)) > 1e-9 then
-                    Snumber.Text = string.format("%."..decimalPlaces.."f", currentValue)
-                else
-                    Snumber.Text = tostring(math.round(currentValue))
-                end
-                
-                if props.Callback then pcall(props.Callback, currentValue) end
+            local function updateSlider(input)
+                local x = math.clamp((input.Position.X - Fill.AbsolutePosition.X) / Fill.AbsoluteSize.X, 0, 1)
+                value = min + (max - min) * x
+                value = math.floor(value / increment + 0.5) * increment
+                Progress.Size = UDim2.new(x, 0, 1, 0)
+                Snumber.Text = string.format("%." .. decimalPlaces .. "f", value)
+                if props.Callback then pcall(props.Callback, value) end
             end
             
-            local function updateValueFromPosition(position)
-                local fillAbsolute = Fill.AbsolutePosition
-                local fillSize = Fill.AbsoluteSize
-                local relativeX = math.clamp(position.X - fillAbsolute.X, 0, fillSize.X)
-                local percent = relativeX / fillSize.X
-                local value = min + (max - min) * percent
-                updateSlider(value)
-            end
-            
-            local function handleInput(input)
+            Fill.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     dragging = true
-                    updateValueFromPosition(input.Position)
-                end
-            end
-            
-            local function endInput(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                    dragging = false
-                end
-            end
-            
-            Fill.InputBegan:Connect(handleInput)
-            Fill.InputEnded:Connect(endInput)
-            
-            game:GetService("UserInputService").InputChanged:Connect(function(input)
-                if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-                    updateValueFromPosition(input.Position)
+                    updateSlider(input)
                 end
             end)
             
-            updateSlider(default)
+            Fill.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    dragging = false
+                end
+            end)
+            
+            game:GetService("UserInputService").InputChanged:Connect(function(input)
+                if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                    updateSlider(input)
+                end
+            end)
             
             local key = props.Id or props.Title
             self.window.elements[key] = {
-                GetValue = function() return currentValue end,
-                SetValue = function(value) updateSlider(value) end
+                GetValue = function() return value end,
+                SetValue = function(newValue)
+                    newValue = math.clamp(newValue, min, max)
+                    newValue = math.floor(newValue / increment + 0.5) * increment
+                    value = newValue
+                    local x = (value - min) / (max - min)
+                    Progress.Size = UDim2.new(x, 0, 1, 0)
+                    Snumber.Text = string.format("%." .. decimalPlaces .. "f", value)
+                    if props.Callback then pcall(props.Callback, value) end
+                end
             }
+            
+            self.window.elements[key].SetValue(default)
             
             updateNextPos(isRight, currentPos + 50)
         end
-        
-        function tab:Section(props)
-            local parentFrame, currentPos, isRight = getParentFrame(props.Position)
 
-            local SectionFrame = Instance.new("Frame")
-            local UICornerSec = Instance.new("UICorner")
-            local SectionTitle = Instance.new("TextLabel")
-            local Underline = Instance.new("Frame")
-            
-            SectionFrame.Parent = parentFrame
-            SectionFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-            SectionFrame.Size = UDim2.new(0, 280, 0, 25)
-            SectionFrame.Position = UDim2.new(0.5, -140, 0, currentPos)
-            
-            UICornerSec.CornerRadius = UDim.new(0, 4)
-            UICornerSec.Parent = SectionFrame
-            
-            SectionTitle.Parent = SectionFrame
-            SectionTitle.BackgroundTransparency = 1
-            SectionTitle.Size = UDim2.new(1, 0, 1, 0)
-            SectionTitle.Font = Enum.Font.GothamBold
-            SectionTitle.Text = props.Title
-            SectionTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-            SectionTitle.TextSize = 16
-            
-            Underline.Parent = SectionFrame
-            Underline.BackgroundColor3 = Leaf.MenuColorValue.Value
-            table.insert(Leaf.colorElements, {element = Underline, property = "BackgroundColor3"})
-            Underline.Position = UDim2.new(0, 0, 1, -2)
-            Underline.Size = UDim2.new(1, 0, 0, 2)
-            
-            updateNextPos(isRight, currentPos + 30)
-        end
-        
-        function tab:CreateDropdown(props)
+        function tab:Dropdown(props)
             local parentFrame, currentPos, isRight = getParentFrame(props.Position)
 
             local DropdownFrame = Instance.new("Frame")
             local UICornerDrop = Instance.new("UICorner")
-            local Dropdownname = Instance.new("TextLabel")
-            local TextButton = Instance.new("TextButton")
-            local Info = Instance.new("TextButton")
-            local UICornerInfo = Instance.new("UICorner")
-            local DropdownList = Instance.new("Frame")
-            local UICornerList = Instance.new("UICorner")
-            local ScrollingFrameList = Instance.new("ScrollingFrame")
+            local NameDrop = Instance.new("TextLabel")
+            local Selected = Instance.new("TextLabel")
+            local Arrow = Instance.new("ImageLabel")
+            local DropButton = Instance.new("TextButton")
+            local OptionsFrame = Instance.new("Frame")
+            local UICornerOpts = Instance.new("UICorner")
+            local ScrollingOptions = Instance.new("ScrollingFrame")
             local UIListLayout = Instance.new("UIListLayout")
             
             DropdownFrame.Parent = parentFrame
@@ -754,166 +698,142 @@ function Leaf:CreateWindow(config)
             UICornerDrop.CornerRadius = UDim.new(0, 4)
             UICornerDrop.Parent = DropdownFrame
             
-            Dropdownname.Parent = DropdownFrame
-            Dropdownname.BackgroundTransparency = 1
-            Dropdownname.Position = UDim2.new(0.04, 0, 0, 0)
-            Dropdownname.Size = UDim2.new(0.5, 0, 1, 0)
-            Dropdownname.Font = Enum.Font.GothamBold
-            Dropdownname.Text = props.Name
-            Dropdownname.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Dropdownname.TextSize = 16
-            Dropdownname.TextXAlignment = Enum.TextXAlignment.Left
+            NameDrop.Parent = DropdownFrame
+            NameDrop.BackgroundTransparency = 1
+            NameDrop.Position = UDim2.new(0.04, 0, 0, 0)
+            NameDrop.Size = UDim2.new(0.6, 0, 1, 0)
+            NameDrop.Font = Enum.Font.GothamBold
+            NameDrop.Text = props.Name
+            NameDrop.TextColor3 = Color3.fromRGB(255, 255, 255)
+            NameDrop.TextSize = 16
+            NameDrop.TextXAlignment = Enum.TextXAlignment.Left
             
-            TextButton.Parent = DropdownFrame
-            TextButton.BackgroundTransparency = 1
-            TextButton.Size = UDim2.new(1, 0, 1, 0)
-            TextButton.Text = ""
+            Selected.Parent = DropdownFrame
+            Selected.BackgroundTransparency = 1
+            Selected.Position = UDim2.new(0.3, 0, 0, 0)
+            Selected.Size = UDim2.new(0.5, 0, 1, 0)
+            Selected.Font = Enum.Font.GothamBold
+            Selected.Text = props.CurrentOption
+            Selected.TextColor3 = Color3.fromRGB(180, 180, 180)
+            Selected.TextSize = 14
+            Selected.TextXAlignment = Enum.TextXAlignment.Right
             
-            Info.Parent = DropdownFrame
-            Info.BackgroundColor3 = Leaf.MenuColorValue.Value
-            table.insert(Leaf.colorElements, {element = Info, property = "BackgroundColor3"})
-            Info.Position = UDim2.new(0.72, 0, 0.2, 0)
-            Info.Size = UDim2.new(0.25, 0, 0.6, 0)
-            Info.Font = Enum.Font.GothamBold
-            Info.Text = props.CurrentOption
-            Info.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Info.TextSize = 14
+            Arrow.Parent = DropdownFrame
+            Arrow.BackgroundTransparency = 1
+            Arrow.Position = UDim2.new(0.93, 0, 0.25, 0)
+            Arrow.Size = UDim2.new(0, 20, 0, 20)
+            Arrow.Image = "rbxassetid://3926305904"
+            Arrow.ImageRectOffset = Vector2.new(312, 4)
+            Arrow.ImageRectSize = Vector2.new(24, 24)
+            Arrow.Rotation = 90
             
-            UICornerInfo.CornerRadius = UDim.new(0, 4)
-            UICornerInfo.Parent = Info
+            DropButton.Parent = DropdownFrame
+            DropButton.BackgroundTransparency = 1
+            DropButton.Size = UDim2.new(1, 0, 1, 0)
+            DropButton.Text = ""
             
-            DropdownList.Parent = OuterFrame
-            DropdownList.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-            DropdownList.Size = UDim2.new(0, 240, 0, 150)
-            DropdownList.Visible = false
-            DropdownList.ZIndex = 50
+            OptionsFrame.Parent = ScreenGui
+            OptionsFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            OptionsFrame.Size = UDim2.new(0, 280, 0, 0)
+            OptionsFrame.Visible = false
+            OptionsFrame.ZIndex = 50
             
-            UICornerList.CornerRadius = UDim.new(0, 4)
-            UICornerList.Parent = DropdownList
+            UICornerOpts.CornerRadius = UDim.new(0, 4)
+            UICornerOpts.Parent = OptionsFrame
             
-            ScrollingFrameList.Parent = DropdownList
-            ScrollingFrameList.Active = true
-            ScrollingFrameList.BackgroundTransparency = 1
-            ScrollingFrameList.Size = UDim2.new(1, 0, 1, 0)
-            ScrollingFrameList.CanvasSize = UDim2.new(0, 0, 0, 0)
-            ScrollingFrameList.ScrollBarThickness = 3
-            ScrollingFrameList.ZIndex = 51
+            ScrollingOptions.Parent = OptionsFrame
+            ScrollingOptions.Active = true
+            ScrollingOptions.BackgroundTransparency = 1
+            ScrollingOptions.Size = UDim2.new(1, 0, 1, 0)
+            ScrollingOptions.ScrollBarThickness = 3
+            ScrollingOptions.CanvasSize = UDim2.new(0, 0, 0, 0)
             
-            UIListLayout.Parent = ScrollingFrameList
+            UIListLayout.Parent = ScrollingOptions
             UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-            UIListLayout.Padding = UDim.new(0, 5)
+            UIListLayout.Padding = UDim.new(0, 2)
             
-            local function createOption(option)
-                local OptionFrame = Instance.new("Frame")
-                local UICornerOpt = Instance.new("UICorner")
-                local OptionText = Instance.new("TextLabel")
-                local OptionButton = Instance.new("TextButton")
-                
-                OptionFrame.Parent = ScrollingFrameList
-                OptionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-                OptionFrame.Size = UDim2.new(1, 0, 0, 25)
-                OptionFrame.ZIndex = 52
-                
-                UICornerOpt.CornerRadius = UDim.new(0, 4)
-                UICornerOpt.Parent = OptionFrame
-                
-                OptionText.Parent = OptionFrame
-                OptionText.BackgroundTransparency = 1
-                OptionText.Size = UDim2.new(1, 0, 1, 0)
-                OptionText.Font = Enum.Font.GothamBold
-                OptionText.Text = option
-                OptionText.TextColor3 = Leaf.MenuColorValue.Value
-                table.insert(Leaf.colorElements, {element = OptionText, property = "TextColor3"})
-                OptionText.TextSize = 14
-                OptionText.ZIndex = 53
-                
-                OptionButton.Parent = OptionFrame
-                OptionButton.BackgroundTransparency = 1
-                OptionButton.Size = UDim2.new(1, 0, 1, 0)
-                OptionButton.Text = ""
-                OptionButton.ZIndex = 53
-                
-                OptionButton.MouseButton1Click:Connect(function()
-                    Info.Text = option
-                    props.Callback(option)
-                    DropdownList.Visible = false
-                end)
-            end
+            local currentOption = props.CurrentOption
+            local multiSelect = props.Multi or false
             
-            for _, option in ipairs(props.Options) do
-                createOption(option)
-            end
-            
-            ScrollingFrameList.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y)
-            
-            local isOpen = false
-            
-            TextButton.MouseButton1Click:Connect(function()
-                isOpen = not isOpen
-                if isOpen then
-                    for _, dropdown in ipairs(allDropdowns) do
-                        dropdown.Visible = false
-                    end
-                    local buttonAbsolutePos = DropdownFrame.AbsolutePosition
-                    local menuAbsolutePos = OuterFrame.AbsolutePosition
-                    local relativeX = buttonAbsolutePos.X - menuAbsolutePos.X
-                    local relativeY = buttonAbsolutePos.Y - menuAbsolutePos.Y + DropdownFrame.AbsoluteSize.Y
-                    DropdownList.Position = UDim2.new(0, relativeX, 0, relativeY)
+            local function updateOptions()
+                ScrollingOptions:ClearAllChildren()
+                UIListLayout.Parent = nil
+                UIListLayout.Parent = ScrollingOptions
+                local height = 0
+                for _, option in ipairs(props.Options) do
+                    local OptionButton = Instance.new("TextButton")
+                    OptionButton.Parent = ScrollingOptions
+                    OptionButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+                    OptionButton.Size = UDim2.new(1, 0, 0, 30)
+                    OptionButton.Font = Enum.Font.GothamBold
+                    OptionButton.Text = option
+                    OptionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    OptionButton.TextSize = 14
+                    
+                    local UICornerOpt = Instance.new("UICorner")
+                    UICornerOpt.CornerRadius = UDim.new(0, 4)
+                    UICornerOpt.Parent = OptionButton
+                    
+                    OptionButton.MouseButton1Click:Connect(function()
+                        if multiSelect then
+                            -- Implement multi-select logic if needed
+                        else
+                            currentOption = option
+                            Selected.Text = option
+                            OptionsFrame.Visible = false
+                            Arrow.Rotation = 90
+                            if props.Callback then pcall(props.Callback, option) end
+                        end
+                    end)
+                    
+                    height = height + 32
                 end
-                DropdownList.Visible = isOpen
+                ScrollingOptions.CanvasSize = UDim2.new(0, 0, 0, height)
+                OptionsFrame.Size = UDim2.new(0, 280, 0, math.min(height + 4, 150))
+            end
+            
+            updateOptions()
+            
+            DropButton.MouseButton1Click:Connect(function()
+                for _, dropdown in ipairs(allDropdowns) do dropdown.Visible = false end
+                OptionsFrame.Visible = not OptionsFrame.Visible
+                Arrow.Rotation = OptionsFrame.Visible and 270 or 90
+                if OptionsFrame.Visible then
+                    local absPos = DropdownFrame.AbsolutePosition
+                    OptionsFrame.Position = UDim2.new(0, absPos.X, 0, absPos.Y + 45)
+                end
             end)
             
-            table.insert(allDropdowns, DropdownList)
-            
-            local dropdownObject = {}
-            function dropdownObject:UpdateOptions(newOptions)
-                for _, child in ipairs(ScrollingFrameList:GetChildren()) do
-                    if child:IsA("Frame") then child:Destroy() end
-                end
-                props.Options = newOptions
-                for _, option in ipairs(newOptions) do createOption(option) end
-                ScrollingFrameList.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y)
-                local currentOption = Info.Text
-                local found = false
-                for _, option in ipairs(newOptions) do
-                    if option == currentOption then found = true break end
-                end
-                if not found and #newOptions > 0 then Info.Text = newOptions[1] end
-            end
-            dropdownObject.GetCurrentOption = function() return Info.Text end
+            table.insert(allDropdowns, OptionsFrame)
             
             local key = props.Id or props.Name
             self.window.elements[key] = {
-                GetValue = function() return Info.Text end,
+                GetValue = function() return currentOption end,
                 SetValue = function(value)
-                    local found = false
-                    for _, option in ipairs(props.Options) do
-                        if option == value then found = true break end
-                    end
-                    if found then
-                        Info.Text = value
+                    if table.find(props.Options, value) then
+                        currentOption = value
+                        Selected.Text = value
                         if props.Callback then pcall(props.Callback, value) end
                     end
                 end
             }
             
             updateNextPos(isRight, currentPos + 45)
-            return dropdownObject
         end
-        
-        function tab:CreateColorPicker(props)
+
+        function tab:ColorPicker(props)
             local parentFrame, currentPos, isRight = getParentFrame(props.Position)
 
-            local Name = props.Name
-            local Color = props.Color
-            local Callback = props.Callback
-            
             local ColorPickerFrame = Instance.new("Frame")
             local UICornerCP = Instance.new("UICorner")
             local NameLabel = Instance.new("TextLabel")
             local ColorIndicator = Instance.new("Frame")
             local UICornerCI = Instance.new("UICorner")
             local PickButton = Instance.new("TextButton")
+            
+            local Name = props.Name
+            local Color = props.Color or Color3.new(1,1,1)
+            local Callback = props.Callback
             
             ColorPickerFrame.Parent = parentFrame
             ColorPickerFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
